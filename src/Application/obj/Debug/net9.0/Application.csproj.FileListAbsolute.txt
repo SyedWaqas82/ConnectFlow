@@ -1,0 +1,15 @@
+/Users/WaQas/Desktop/Projects/ConnectFlow/src/Application/bin/Debug/net9.0/ConnectFlow.Application.deps.json
+/Users/WaQas/Desktop/Projects/ConnectFlow/src/Application/bin/Debug/net9.0/ConnectFlow.Application.dll
+/Users/WaQas/Desktop/Projects/ConnectFlow/src/Application/bin/Debug/net9.0/ConnectFlow.Application.pdb
+/Users/WaQas/Desktop/Projects/ConnectFlow/src/Application/bin/Debug/net9.0/ConnectFlow.Domain.dll
+/Users/WaQas/Desktop/Projects/ConnectFlow/src/Application/bin/Debug/net9.0/ConnectFlow.Domain.pdb
+/Users/WaQas/Desktop/Projects/ConnectFlow/src/Application/obj/Debug/net9.0/Application.csproj.AssemblyReference.cache
+/Users/WaQas/Desktop/Projects/ConnectFlow/src/Application/obj/Debug/net9.0/Application.GeneratedMSBuildEditorConfig.editorconfig
+/Users/WaQas/Desktop/Projects/ConnectFlow/src/Application/obj/Debug/net9.0/Application.AssemblyInfoInputs.cache
+/Users/WaQas/Desktop/Projects/ConnectFlow/src/Application/obj/Debug/net9.0/Application.AssemblyInfo.cs
+/Users/WaQas/Desktop/Projects/ConnectFlow/src/Application/obj/Debug/net9.0/Application.csproj.CoreCompileInputs.cache
+/Users/WaQas/Desktop/Projects/ConnectFlow/src/Application/obj/Debug/net9.0/Applicat.44B5EDA2.Up2Date
+/Users/WaQas/Desktop/Projects/ConnectFlow/src/Application/obj/Debug/net9.0/ConnectFlow.Application.dll
+/Users/WaQas/Desktop/Projects/ConnectFlow/src/Application/obj/Debug/net9.0/refint/ConnectFlow.Application.dll
+/Users/WaQas/Desktop/Projects/ConnectFlow/src/Application/obj/Debug/net9.0/ConnectFlow.Application.pdb
+/Users/WaQas/Desktop/Projects/ConnectFlow/src/Application/obj/Debug/net9.0/ref/ConnectFlow.Application.dll

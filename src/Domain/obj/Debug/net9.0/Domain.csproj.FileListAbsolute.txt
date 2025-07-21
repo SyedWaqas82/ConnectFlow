@@ -1,0 +1,12 @@
+/Users/WaQas/Desktop/Projects/ConnectFlow/src/Domain/bin/Debug/net9.0/ConnectFlow.Domain.deps.json
+/Users/WaQas/Desktop/Projects/ConnectFlow/src/Domain/bin/Debug/net9.0/ConnectFlow.Domain.dll
+/Users/WaQas/Desktop/Projects/ConnectFlow/src/Domain/bin/Debug/net9.0/ConnectFlow.Domain.pdb
+/Users/WaQas/Desktop/Projects/ConnectFlow/src/Domain/obj/Debug/net9.0/Domain.csproj.AssemblyReference.cache
+/Users/WaQas/Desktop/Projects/ConnectFlow/src/Domain/obj/Debug/net9.0/Domain.GeneratedMSBuildEditorConfig.editorconfig
+/Users/WaQas/Desktop/Projects/ConnectFlow/src/Domain/obj/Debug/net9.0/Domain.AssemblyInfoInputs.cache
+/Users/WaQas/Desktop/Projects/ConnectFlow/src/Domain/obj/Debug/net9.0/Domain.AssemblyInfo.cs
+/Users/WaQas/Desktop/Projects/ConnectFlow/src/Domain/obj/Debug/net9.0/Domain.csproj.CoreCompileInputs.cache
+/Users/WaQas/Desktop/Projects/ConnectFlow/src/Domain/obj/Debug/net9.0/ConnectFlow.Domain.dll
+/Users/WaQas/Desktop/Projects/ConnectFlow/src/Domain/obj/Debug/net9.0/refint/ConnectFlow.Domain.dll
+/Users/WaQas/Desktop/Projects/ConnectFlow/src/Domain/obj/Debug/net9.0/ConnectFlow.Domain.pdb
+/Users/WaQas/Desktop/Projects/ConnectFlow/src/Domain/obj/Debug/net9.0/ref/ConnectFlow.Domain.dll
