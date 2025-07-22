@@ -1,5 +1,3 @@
-using ConnectFlow.Domain.Identity;
-
 namespace ConnectFlow.Domain.Entities;
 
 public class Lead : BaseAuditableEntity, ITenantEntity
@@ -24,7 +22,7 @@ public class Lead : BaseAuditableEntity, ITenantEntity
     public Pipeline? Pipeline { get; set; }
 
     public int? OwnerId { get; set; }
-    public ApplicationUser? Owner { get; set; }
+    public TenantUser? Owner { get; set; }
 
     // Tenant
     public int TenantId { get; set; } = default!;

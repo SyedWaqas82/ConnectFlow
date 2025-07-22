@@ -1,5 +1,3 @@
-using ConnectFlow.Domain.Identity;
-
 namespace ConnectFlow.Domain.Entities;
 
 public class Reminder : BaseAuditableEntity, ITenantEntity
@@ -15,11 +13,11 @@ public class Reminder : BaseAuditableEntity, ITenantEntity
     public bool IsDismissed { get; set; }
     public DateTimeOffset? DismissedAt { get; set; }
     public int? DismissedById { get; set; }
-    public ApplicationUser? DismissedBy { get; set; }
+    public TenantUser? DismissedBy { get; set; }
     public bool IsCompleted { get; set; }
     public DateTimeOffset? CompletedAt { get; set; }
     public int? CompletedById { get; set; }
-    public ApplicationUser? CompletedBy { get; set; }
+    public TenantUser? CompletedBy { get; set; }
 
     // Task Reference
     public int TaskId { get; set; } = default!;
@@ -27,7 +25,7 @@ public class Reminder : BaseAuditableEntity, ITenantEntity
 
     // Primary Assignee
     public int? AssigneeId { get; set; }
-    public ApplicationUser? Assignee { get; set; }
+    public TenantUser? Assignee { get; set; }
 
     // Additional Recipients
     public IList<ReminderRecipient> Recipients { get; private set; } = new List<ReminderRecipient>();

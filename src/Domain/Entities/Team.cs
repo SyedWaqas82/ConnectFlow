@@ -1,5 +1,3 @@
-using ConnectFlow.Domain.Identity;
-
 namespace ConnectFlow.Domain.Entities;
 
 public class Team : BaseAuditableEntity, ITenantEntity
@@ -7,7 +5,7 @@ public class Team : BaseAuditableEntity, ITenantEntity
     public string Name { get; set; } = null!;
     public string? Description { get; set; }
 
-    public IList<ApplicationUser> Members { get; private set; } = new List<ApplicationUser>();
+    public IList<TenantUser> Members { get; private set; } = new List<TenantUser>();
 
     // Tenant
     public int TenantId { get; set; } = default!;

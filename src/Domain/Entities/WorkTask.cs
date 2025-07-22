@@ -1,5 +1,3 @@
-using ConnectFlow.Domain.Identity;
-
 namespace ConnectFlow.Domain.Entities;
 
 public class WorkTask : BaseAuditableEntity, ITenantEntity
@@ -12,7 +10,7 @@ public class WorkTask : BaseAuditableEntity, ITenantEntity
     public DateTimeOffset? CompletedDate { get; set; }
 
     public int? AssigneeId { get; set; }
-    public ApplicationUser? Assignee { get; set; }
+    public TenantUser? Assignee { get; set; }
 
     public int? ContactId { get; set; }
     public Contact? Contact { get; set; }

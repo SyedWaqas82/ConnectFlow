@@ -1,5 +1,3 @@
-using ConnectFlow.Domain.Identity;
-
 namespace ConnectFlow.Domain.Entities;
 
 public class ReminderRecipient : BaseAuditableEntity, ITenantEntity
@@ -8,7 +6,7 @@ public class ReminderRecipient : BaseAuditableEntity, ITenantEntity
     public Reminder Reminder { get; set; } = null!;
 
     public int UserId { get; set; } = default!;
-    public ApplicationUser User { get; set; } = null!;
+    public TenantUser User { get; set; } = null!;
 
     public bool IsDismissed { get; set; }
     public DateTime? DismissedAt { get; set; }

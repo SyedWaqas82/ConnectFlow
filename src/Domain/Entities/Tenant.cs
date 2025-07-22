@@ -1,5 +1,3 @@
-using ConnectFlow.Domain.Identity;
-
 namespace ConnectFlow.Domain.Entities;
 
 public class Tenant : BaseAuditableEntity
@@ -23,5 +21,5 @@ public class Tenant : BaseAuditableEntity
 
     public Subscription? Subscription { get; set; }
     public IList<Team> Teams { get; private set; } = new List<Team>();
-    public IList<ApplicationUser> Users { get; private set; } = new List<ApplicationUser>();
+    public IList<TenantUser> Users { get; private set; } = new List<TenantUser>();
 }

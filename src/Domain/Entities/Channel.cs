@@ -1,5 +1,3 @@
-using ConnectFlow.Domain.Identity;
-
 namespace ConnectFlow.Domain.Entities;
 
 public class Channel : BaseAuditableEntity, ITenantEntity
@@ -22,7 +20,7 @@ public class Channel : BaseAuditableEntity, ITenantEntity
 
     // Assignment and Access
     public int? DefaultAssigneeId { get; set; }
-    public ApplicationUser? DefaultAssignee { get; set; }
+    public TenantUser? DefaultAssignee { get; set; }
 
     public int? DefaultTeamId { get; set; }
     public Team? DefaultTeam { get; set; }

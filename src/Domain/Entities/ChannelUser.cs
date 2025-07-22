@@ -1,5 +1,3 @@
-using ConnectFlow.Domain.Identity;
-
 namespace ConnectFlow.Domain.Entities;
 
 public class ChannelUser : BaseAuditableEntity, ITenantEntity
@@ -8,7 +6,7 @@ public class ChannelUser : BaseAuditableEntity, ITenantEntity
     public Channel Channel { get; set; } = null!;
 
     public int UserId { get; set; } = default!;
-    public ApplicationUser User { get; set; } = null!;
+    public TenantUser User { get; set; } = null!;
 
     public bool CanView { get; set; }
     public bool CanSend { get; set; }

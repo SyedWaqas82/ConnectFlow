@@ -1,11 +1,11 @@
-using ConnectFlow.Domain.Identity;
+using System.ComponentModel.DataAnnotations;
 
 namespace ConnectFlow.Domain.Entities;
 
 public class TenantUserRole : BaseAuditableEntity, ITenantEntity
 {
-    public string RoleId { get; set; } = default!;
-    public ApplicationRole Role { get; set; } = null!;
+    [Key]
+    public int ApplicationRoleId { get; set; } = default!;
 
     // Tenant
     public int TenantId { get; set; } = default!;

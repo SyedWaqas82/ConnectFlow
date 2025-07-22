@@ -1,8 +1,9 @@
-using ConnectFlow.Domain.Identity;
+
+using ConnectFlow.Domain.Entities;
 
 namespace ConnectFlow.Application.Common.Interfaces;
 
 public interface ITokenService
 {
-    Task<string> CreateTokenAsync(ApplicationUser user);
+    Task<string> CreateTokenAsync(TenantUser user);
 }

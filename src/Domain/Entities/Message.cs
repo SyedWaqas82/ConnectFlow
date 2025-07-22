@@ -1,5 +1,3 @@
-using ConnectFlow.Domain.Identity;
-
 namespace ConnectFlow.Domain.Entities;
 
 public class Message : BaseAuditableEntity, ITenantEntity
@@ -23,7 +21,7 @@ public class Message : BaseAuditableEntity, ITenantEntity
 
     // Sender and Recipients
     public int? FromUserId { get; set; }
-    public ApplicationUser? FromUser { get; set; }
+    public TenantUser? FromUser { get; set; }
 
     public int? ContactId { get; set; }
     public Contact? Contact { get; set; }

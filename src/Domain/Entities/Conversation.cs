@@ -1,5 +1,3 @@
-using ConnectFlow.Domain.Identity;
-
 namespace ConnectFlow.Domain.Entities;
 
 public class Conversation : BaseAuditableEntity, ITenantEntity
@@ -11,7 +9,7 @@ public class Conversation : BaseAuditableEntity, ITenantEntity
     public bool IsArchived { get; set; }
     public DateTimeOffset? ArchivedAt { get; set; }
     public string? ArchivedById { get; set; }
-    public ApplicationUser? ArchivedBy { get; set; }
+    public TenantUser? ArchivedBy { get; set; }
 
     // Channel
     public string ChannelId { get; set; } = string.Empty;
@@ -26,7 +24,7 @@ public class Conversation : BaseAuditableEntity, ITenantEntity
 
     // Assignment
     public int? AssigneeId { get; set; }
-    public ApplicationUser? Assignee { get; set; }
+    public TenantUser? Assignee { get; set; }
 
     // Team Assignment
     public int? TeamId { get; set; }

@@ -1,5 +1,3 @@
-using ConnectFlow.Domain.Identity;
-
 namespace ConnectFlow.Domain.Entities;
 
 public class AIUsage : BaseAuditableEntity, ITenantEntity
@@ -15,7 +13,7 @@ public class AIUsage : BaseAuditableEntity, ITenantEntity
 
     // User who made the request
     public int UserId { get; set; } = default!;
-    public ApplicationUser User { get; set; } = null!;
+    public TenantUser User { get; set; } = null!;
 
     // Associated entities
     public int? ConversationId { get; set; }

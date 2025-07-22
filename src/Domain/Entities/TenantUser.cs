@@ -1,12 +1,11 @@
-using ConnectFlow.Domain.Identity;
+using System.ComponentModel.DataAnnotations;
 
 namespace ConnectFlow.Domain.Entities;
 
 public class TenantUser : BaseAuditableEntity, ITenantEntity
 {
-    public string UserId { get; set; } = default!;
-    public ApplicationUser User { get; set; } = null!;
-
+    [Key]
+    public int ApplicationUserId { get; set; } = default!;
     public bool IsActive { get; set; } = true;
     public DateTime? LastLoginAt { get; set; }
     public string? LastLoginIp { get; set; }

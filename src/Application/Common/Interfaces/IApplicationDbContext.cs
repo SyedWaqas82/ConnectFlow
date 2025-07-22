@@ -1,5 +1,4 @@
 ﻿using ConnectFlow.Domain.Entities;
-using ConnectFlow.Domain.Identity;
 
 namespace ConnectFlow.Application.Common.Interfaces;
 
@@ -39,7 +38,6 @@ public interface IApplicationDbContext
     DbSet<TodoList> TodoLists { get; } // Keep for now to avoid breaking existing code
     DbSet<Template> Templates { get; }
     DbSet<Trigger> Triggers { get; }
-    DbSet<UserSession> UserSessions { get; }
     DbSet<Workflow> Workflows { get; }
     DbSet<WorkTask> WorkTasks { get; }
 

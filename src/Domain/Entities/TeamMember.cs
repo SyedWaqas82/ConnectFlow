@@ -1,5 +1,3 @@
-using ConnectFlow.Domain.Identity;
-
 namespace ConnectFlow.Domain.Entities;
 
 public class TeamMember : BaseAuditableEntity, ITenantEntity
@@ -8,7 +6,7 @@ public class TeamMember : BaseAuditableEntity, ITenantEntity
     public Team Team { get; set; } = null!;
 
     public int UserId { get; set; } = default!;
-    public ApplicationUser User { get; set; } = null!;
+    public TenantUser User { get; set; } = null!;
 
     public bool IsTeamLead { get; set; }
     public string? Role { get; set; }

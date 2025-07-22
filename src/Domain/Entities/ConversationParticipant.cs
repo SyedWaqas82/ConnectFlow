@@ -1,5 +1,3 @@
-using ConnectFlow.Domain.Identity;
-
 namespace ConnectFlow.Domain.Entities;
 
 public class ConversationParticipant : BaseAuditableEntity, ITenantEntity
@@ -8,7 +6,7 @@ public class ConversationParticipant : BaseAuditableEntity, ITenantEntity
     public Conversation Conversation { get; set; } = null!;
 
     public int UserId { get; set; } = default!;
-    public ApplicationUser User { get; set; } = null!;
+    public TenantUser User { get; set; } = null!;
 
     public bool IsActive { get; set; } = true;
     public DateTime? LastViewedAt { get; set; }
