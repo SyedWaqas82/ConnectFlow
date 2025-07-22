@@ -2,7 +2,7 @@ using ConnectFlow.Domain.Identity;
 
 namespace ConnectFlow.Domain.Entities;
 
-public class Task : BaseAuditableEntity, ITenantEntity
+public class WorkTask : BaseAuditableEntity, ITenantEntity
 {
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;

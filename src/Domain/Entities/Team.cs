@@ -2,7 +2,7 @@ using ConnectFlow.Domain.Identity;
 
 namespace ConnectFlow.Domain.Entities;
 
-public class Team : BaseEntity, ITenantEntity
+public class Team : BaseAuditableEntity, ITenantEntity
 {
     public string Name { get; set; } = null!;
     public string? Description { get; set; }
