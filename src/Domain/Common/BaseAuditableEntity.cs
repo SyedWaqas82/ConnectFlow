@@ -2,13 +2,11 @@
 
 public abstract class BaseAuditableEntity : BaseEntity
 {
-    public DateTimeOffset Created { get; set; }
+    public DateTimeOffset Created { get; set; } = DateTimeOffset.UtcNow;
 
     public int? CreatedBy { get; set; }
-    public TenantUser CreatedByUser { get; set; } = null!;
 
-    public DateTimeOffset LastModified { get; set; }
+    public DateTimeOffset LastModified { get; set; } = DateTimeOffset.UtcNow;
 
     public int? LastModifiedBy { get; set; }
-    public TenantUser LastModifiedByUser { get; set; } = null!;
 }

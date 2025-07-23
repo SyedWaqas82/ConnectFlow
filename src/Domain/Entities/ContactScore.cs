@@ -4,7 +4,7 @@ public class ContactScore : BaseAuditableEntity, ITenantEntity
 {
     public int EngagementScore { get; set; }
     public int QualificationScore { get; set; }
-    public DateTime LastInteraction { get; set; }
+    public DateTimeOffset LastInteraction { get; set; }
     public int InteractionCount { get; set; }
 
     public int ContactId { get; set; } = default!;

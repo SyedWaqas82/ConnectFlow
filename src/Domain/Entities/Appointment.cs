@@ -2,8 +2,8 @@ namespace ConnectFlow.Domain.Entities;
 
 public class Appointment : BaseEntity, ITenantEntity
 {
-    public DateTime StartTime { get; set; }
-    public DateTime EndTime { get; set; }
+    public DateTimeOffset StartTime { get; set; }
+    public DateTimeOffset EndTime { get; set; }
     public string Title { get; set; } = null!;
     public string? Description { get; set; }
     public AppointmentStatus Status { get; set; }

@@ -9,7 +9,7 @@ public class ReminderRecipient : BaseAuditableEntity, ITenantEntity
     public TenantUser User { get; set; } = null!;
 
     public bool IsDismissed { get; set; }
-    public DateTime? DismissedAt { get; set; }
+    public DateTimeOffset? DismissedAt { get; set; }
 
     // Tenant
     public int TenantId { get; set; } = default!;

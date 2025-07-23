@@ -17,7 +17,7 @@ public class Tenant : BaseAuditableEntity
     public string? PostalCode { get; set; }
     public bool IsActive { get; set; } = true;
     public string? Settings { get; set; } // JSON string for tenant-specific settings
-    public DateTime? DeactivatedAt { get; set; }
+    public DateTimeOffset? DeactivatedAt { get; set; }
 
     // Navigation properties
     public IList<TenantUser> TenantUsers { get; private set; } = new List<TenantUser>();

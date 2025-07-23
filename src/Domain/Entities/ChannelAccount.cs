@@ -21,7 +21,7 @@ public class ChannelAccount : BaseAuditableEntity, ITenantEntity
     public string? WebhookUrl { get; set; }
     public string? WebhookSecret { get; set; }
     public bool WebhookEnabled { get; set; }
-    public DateTime? LastWebhookCall { get; set; }
+    public DateTimeOffset? LastWebhookCall { get; set; }
 
     // Channel reference
     public int ChannelId { get; set; } = default!;
@@ -29,10 +29,10 @@ public class ChannelAccount : BaseAuditableEntity, ITenantEntity
 
     // Integration status
     public bool IsVerified { get; set; }
-    public DateTime? LastVerifiedAt { get; set; }
+    public DateTimeOffset? LastVerifiedAt { get; set; }
     public string? VerificationError { get; set; }
     public int FailedAttempts { get; set; }
-    public DateTime? LastFailureAt { get; set; }
+    public DateTimeOffset? LastFailureAt { get; set; }
 
     // Tenant
     public int TenantId { get; set; } = default!;

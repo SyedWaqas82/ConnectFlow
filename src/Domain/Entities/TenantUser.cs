@@ -4,8 +4,8 @@ public class TenantUser : BaseAuditableEntity
 {
     public int UserId { get; set; } = default!;
     public bool IsActive { get; set; } = true;
-    public DateTime JoinedAt { get; set; } = DateTime.UtcNow;
-    public DateTime? LeftAt { get; set; }
+    public DateTimeOffset JoinedAt { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset? LeftAt { get; set; }
     public int? InvitedBy { get; set; } // UserId of inviter
     public TenantUserStatus Status { get; set; } = TenantUserStatus.Active;
 

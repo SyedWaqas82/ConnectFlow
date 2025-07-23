@@ -16,7 +16,7 @@ public class Channel : BaseAuditableEntity, ITenantEntity
     public int? MonthlyMessageLimit { get; set; }
     public int CurrentDayMessageCount { get; set; }
     public int CurrentMonthMessageCount { get; set; }
-    public DateTime? LastResetDate { get; set; }
+    public DateTimeOffset? LastResetDate { get; set; }
 
     // Assignment and Access
     public int? DefaultAssigneeId { get; set; }
@@ -27,7 +27,7 @@ public class Channel : BaseAuditableEntity, ITenantEntity
 
     // Error Handling
     public string? LastError { get; set; }
-    public DateTime? LastErrorAt { get; set; }
+    public DateTimeOffset? LastErrorAt { get; set; }
     public int ErrorCount { get; set; }
 
     // Collections

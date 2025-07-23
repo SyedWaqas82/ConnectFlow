@@ -9,8 +9,8 @@ public class ConversationParticipant : BaseAuditableEntity, ITenantEntity
     public TenantUser User { get; set; } = null!;
 
     public bool IsActive { get; set; } = true;
-    public DateTime? LastViewedAt { get; set; }
-    public DateTime? LastParticipatedAt { get; set; }
+    public DateTimeOffset? LastViewedAt { get; set; }
+    public DateTimeOffset? LastParticipatedAt { get; set; }
 
     // Tenant
     public int TenantId { get; set; } = default!;

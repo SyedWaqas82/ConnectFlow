@@ -11,9 +11,7 @@ public class AuditableEntityInterceptor : SaveChangesInterceptor
     private readonly IUser _user;
     private readonly TimeProvider _dateTime;
 
-    public AuditableEntityInterceptor(
-        IUser user,
-        TimeProvider dateTime)
+    public AuditableEntityInterceptor(IUser user, TimeProvider dateTime)
     {
         _user = user;
         _dateTime = dateTime;
@@ -42,12 +40,13 @@ public class AuditableEntityInterceptor : SaveChangesInterceptor
             if (entry.State is EntityState.Added or EntityState.Modified || entry.HasChangedOwnedEntities())
             {
                 var utcNow = _dateTime.GetUtcNow();
-                if (entry.State == EntityState.Added)
+                if (entry.State == EntityState.Added && !entry.Entity.CreatedBy.HasValue)
                 {
-                    entry.Entity.CreatedBy = _user.Id;
+                    entry.Entity.CreatedBy = _user.ApplicationUserId;
                     entry.Entity.Created = utcNow;
-                } 
-                entry.Entity.LastModifiedBy = _user.Id;
+                }
+
+                entry.Entity.LastModifiedBy = _user.ApplicationUserId;
                 entry.Entity.LastModified = utcNow;
             }
         }
@@ -57,8 +56,5 @@ public class AuditableEntityInterceptor : SaveChangesInterceptor
 public static class Extensions
 {
     public static bool HasChangedOwnedEntities(this EntityEntry entry) =>
-        entry.References.Any(r => 
-            r.TargetEntry != null && 
-            r.TargetEntry.Metadata.IsOwned() && 
-            (r.TargetEntry.State == EntityState.Added || r.TargetEntry.State == EntityState.Modified));
+        entry.References.Any(r => r.TargetEntry != null && r.TargetEntry.Metadata.IsOwned() && (r.TargetEntry.State == EntityState.Added || r.TargetEntry.State == EntityState.Modified));
 }

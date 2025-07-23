@@ -41,5 +41,5 @@ public interface IApplicationDbContext
     DbSet<Workflow> Workflows { get; }
     DbSet<WorkTask> WorkTasks { get; }
 
-    Task<int> SaveChangesAsync(CancellationToken cancellationToken);
+    Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

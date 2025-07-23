@@ -4,7 +4,7 @@ using ConnectFlow.Domain.Constants;
 
 namespace ConnectFlow.Application.TodoLists.Commands.PurgeTodoLists;
 
-[Authorize(Roles = Roles.Administrator)]
+[Authorize(Roles = Roles.SuperAdmin)]
 [Authorize(Policy = Policies.CanPurge)]
 public record PurgeTodoListsCommand : IRequest;
 
