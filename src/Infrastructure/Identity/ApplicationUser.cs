@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using ConnectFlow.Domain.Entities;
+using Microsoft.AspNetCore.Identity;
 
 namespace ConnectFlow.Infrastructure.Identity;
 
 public class ApplicationUser : IdentityUser<int>
 {
+    public Guid PublicId { get; set; } = Guid.NewGuid();
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public string FullName => $"{FirstName} {LastName}";
@@ -14,11 +16,14 @@ public class ApplicationUser : IdentityUser<int>
     public string Locale { get; set; } = "en-US";
     public bool IsActive { get; set; } = true;
     public string? Preferences { get; set; } // JSON string for user preferences
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime? LastLoginAt { get; set; }
-    public DateTime? DeactivatedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset? LastLoginAt { get; set; }
+    public DateTimeOffset? DeactivatedAt { get; set; }
 
     // // Additional properties for token management
     public string? RefreshToken { get; set; }
-    public DateTime? RefreshTokenExpiryTime { get; set; }
+    public DateTimeOffset? RefreshTokenExpiryTime { get; set; }
+
+    // Navigation properties
+    public IList<TenantUser> TenantUsers { get; private set; } = new List<TenantUser>();
 }

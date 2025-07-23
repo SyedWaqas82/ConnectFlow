@@ -6,6 +6,6 @@ public class ApplicationRole : IdentityRole<int>
 {
     public string Description { get; set; } = string.Empty;
     public bool IsSystemRole { get; set; }
-    public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+    public DateTimeOffset CreatedDate { get; set; } = DateTimeOffset.UtcNow;
     public int? CreatedBy { get; set; }
 }
