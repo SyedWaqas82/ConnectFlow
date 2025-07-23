@@ -22,3 +22,23 @@ public class Result
         return new Result(false, errors);
     }
 }
+
+public class Result<T> : Result
+{
+    public T? Data { get; set; }
+
+    internal Result(bool succeeded, IEnumerable<string> errors, T? data) : base(succeeded, errors)
+    {
+        Data = data;
+    }
+
+    public static Result<T> Success(T? data)
+    {
+        return new Result<T>(true, Array.Empty<string>(), data);
+    }
+
+    public static Result<T> Failure(IEnumerable<string> errors, T? data)
+    {
+        return new Result<T>(false, errors, data);
+    }
+}

@@ -1,6 +1,6 @@
 namespace ConnectFlow.Domain.Entities;
 
-public class Subscription : BaseAuditableEntity, ITenantEntity
+public class Subscription : BaseAuditableEntity
 {
     public string StripeCustomerId { get; set; } = default!;
     public string StripeSubscriptionId { get; set; } = default!;

@@ -2,12 +2,11 @@ namespace ConnectFlow.Domain.Entities;
 
 public class Tenant : BaseAuditableEntity
 {
-    public string Name { get; set; } = default!;
-    public string Subdomain { get; set; } = default!;
-    public string? CustomDomain { get; set; }
-    public string? LogoUrl { get; set; }
-    public string TimeZone { get; set; } = "UTC";
-    public string Locale { get; set; } = "en-US";
+    public string Name { get; set; } = string.Empty;
+    public string Code { get; set; } = string.Empty; // Unique tenant identifier
+    public string? Description { get; set; }
+    public string Domain { get; set; } = string.Empty; // e.g., company.yoursaas.com
+    public string? Avatar { get; set; }
     public string? Phone { get; set; }
     public string? Email { get; set; }
     public string? Website { get; set; }
@@ -17,9 +16,10 @@ public class Tenant : BaseAuditableEntity
     public string? Country { get; set; }
     public string? PostalCode { get; set; }
     public bool IsActive { get; set; } = true;
-    public DateTime? TrialEndsAt { get; set; }
+    public string? Settings { get; set; } // JSON string for tenant-specific settings
+    public DateTime? DeactivatedAt { get; set; }
 
-    public Subscription? Subscription { get; set; }
-    public IList<Team> Teams { get; private set; } = new List<Team>();
-    public IList<TenantUser> Users { get; private set; } = new List<TenantUser>();
+    // Navigation properties
+    public IList<TenantUser> TenantUsers { get; private set; } = new List<TenantUser>();
+    public IList<Subscription> Subscriptions { get; private set; } = new List<Subscription>();
 }
