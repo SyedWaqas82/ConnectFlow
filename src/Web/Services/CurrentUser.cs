@@ -1,14 +1,19 @@
 ﻿using System.Security.Claims;
+using ConnectFlow.Application.Common.Interfaces;
+using ConnectFlow.Application.Common.Models;
+using Microsoft.Extensions.Options;
 
 namespace ConnectFlow.Web.Services;
 
 public class CurrentUser : IUser
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly TenantSettings _tenantSettings;
 
-    public CurrentUser(IHttpContextAccessor httpContextAccessor)
+    public CurrentUser(IHttpContextAccessor httpContextAccessor, IOptions<TenantSettings> tenantSettings)
     {
         _httpContextAccessor = httpContextAccessor;
+        _tenantSettings = tenantSettings.Value;
     }
 
     public int? ApplicationUserId
@@ -17,14 +22,12 @@ public class CurrentUser : IUser
         {
             string? Id = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.Sid);
 
-            if (!string.IsNullOrEmpty(Id))
+            if (int.TryParse(Id, out int applicationUserId))
             {
-                return int.Parse(Id);
+                return applicationUserId;
             }
-            else
-            {
-                return null;
-            }
+
+            return null;
         }
     }
 
@@ -34,14 +37,12 @@ public class CurrentUser : IUser
         {
             string? Id = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            if (!string.IsNullOrEmpty(Id))
+            if (Guid.TryParse(Id, out Guid publicUserId))
             {
-                return Guid.Parse(Id);
+                return publicUserId;
             }
-            else
-            {
-                return null;
-            }
+
+            return null;
         }
     }
 
@@ -67,6 +68,25 @@ public class CurrentUser : IUser
             {
                 return [];
             }
+        }
+    }
+
+    public Guid? TenantId
+    {
+        get
+        {
+            if (_httpContextAccessor.HttpContext?.Request.Headers.TryGetValue(_tenantSettings.HeaderName, out var tenantHeader) == true)
+            {
+                var tenantIdValue = tenantHeader.ToString();
+
+                // Try to parse as Guid (tenant ID)
+                if (Guid.TryParse(tenantIdValue, out Guid tenantId))
+                {
+                    return tenantId;
+                }
+            }
+
+            return null;
         }
     }
 }

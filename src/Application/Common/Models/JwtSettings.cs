@@ -1,4 +1,4 @@
-namespace ConnectFlow.Application.Identity;
+namespace ConnectFlow.Application.Common.Models;
 
 public class JwtSettings
 {

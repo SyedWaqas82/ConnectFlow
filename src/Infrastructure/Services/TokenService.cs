@@ -4,10 +4,10 @@ using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.Options;
-using ConnectFlow.Application.Identity;
 using ConnectFlow.Infrastructure.Identity;
 using ConnectFlow.Infrastructure.Common.Interfaces;
 using System.Security.Cryptography;
+using ConnectFlow.Application.Common.Models;
 
 namespace ConnectFlow.Infrastructure.Services;
 

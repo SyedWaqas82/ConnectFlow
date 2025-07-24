@@ -6,4 +6,5 @@ public interface IUser
     Guid? PublicUserId { get; }
     string? UserName { get; }
     IList<string> Roles { get; }
+    Guid? TenantId { get; }
 }
