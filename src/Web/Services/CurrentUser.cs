@@ -1,7 +1,5 @@
 ﻿using System.Security.Claims;
 
-using ConnectFlow.Application.Common.Interfaces;
-
 namespace ConnectFlow.Web.Services;
 
 public class CurrentUser : IUser
@@ -17,13 +15,58 @@ public class CurrentUser : IUser
     {
         get
         {
-            var userIdClaim = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (userIdClaim != null && int.TryParse(userIdClaim, out int userId))
-            {
-                return userId;
-            }
+            string? Id = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.Sid);
 
-            return null;
+            if (!string.IsNullOrEmpty(Id))
+            {
+                return int.Parse(Id);
+            }
+            else
+            {
+                return null;
+            }
+        }
+    }
+
+    public Guid? PublicUserId
+    {
+        get
+        {
+            string? Id = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (!string.IsNullOrEmpty(Id))
+            {
+                return Guid.Parse(Id);
+            }
+            else
+            {
+                return null;
+            }
+        }
+    }
+
+    public string? UserName
+    {
+        get
+        {
+            return _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.Name);
+        }
+    }
+
+    public IList<string> Roles
+    {
+        get
+        {
+            string? Roles = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.Role);
+
+            if (!string.IsNullOrEmpty(Roles))
+            {
+                return Roles.Split(",");
+            }
+            else
+            {
+                return [];
+            }
         }
     }
 }

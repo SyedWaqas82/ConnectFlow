@@ -1,6 +1,6 @@
 namespace ConnectFlow.Domain.Events.Users;
 
-public class UserCreatedEvent : BaseEvent
+public class UserEmailConfirmedEvent : BaseEvent
 {
     public int UserId { get; }
     public Guid PublicId { get; }
@@ -15,7 +15,7 @@ public class UserCreatedEvent : BaseEvent
     public bool EmailConfirmed { get; }
     public string ConfirmationToken { get; }
 
-    public UserCreatedEvent(int userId, Guid publicId, string email, string firstName, string lastName, string? jobTitle, string? phoneNumber, string? mobile, string? timeZone, string? locale, bool emailConfirmed, string confirmationToken)
+    public UserEmailConfirmedEvent(int userId, Guid publicId, string email, string firstName, string lastName, string? jobTitle, string? phoneNumber, string? mobile, string? timeZone, string? locale, bool emailConfirmed, string confirmationToken)
     {
         UserId = userId;
         PublicId = publicId;

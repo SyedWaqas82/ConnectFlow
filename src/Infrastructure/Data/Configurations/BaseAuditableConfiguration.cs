@@ -1,4 +1,5 @@
 using ConnectFlow.Domain.Common;
+using ConnectFlow.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -14,7 +15,7 @@ public abstract class BaseAuditableConfiguration<TEntity> : IEntityTypeConfigura
         builder.Property(t => t.PublicId).HasDefaultValueSql("newid()").IsRequired();
 
         // Common navigation properties
-        builder.HasOne(t => t.CreatedByUser).WithMany().HasForeignKey(t => t.CreatedBy).OnDelete(DeleteBehavior.SetNull);
-        builder.HasOne(t => t.LastModifiedByUser).WithMany().HasForeignKey(t => t.LastModifiedBy).OnDelete(DeleteBehavior.SetNull);
+        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(t => t.CreatedBy).OnDelete(DeleteBehavior.SetNull);
+        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(t => t.LastModifiedBy).OnDelete(DeleteBehavior.SetNull);
     }
 }

@@ -1,6 +1,6 @@
 namespace ConnectFlow.Domain.Events.Users;
 
-public class UserCreatedEvent : BaseEvent
+public class UserRestPasswordTokenGeneratedEvent
 {
     public int UserId { get; }
     public Guid PublicId { get; }
@@ -13,9 +13,9 @@ public class UserCreatedEvent : BaseEvent
     public string? TimeZone { get; }
     public string? Locale { get; }
     public bool EmailConfirmed { get; }
-    public string ConfirmationToken { get; }
+    public string ResetPasswordToken { get; }
 
-    public UserCreatedEvent(int userId, Guid publicId, string email, string firstName, string lastName, string? jobTitle, string? phoneNumber, string? mobile, string? timeZone, string? locale, bool emailConfirmed, string confirmationToken)
+    public UserRestPasswordTokenGeneratedEvent(int userId, Guid publicId, string email, string firstName, string lastName, string? jobTitle, string? phoneNumber, string? mobile, string? timeZone, string? locale, bool emailConfirmed, string resetPasswordToken)
     {
         UserId = userId;
         PublicId = publicId;
@@ -28,6 +28,6 @@ public class UserCreatedEvent : BaseEvent
         TimeZone = timeZone;
         Locale = locale;
         EmailConfirmed = emailConfirmed;
-        ConfirmationToken = confirmationToken;
+        ResetPasswordToken = resetPasswordToken;
     }
 }
