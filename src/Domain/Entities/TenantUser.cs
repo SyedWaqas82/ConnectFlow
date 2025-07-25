@@ -13,4 +13,5 @@ public class TenantUser : BaseAuditableEntity
     public int TenantId { get; set; }
     public Tenant Tenant { get; set; } = null!;
     public IList<TenantUserRole> TenantUserRoles { get; private set; } = new List<TenantUserRole>();
+    public IList<Lead> Leads { get; private set; } = new List<Lead>();
 }

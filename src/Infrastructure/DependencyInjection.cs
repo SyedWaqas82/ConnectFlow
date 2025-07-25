@@ -51,16 +51,19 @@ public static class DependencyInjection
         // Add custom services
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddTransient<IIdentityService, IdentityService>();
-        builder.Services.AddScoped<ITokenService, TokenService>();
+        builder.Services.AddScoped<IAuthTokenService, AuthTokenService>();
         builder.Services.AddScoped<ICacheService, RedisCacheService>();
         //builder.Services.AddScoped<IStripeService, StripeService>();
+        builder.Services.AddScoped<ITenantService, TenantService>();
+        builder.Services.AddScoped<ITenantLimitsService, TenantLimitsService>();
+        builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
     }
 
     private static void ConfigureEntityFramework(this IHostApplicationBuilder builder, string connectionString)
     {
         builder.Services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         builder.Services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
-        builder.Services.AddScoped<ISaveChangesInterceptor, TenantEntityInterceptor>();
+        builder.Services.AddScoped<ISaveChangesInterceptor, TenantFilterInterceptor>();
 
         // Add Database Context and interceptors
         builder.Services.AddDbContext<ApplicationDbContext>((sp, options) =>

@@ -9,16 +9,29 @@ namespace ConnectFlow.Infrastructure.Data;
 
 public class ApplicationDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, int, ApplicationUserClaim, ApplicationUserRole, ApplicationUserLogin, ApplicationRoleClaim, ApplicationUserToken>, IApplicationDbContext
 {
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
+    private readonly ITenantService _tenantService;
+
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, ITenantService tenantService) : base(options)
+    {
+        _tenantService = tenantService;
+    }
 
     public DbSet<Tenant> Tenants => Set<Tenant>();
     public DbSet<TenantUser> TenantUsers => Set<TenantUser>();
     public DbSet<TenantUserRole> TenantUserRoles => Set<TenantUserRole>();
     public DbSet<Subscription> Subscriptions => Set<Subscription>();
+    public DbSet<Lead> Leads => Set<Lead>();
+    public DbSet<Contact> Contacts => Set<Contact>();
+    public DbSet<Company> Companies => Set<Company>();
+    public DbSet<CustomField> CustomFields => Set<CustomField>();
+    public DbSet<AIUsage> AIUsages => Set<AIUsage>();
+    public DbSet<Stage> Stages => Set<Stage>();
+    public DbSet<ContactScore> ContactScores => Set<ContactScore>();
+    public DbSet<Pipeline> Pipelines => Set<Pipeline>();
     public DbSet<TodoList> TodoLists => Set<TodoList>();
     public DbSet<TodoItem> TodoItems => Set<TodoItem>();
 
-    // public DbSet<AIUsage> AIUsages => Set<AIUsage>();
+
 
     // public DbSet<Appointment> Appointments => Set<Appointment>();
 
@@ -34,7 +47,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
 
     // public DbSet<Contact> Contacts => Set<Contact>();
 
-    // public DbSet<ContactScore> ContactScores => Set<ContactScore>();
+    // 
 
     // public DbSet<ContentCategory> ContentCategories => Set<ContentCategory>();
 
@@ -50,7 +63,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
 
     // public DbSet<Message> Messages => Set<Message>();
 
-    // public DbSet<Pipeline> Pipelines => Set<Pipeline>();
+
 
     // public DbSet<Reminder> Reminders => Set<Reminder>();
 
@@ -62,7 +75,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
 
     // public DbSet<Service> Services => Set<Service>();
 
-    // public DbSet<Stage> Stages => Set<Stage>();
+
 
     // public DbSet<Tag> Tags => Set<Tag>();
 
@@ -82,5 +95,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     {
         base.OnModelCreating(builder);
         builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+
+        // Apply tenant and soft delete filters
+        builder.ApplyTenantFilters(_tenantService);
+        builder.ApplySoftDeleteFilters();
     }
 }

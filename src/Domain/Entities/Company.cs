@@ -7,6 +7,7 @@ public class Company : BaseAuditableEntity, ITenantEntity
     public string? Industry { get; set; }
 
     public IList<Contact> Contacts { get; private set; } = new List<Contact>();
+    public IList<Lead> Leads { get; private set; } = new List<Lead>();
 
     // Tenant
     public int TenantId { get; set; } = default!;

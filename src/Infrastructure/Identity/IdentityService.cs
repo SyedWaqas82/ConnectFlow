@@ -370,7 +370,7 @@ public class IdentityService : IIdentityService
             Name = name,
             Description = description,
             Settings = settings,
-            CreatedBy = _user.ApplicationUserId ?? adminUser.Id
+            CreatedBy = _currentUserService.ApplicationUserId ?? adminUser.Id
         };
 
         tenant.AddDomainEvent(new TenantCreatedEvent(tenant));

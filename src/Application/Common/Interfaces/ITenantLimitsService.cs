@@ -1,3 +1,5 @@
+using ConnectFlow.Domain.Enums;
+
 namespace ConnectFlow.Application.Common.Interfaces;
 
 public interface ITenantLimitsService
@@ -8,7 +10,7 @@ public interface ITenantLimitsService
     /// <param name="tenantId">The tenant ID</param>
     /// <param name="entityType">The type of entity to check limits for</param>
     /// <returns>True if the tenant has not reached its limit, false otherwise</returns>
-    Task<bool> CanAddEntityAsync(int tenantId, Type entityType);
+    Task<bool> CanAddEntityAsync(int tenantId, EntityType entityType);
 
     /// <summary>
     /// Checks if the tenant can add more users based on subscription limits

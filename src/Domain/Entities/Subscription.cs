@@ -29,6 +29,7 @@ public class Subscription : BaseAuditableEntity
     public int CustomFieldLimit { get; set; }
     public int MonthlyAITokenLimit { get; set; }
     public int AdditionalAITokens { get; set; } // Purchased extra tokens
+    public int StorageLimitGB { get; set; } // Storage limit in GB
 
     // Tenant
     public int TenantId { get; set; }

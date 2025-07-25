@@ -4,5 +4,6 @@ public enum EntityType
 {
     Contact = 1,
     Company = 2,
-    Lead = 3
+    Lead = 3,
+    CustomField = 4,
 }

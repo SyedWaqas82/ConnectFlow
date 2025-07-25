@@ -8,12 +8,12 @@ namespace ConnectFlow.Infrastructure.Data.Interceptors;
 
 public class AuditableEntityInterceptor : SaveChangesInterceptor
 {
-    private readonly IUser _user;
+    private readonly IUserService _currentUserService;
     private readonly TimeProvider _dateTime;
 
-    public AuditableEntityInterceptor(IUser user, TimeProvider dateTime)
+    public AuditableEntityInterceptor(IUserService currentUserService, TimeProvider dateTime)
     {
-        _user = user;
+        _currentUserService = currentUserService;
         _dateTime = dateTime;
     }
 
@@ -42,11 +42,11 @@ public class AuditableEntityInterceptor : SaveChangesInterceptor
                 var utcNow = _dateTime.GetUtcNow();
                 if (entry.State == EntityState.Added && !entry.Entity.CreatedBy.HasValue)
                 {
-                    entry.Entity.CreatedBy = _user.ApplicationUserId;
+                    entry.Entity.CreatedBy = _currentUserService.ApplicationUserId;
                     entry.Entity.Created = utcNow;
                 }
 
-                entry.Entity.LastModifiedBy = _user.ApplicationUserId;
+                entry.Entity.LastModifiedBy = _currentUserService.ApplicationUserId;
                 entry.Entity.LastModified = utcNow;
             }
         }
