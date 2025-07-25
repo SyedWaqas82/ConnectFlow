@@ -24,13 +24,13 @@ else
 app.UseHealthChecks("/health");
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+app.UseTenantContext(); // Add tenant middleware to set tenant context for each request
 
 app.UseSwaggerUi(settings =>
 {
     settings.Path = "/api";
     settings.DocumentPath = "/api/specification.json";
 });
-
 
 app.UseExceptionHandler(options => { });
 

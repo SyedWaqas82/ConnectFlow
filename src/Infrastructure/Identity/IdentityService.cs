@@ -22,19 +22,19 @@ public class IdentityService : IIdentityService
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<ApplicationRole> _roleManager;
     private readonly IMediator _mediator;
-    private readonly IUser _user;
-    private readonly ITokenService _tokenService;
+    private readonly IUserService _currentUserService;
+    private readonly IAuthTokenService _authTokenService;
     private readonly IUserClaimsPrincipalFactory<ApplicationUser> _userClaimsPrincipalFactory;
     private readonly IAuthorizationService _authorizationService;
 
-    public IdentityService(IApplicationDbContext context, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, IMediator mediator, IUser user, ITokenService tokenService, IUserClaimsPrincipalFactory<ApplicationUser> userClaimsPrincipalFactory, IAuthorizationService authorizationService)
+    public IdentityService(IApplicationDbContext context, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, IMediator mediator, IUserService currentUserService, IAuthTokenService authTokenService, IUserClaimsPrincipalFactory<ApplicationUser> userClaimsPrincipalFactory, IAuthorizationService authorizationService)
     {
         _context = context;
         _userManager = userManager;
         _roleManager = roleManager;
         _mediator = mediator;
-        _user = user;
-        _tokenService = tokenService;
+        _currentUserService = currentUserService;
+        _authTokenService = authTokenService;
         _userClaimsPrincipalFactory = userClaimsPrincipalFactory;
         _authorizationService = authorizationService;
     }
@@ -73,7 +73,7 @@ public class IdentityService : IIdentityService
         var tenant = tenantResult.Data;
 
         // Join the tenant as the admin user
-        await JoinTenantInternalAsync(newUser.Id, tenant.Id, validRoles, _user.ApplicationUserId);
+        await JoinTenantInternalAsync(newUser.Id, tenant.Id, validRoles, _currentUserService.ApplicationUserId);
 
         // Create subscription
         await CreateSubscriptionForTenantAsync(tenant, plan);
@@ -110,7 +110,7 @@ public class IdentityService : IIdentityService
         var tenant = tenantResult.Data;
 
         // Join the tenant as the admin user
-        await JoinTenantInternalAsync(existingUser.Id, tenant.Id, validRoles, _user.ApplicationUserId);
+        await JoinTenantInternalAsync(existingUser.Id, tenant.Id, validRoles, _currentUserService.ApplicationUserId);
 
         // Add role to user's global roles if not already present
         foreach (var role in validRoles)
@@ -139,7 +139,7 @@ public class IdentityService : IIdentityService
 
             if (tenantId.HasValue)
             {
-                await JoinTenantInternalAsync(result.Result.Data.Id, tenantId.Value, validRoles, _user.ApplicationUserId);
+                await JoinTenantInternalAsync(result.Result.Data.Id, tenantId.Value, validRoles, _currentUserService.ApplicationUserId);
             }
 
             return Result<UserToken>.Success(new UserToken() { ApplicationUserId = result.Result.Data.PublicId, Token = result.ConfirmationToken });
@@ -160,7 +160,7 @@ public class IdentityService : IIdentityService
             return Result.Failure(new[] { "user not found" });
         }
 
-        await JoinTenantInternalAsync(existingUser.Id, tenantId, validRoles, _user.ApplicationUserId);
+        await JoinTenantInternalAsync(existingUser.Id, tenantId, validRoles, _currentUserService.ApplicationUserId);
 
         foreach (var role in validRoles)
         {
@@ -283,7 +283,7 @@ public class IdentityService : IIdentityService
 
     public async Task<Result<AuthToken>> RefreshTokenAsync(string accessToken, string refreshToken)
     {
-        var principal = _tokenService.GetPrincipalFromExpiredToken(accessToken);
+        var principal = _authTokenService.GetPrincipalFromExpiredToken(accessToken);
         if (principal == null)
         {
             return Result<AuthToken>.Failure(new[] { "Invalid access token or refresh token" }, null);
@@ -458,7 +458,7 @@ public class IdentityService : IIdentityService
     {
         var subscription = SubscriptionPlans.GetPlanByName(plan);
         subscription.TenantId = tenant.Id;
-        subscription.CreatedBy = _user.ApplicationUserId;
+        subscription.CreatedBy = _currentUserService.ApplicationUserId;
 
         subscription.AddDomainEvent(new SubscriptionCreatedEvent(subscription));
 
@@ -483,8 +483,8 @@ public class IdentityService : IIdentityService
 
     private async Task<Result<AuthToken>> ManageTokensAsync(ApplicationUser user, bool generateNewRefreshToken)
     {
-        var accessTokenResult = await _tokenService.CreateAccessTokenAsync(user);
-        var refreshTokenResult = _tokenService.CreateRefreshToken();
+        var accessTokenResult = await _authTokenService.CreateAccessTokenAsync(user);
+        var refreshTokenResult = _authTokenService.CreateRefreshToken();
 
         if (generateNewRefreshToken)
         {

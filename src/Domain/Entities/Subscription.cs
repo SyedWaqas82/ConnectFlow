@@ -17,6 +17,7 @@ public class Subscription : BaseAuditableEntity
     public DateTimeOffset? CurrentPeriodStartsAt { get; set; }
     public DateTimeOffset? CurrentPeriodEndsAt { get; set; }
     public DateTimeOffset? CanceledAt { get; set; }
+    public DateTimeOffset? TrialEndsAt { get; set; } // If in trial period
     public bool CancelAtPeriodEnd { get; set; }
     public string? CancellationReason { get; set; }
 

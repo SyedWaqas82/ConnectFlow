@@ -11,12 +11,12 @@ using ConnectFlow.Application.Common.Models;
 
 namespace ConnectFlow.Infrastructure.Services;
 
-public class TokenService : ITokenService
+public class AuthTokenService : IAuthTokenService
 {
     private readonly JwtSettings _jwtSettings;
     private readonly UserManager<ApplicationUser> _userManager;
 
-    public TokenService(IOptions<JwtSettings> jwtSettings, UserManager<ApplicationUser> userManager)
+    public AuthTokenService(IOptions<JwtSettings> jwtSettings, UserManager<ApplicationUser> userManager)
     {
         _jwtSettings = jwtSettings.Value;
         _userManager = userManager;

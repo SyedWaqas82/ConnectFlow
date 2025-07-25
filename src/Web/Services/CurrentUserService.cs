@@ -5,12 +5,12 @@ using Microsoft.Extensions.Options;
 
 namespace ConnectFlow.Web.Services;
 
-public class CurrentUser : IUser
+public class CurrentUserService : IUserService
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly TenantSettings _tenantSettings;
 
-    public CurrentUser(IHttpContextAccessor httpContextAccessor, IOptions<TenantSettings> tenantSettings)
+    public CurrentUserService(IHttpContextAccessor httpContextAccessor, IOptions<TenantSettings> tenantSettings)
     {
         _httpContextAccessor = httpContextAccessor;
         _tenantSettings = tenantSettings.Value;
@@ -68,25 +68,6 @@ public class CurrentUser : IUser
             {
                 return [];
             }
-        }
-    }
-
-    public Guid? TenantId
-    {
-        get
-        {
-            if (_httpContextAccessor.HttpContext?.Request.Headers.TryGetValue(_tenantSettings.HeaderName, out var tenantHeader) == true)
-            {
-                var tenantIdValue = tenantHeader.ToString();
-
-                // Try to parse as Guid (tenant ID)
-                if (Guid.TryParse(tenantIdValue, out Guid tenantId))
-                {
-                    return tenantId;
-                }
-            }
-
-            return null;
         }
     }
 }

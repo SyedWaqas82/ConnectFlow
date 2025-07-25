@@ -2,18 +2,18 @@ namespace ConnectFlow.Domain.Enums;
 
 public enum SubscriptionPlan
 {
-    Free = 0,
-    Starter = 1,
-    Professional = 2,
-    Business = 3,
-    Enterprise = 4
+    Free = 1,
+    Starter = 2,
+    Professional = 3,
+    Business = 4,
+    Enterprise = 5
 }
 
 public enum SubscriptionStatus
 {
-    Inactive = 0,
-    Active = 1,
-    PastDue = 2,
-    Canceled = 3,
-    Trialing = 4
+    Inactive = 1,
+    Active = 2,
+    PastDue = 3,
+    Canceled = 4,
+    Trialing = 5
 }
