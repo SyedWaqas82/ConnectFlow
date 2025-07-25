@@ -13,10 +13,21 @@ public static class InitialiserExtensions
 {
     public static void AddAsyncSeeding(this DbContextOptionsBuilder builder, IServiceProvider serviceProvider)
     {
+        // Synchronous seeding delegate.
+        // This is called when EF Core performs a synchronous store management operation (e.g., migration).
+        // It must be fast and use only static or blocking code. Here, we call the async seed method synchronously.
+        builder.UseSeeding((context, _) =>
+        {
+            var initialiser = serviceProvider.GetRequiredService<ApplicationDbContextInitialiser>();
+            initialiser.SeedAsync().GetAwaiter().GetResult();
+        });
+
+        // Asynchronous seeding delegate.
+        // This is called when EF Core performs an asynchronous store management operation.
+        // It allows for non-blocking, async code. Here, we await the async seed method.
         builder.UseAsyncSeeding(async (context, _, ct) =>
         {
             var initialiser = serviceProvider.GetRequiredService<ApplicationDbContextInitialiser>();
-
             await initialiser.SeedAsync();
         });
     }

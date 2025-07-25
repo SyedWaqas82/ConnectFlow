@@ -12,7 +12,8 @@ public abstract class BaseAuditableConfiguration<TEntity> : IEntityTypeConfigura
         builder.HasKey(t => t.Id);
         builder.Property(t => t.Id).ValueGeneratedOnAdd();
         builder.HasIndex(t => t.PublicId).IsUnique();
-        builder.Property(t => t.PublicId).HasDefaultValueSql("newid()").IsRequired();
+        //builder.Property(t => t.PublicId).HasDefaultValueSql("newid()").IsRequired(); //SQL Server
+        builder.Property(t => t.PublicId).HasDefaultValueSql("gen_random_uuid()").IsRequired(); //PostgreSQL
 
         // Common navigation properties
         builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(t => t.CreatedBy).OnDelete(DeleteBehavior.SetNull);

@@ -12,8 +12,8 @@ public class ApplicationRoleConfiguration : IEntityTypeConfiguration<Application
         builder.HasIndex(r => r.Name).IsUnique();
         builder.Property(r => r.Description).HasMaxLength(256);
         builder.Property(r => r.IsSystemRole).HasDefaultValue(false);
-        builder.Property(r => r.CreatedDate).HasDefaultValueSql("CURRENT_TIMESTAMP");
-        builder.Property(r => r.CreatedBy).IsRequired(false);
+        //builder.Property(r => r.CreatedDate).HasDefaultValueSql("CURRENT_TIMESTAMP"); // Sql Server default value
+        builder.Property(r => r.CreatedDate).HasDefaultValueSql("now()"); // PostgreSQL default value
 
         SeedRoles(builder);
     }
@@ -29,7 +29,7 @@ public class ApplicationRoleConfiguration : IEntityTypeConfiguration<Application
                     NormalizedName = Roles.SuperAdmin.ToUpperInvariant(),
                     Description = "Full system access across all tenants",
                     IsSystemRole = true,
-                    CreatedDate = DateTimeOffset.UtcNow
+                    CreatedDate = new DateTime(2025, 07, 25, 0, 0, 0, DateTimeKind.Utc)
                 },
                 new ApplicationRole
                 {
@@ -38,7 +38,7 @@ public class ApplicationRoleConfiguration : IEntityTypeConfiguration<Application
                     NormalizedName = Roles.TenantAdmin.ToUpperInvariant(),
                     Description = "Full access within assigned tenant",
                     IsSystemRole = true,
-                    CreatedDate = DateTimeOffset.UtcNow
+                    CreatedDate = new DateTime(2025, 07, 25, 0, 0, 0, DateTimeKind.Utc)
                 },
                 new ApplicationRole
                 {
@@ -47,7 +47,7 @@ public class ApplicationRoleConfiguration : IEntityTypeConfiguration<Application
                     NormalizedName = Roles.NonTenantAdmin.ToUpperInvariant(),
                     Description = "Regular user access within assigned tenant",
                     IsSystemRole = true,
-                    CreatedDate = DateTimeOffset.UtcNow
+                    CreatedDate = new DateTime(2025, 07, 25, 0, 0, 0, DateTimeKind.Utc)
                 }
             };
 

@@ -39,11 +39,11 @@ public static class DependencyInjection
         // Configure Entity Framework
         builder.ConfigureEntityFramework(connectionString);
 
-        // Configure Authentication and Authorization
-        builder.ConfigureAuthenticationAndAuthorization(jwtSettings);
-
         // Configure Identity
         builder.ConfigureIdentity();
+
+        // Configure Authentication and Authorization
+        builder.ConfigureAuthenticationAndAuthorization(jwtSettings);
 
         // Configure Redis
         builder.ConfigureRedis(redisSettings);
@@ -73,40 +73,12 @@ public static class DependencyInjection
         builder.Services.AddScoped<ApplicationDbContextInitialiser>();
     }
 
-    private static void ConfigureAuthenticationAndAuthorization(this IHostApplicationBuilder builder, JwtSettings jwtSettings)
-    {
-        builder.Services.AddAuthentication(options =>
-        {
-            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-        })
-        .AddJwtBearer(options =>
-        {
-            options.IncludeErrorDetails = true;
-            options.TokenValidationParameters = new TokenValidationParameters()
-            {
-                ClockSkew = TimeSpan.Zero,
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateLifetime = true,
-                ValidateIssuerSigningKey = true,
-                ValidIssuer = jwtSettings.Issuer,
-                ValidAudience = jwtSettings.Audience,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key)),
-            };
-        });
-
-        builder.Services.AddAuthorizationBuilder()
-            .AddPolicy(Policies.CanPurge, policy => policy.RequireRole(Roles.SuperAdmin));
-        //services.AddAuthorization(options => options.AddPolicy(Policies.CanPurge, policy => policy.RequireRole(Roles.Administrator)));
-    }
-
     private static void ConfigureIdentity(this IHostApplicationBuilder builder)
     {
         // Add and Configure Identity services
         builder.Services
-            .AddIdentity<ApplicationUser, ApplicationRole>()
+            .AddIdentityCore<ApplicationUser>()
+            .AddRoles<ApplicationRole>()
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
 
@@ -134,6 +106,35 @@ public static class DependencyInjection
             options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
             options.User.RequireUniqueEmail = true;
         });
+    }
+
+    private static void ConfigureAuthenticationAndAuthorization(this IHostApplicationBuilder builder, JwtSettings jwtSettings)
+    {
+        builder.Services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(options =>
+        {
+            options.IncludeErrorDetails = true;
+            options.TokenValidationParameters = new TokenValidationParameters()
+            {
+                ClockSkew = TimeSpan.Zero,
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = jwtSettings.Issuer,
+                ValidAudience = jwtSettings.Audience,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key)),
+            };
+        });
+
+        builder.Services.AddAuthorizationBuilder()
+            .AddPolicy(Policies.CanPurge, policy => policy.RequireRole(Roles.SuperAdmin));
+        //services.AddAuthorization(options => options.AddPolicy(Policies.CanPurge, policy => policy.RequireRole(Roles.Administrator)));
     }
 
     private static void ConfigureRedis(this IHostApplicationBuilder builder, RedisSettings redisSettings)
