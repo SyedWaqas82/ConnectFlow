@@ -13,7 +13,8 @@ public abstract class BaseAuditableConfiguration<TEntity> : IEntityTypeConfigura
         builder.HasKey(t => t.Id);
         builder.Property(t => t.Id).ValueGeneratedOnAdd();
         builder.HasIndex(t => t.PublicId).IsUnique();
-        builder.Property(t => t.PublicId).HasDefaultValueSql("gen_random_uuid()").IsRequired(); //PostgreSQL
+        builder.Property(t => t.PublicId).HasDefaultValueSql("gen_random_uuid()").IsRequired(); // PostgreSQL
+        //builder.Property(t => t.PublicId).HasDefaultValueSql("newid()").IsRequired(); // SQL Server
 
         // Common navigation properties
         builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(t => t.CreatedBy).OnDelete(DeleteBehavior.SetNull);
@@ -31,7 +32,14 @@ public abstract class BaseAuditableConfiguration<TEntity> : IEntityTypeConfigura
             builder.HasIndex("TenantId");
             builder.Property("TenantId").IsRequired();
 
-            builder.HasOne<Tenant>().WithMany().HasForeignKey("TenantId").OnDelete(DeleteBehavior.Cascade);
+            // Try to find a navigation property named "Tenant"
+            var nav = typeof(TEntity).GetProperty("Tenant");
+            if (nav != null)
+            {
+                // Configure the relationship only if the navigation exists
+                builder.HasOne(typeof(Tenant), "Tenant").WithMany().HasForeignKey("TenantId").OnDelete(DeleteBehavior.Cascade);
+            }
+            // If no navigation property, just configure the FK and index
         }
     }
 

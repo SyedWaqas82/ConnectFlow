@@ -82,6 +82,8 @@ public class TenantService : ITenantService
     public Task SetCurrentTenantIdAsync(int tenantId)
     {
         TenantInfo.CurrentTenantId = tenantId;
+        TenantInfo.IsSuperAdmin = IsSuperAdmin();
+
         return Task.CompletedTask;
     }
 

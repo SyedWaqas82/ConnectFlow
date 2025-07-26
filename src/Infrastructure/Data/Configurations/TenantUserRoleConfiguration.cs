@@ -1,4 +1,3 @@
-using System;
 using ConnectFlow.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -11,12 +10,12 @@ public class TenantUserRoleConfiguration : BaseAuditableConfiguration<TenantUser
     {
         base.Configure(builder);
 
-        builder.HasIndex(e => new { e.TenantUserId, e.RoleName }).IsUnique();
         builder.Property(tur => tur.RoleName).IsRequired().HasMaxLength(100);
         builder.Property(tur => tur.IsActive).IsRequired();
         builder.Property(tur => tur.AssignedAt).IsRequired();
         builder.Property(tur => tur.AssignedBy).IsRequired(false);
         builder.Property(tur => tur.RevokedAt).IsRequired(false);
+        builder.HasIndex(tur => new { tur.TenantUserId, tur.RoleName }).IsUnique();
 
         // Configure relationships
         builder.HasOne(tur => tur.TenantUser).WithMany(tu => tu.TenantUserRoles).HasForeignKey(tur => tur.TenantUserId).OnDelete(DeleteBehavior.Cascade);

@@ -14,9 +14,9 @@ public class LeadConfiguration : BaseAuditableConfiguration<Lead>
         builder.Property(l => l.Status).IsRequired();
         builder.Property(l => l.Title).IsRequired().HasMaxLength(200);
         builder.Property(l => l.Description).IsRequired().HasMaxLength(1000);
-        builder.Property(l => l.Value).HasColumnType("decimal(18,2)");
+        builder.Property(l => l.Value).HasPrecision(18, 2);
         builder.Property(l => l.Currency).HasMaxLength(10).HasDefaultValue("USD");
-        builder.Property(l => l.ExpectedCloseDate).HasColumnType("datetimeoffset");
+        builder.Property(l => l.ExpectedCloseDate);
 
         // Configure relationships
         builder.HasOne(l => l.Contact).WithMany(c => c.Leads).HasForeignKey(l => l.ContactId).OnDelete(DeleteBehavior.Restrict);

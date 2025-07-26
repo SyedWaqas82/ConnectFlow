@@ -19,9 +19,9 @@ public class Reminder : BaseAuditableEntity, ITenantEntity
     public int? CompletedById { get; set; }
     public TenantUser? CompletedBy { get; set; }
 
-    // Task Reference
-    public int TaskId { get; set; } = default!;
-    public Task Task { get; set; } = null!;
+    // WorkTask Reference
+    public int WorkTaskId { get; set; } = default!;
+    public WorkTask WorkTask { get; set; } = null!;
 
     // Primary Assignee
     public int? AssigneeId { get; set; }

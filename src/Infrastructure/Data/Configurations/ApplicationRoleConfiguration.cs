@@ -9,11 +9,11 @@ public class ApplicationRoleConfiguration : IEntityTypeConfiguration<Application
 {
     public void Configure(EntityTypeBuilder<ApplicationRole> builder)
     {
-        builder.HasIndex(r => r.Name).IsUnique();
-        builder.Property(r => r.Description).HasMaxLength(256);
-        builder.Property(r => r.IsSystemRole).HasDefaultValue(false);
-        //builder.Property(r => r.CreatedDate).HasDefaultValueSql("CURRENT_TIMESTAMP"); // Sql Server default value
-        builder.Property(r => r.CreatedDate).HasDefaultValueSql("now()"); // PostgreSQL default value
+        builder.HasIndex(ar => ar.Name).IsUnique();
+        builder.Property(ar => ar.Description).HasMaxLength(256);
+        builder.Property(ar => ar.IsSystemRole).HasDefaultValue(false);
+        //builder.Property(ar => ar.CreatedDate).HasDefaultValueSql("CURRENT_TIMESTAMP"); // Sql Server default value
+        builder.Property(ar => ar.CreatedDate).HasDefaultValueSql("now()"); // PostgreSQL default value
 
         SeedRoles(builder);
     }

@@ -35,9 +35,6 @@ public class Conversation : BaseAuditableEntity, ITenantEntity
     public IList<Tag> Tags { get; private set; } = new List<Tag>();
     public IList<ConversationParticipant> Participants { get; private set; } = new List<ConversationParticipant>();
 
-    // Custom Fields
-    public IList<CustomField> CustomFields { get; private set; } = new List<CustomField>();
-
     // Tenant
     public int TenantId { get; set; } = default!;
     public Tenant Tenant { get; set; } = null!;

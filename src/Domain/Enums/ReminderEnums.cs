@@ -2,19 +2,19 @@ namespace ConnectFlow.Domain.Enums;
 
 public enum ReminderType
 {
-    Task = 0,
-    Meeting = 1,
-    Call = 2,
-    Email = 3,
-    Follow_Up = 4,
-    Custom = 5
+    WorkTask = 1,
+    Meeting = 2,
+    Call = 3,
+    Email = 4,
+    Follow_Up = 5,
+    Custom = 6
 }
 
 public enum ReminderChannel
 {
-    InApp = 0,
-    Email = 1,
-    SMS = 2,
-    WhatsApp = 3,
-    Push = 4
+    InApp = 1,
+    Email = 2,
+    SMS = 3,
+    WhatsApp = 4,
+    Push = 5
 }

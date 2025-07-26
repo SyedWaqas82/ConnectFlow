@@ -53,7 +53,7 @@ public static class DependencyInjection
         builder.Services.AddTransient<IIdentityService, IdentityService>();
         builder.Services.AddScoped<IAuthTokenService, AuthTokenService>();
         builder.Services.AddScoped<ICacheService, RedisCacheService>();
-        //builder.Services.AddScoped<IStripeService, StripeService>();
+        builder.Services.AddScoped<IStripeService, StripeService>();
         builder.Services.AddScoped<ITenantService, TenantService>();
         builder.Services.AddScoped<ITenantLimitsService, TenantLimitsService>();
         builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();

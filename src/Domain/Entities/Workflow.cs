@@ -8,7 +8,7 @@ public class Workflow : BaseAuditableEntity, ITenantEntity
     public string TriggerType { get; set; } = string.Empty;
     public string TriggerCondition { get; set; } = string.Empty;
 
-    public IList<Task> Tasks { get; private set; } = new List<Task>();
+    public IList<WorkTask> Tasks { get; private set; } = new List<WorkTask>();
     public IList<Trigger> Triggers { get; private set; } = new List<Trigger>();
 
     // Tenant

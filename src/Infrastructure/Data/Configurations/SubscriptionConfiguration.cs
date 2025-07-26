@@ -10,12 +10,14 @@ public class SubscriptionConfiguration : BaseAuditableConfiguration<Subscription
     {
         base.Configure(builder);
 
-        builder.Property(ts => ts.Amount).HasPrecision(18, 2).IsRequired();
-        builder.Property(ts => ts.Currency).HasMaxLength(3).IsRequired();
-        builder.Property(ts => ts.Plan).IsRequired();
-        builder.Property(ts => ts.Status).IsRequired();
+        builder.Property(s => s.Amount).HasPrecision(18, 2).IsRequired();
+        builder.Property(s => s.Currency).HasMaxLength(3).IsRequired();
+        builder.Property(s => s.Plan).IsRequired();
+        builder.Property(s => s.Status).IsRequired();
+        builder.Property(s => s.TenantId).IsRequired();
+        builder.HasIndex(s => s.TenantId);
 
         // Configure relationships
-        builder.HasOne(ts => ts.Tenant).WithMany(t => t.Subscriptions).HasForeignKey(ts => ts.TenantId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne(s => s.Tenant).WithMany(t => t.Subscriptions).HasForeignKey(s => s.TenantId).OnDelete(DeleteBehavior.Cascade);
     }
 }

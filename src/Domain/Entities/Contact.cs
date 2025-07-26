@@ -13,6 +13,7 @@ public class Contact : BaseAuditableEntity, ITenantEntity, ISoftDelete
 
     public int ScoreId { get; set; } = default!;
     public ContactScore Score { get; set; } = null!;
+
     public IList<Appointment> Appointments { get; private set; } = new List<Appointment>();
     public IList<Lead> Leads { get; private set; } = new List<Lead>();
 

@@ -9,11 +9,9 @@ namespace ConnectFlow.Infrastructure.Data;
 
 public class ApplicationDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, int, ApplicationUserClaim, ApplicationUserRole, ApplicationUserLogin, ApplicationRoleClaim, ApplicationUserToken>, IApplicationDbContext
 {
-    private readonly ITenantService _tenantService;
 
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, ITenantService tenantService) : base(options)
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
     {
-        _tenantService = tenantService;
     }
 
     public DbSet<Tenant> Tenants => Set<Tenant>();
@@ -97,7 +95,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
         builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
         // Apply tenant and soft delete filters
-        builder.ApplyTenantFilters(_tenantService);
+        builder.ApplyTenantFilters();
         builder.ApplySoftDeleteFilters();
     }
 }

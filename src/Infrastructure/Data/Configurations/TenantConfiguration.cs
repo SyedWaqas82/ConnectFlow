@@ -10,24 +10,24 @@ public class TenantConfiguration : BaseAuditableConfiguration<Tenant>
     {
         base.Configure(builder);
 
-        builder.HasIndex(e => e.Code).IsUnique();
-        builder.HasIndex(e => e.Domain).IsUnique();
-        builder.Property(e => e.Code).IsRequired().HasMaxLength(50);
-        builder.Property(e => e.Name).IsRequired().HasMaxLength(100);
-        builder.Property(e => e.Domain).IsRequired().HasMaxLength(100);
-        builder.Property(e => e.Description).HasMaxLength(500);
-        builder.Property(e => e.Avatar).HasMaxLength(200);
-        builder.Property(e => e.Phone).HasMaxLength(20);
-        builder.Property(e => e.Email).HasMaxLength(100);
-        builder.Property(e => e.Website).HasMaxLength(200);
-        builder.Property(e => e.Address).HasMaxLength(200);
-        builder.Property(e => e.City).HasMaxLength(100);
-        builder.Property(e => e.State).HasMaxLength(100);
-        builder.Property(e => e.Country).HasMaxLength(100);
-        builder.Property(e => e.PostalCode).HasMaxLength(20);
-        builder.Property(e => e.Settings).HasColumnType("jsonb"); // Assuming PostgreSQL, adjust for other DBs
-        builder.Property(e => e.IsActive).HasDefaultValue(true);
-        builder.Property(e => e.DeactivatedAt).HasDefaultValue(null);
+        builder.HasIndex(t => t.Code).IsUnique();
+        builder.HasIndex(t => t.Domain).IsUnique();
+        builder.Property(t => t.Code).IsRequired().HasMaxLength(50);
+        builder.Property(t => t.Name).IsRequired().HasMaxLength(100);
+        builder.Property(t => t.Domain).IsRequired().HasMaxLength(100);
+        builder.Property(t => t.Description).HasMaxLength(500);
+        builder.Property(t => t.Avatar).HasMaxLength(200);
+        builder.Property(t => t.Phone).HasMaxLength(20);
+        builder.Property(t => t.Email).HasMaxLength(100);
+        builder.Property(t => t.Website).HasMaxLength(200);
+        builder.Property(t => t.Address).HasMaxLength(200);
+        builder.Property(t => t.City).HasMaxLength(100);
+        builder.Property(t => t.State).HasMaxLength(100);
+        builder.Property(t => t.Country).HasMaxLength(100);
+        builder.Property(t => t.PostalCode).HasMaxLength(20);
+        builder.Property(t => t.Settings).HasColumnType("jsonb"); // Assuming PostgreSQL, adjust for other DBs
+        builder.Property(t => t.IsActive).HasDefaultValue(true);
+        builder.Property(t => t.DeactivatedAt).HasDefaultValue(null);
 
         // Configure relationships
         builder.HasMany(t => t.TenantUsers).WithOne(tu => tu.Tenant).HasForeignKey(tu => tu.TenantId).OnDelete(DeleteBehavior.Cascade);

@@ -8,22 +8,22 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
 {
     public void Configure(EntityTypeBuilder<ApplicationUser> builder)
     {
-        builder.HasIndex(u => u.PublicId).IsUnique();
-        //builder.Property(t => t.PublicId).HasDefaultValueSql("newid()").IsRequired(); // SQL Server
-        builder.Property(t => t.PublicId).HasDefaultValueSql("gen_random_uuid()").IsRequired(); // PostgreSQL
-        builder.Property(u => u.FirstName).IsRequired().HasMaxLength(50);
-        builder.Property(u => u.LastName).IsRequired().HasMaxLength(50);
-        builder.Property(u => u.TimeZone).IsRequired().HasMaxLength(50);
-        builder.Property(u => u.Locale).IsRequired().HasMaxLength(10);
-        builder.Property(u => u.Avatar).HasMaxLength(200);
-        builder.Property(u => u.JobTitle).HasMaxLength(100);
-        builder.Property(u => u.Mobile).HasMaxLength(15);
-        builder.Property(u => u.Preferences).HasColumnType("jsonb"); // Store preferences as JSON
-        builder.Property(u => u.IsActive).HasDefaultValue(true);
-        //builder.Property(u => u.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP"); // SQL Server default value
-        builder.Property(u => u.CreatedAt).HasDefaultValueSql("now()"); // PostgreSQL default value
+        builder.HasIndex(au => au.PublicId).IsUnique();
+        //builder.Property(au => au.PublicId).HasDefaultValueSql("newid()").IsRequired(); // SQL Server
+        builder.Property(au => au.PublicId).HasDefaultValueSql("gen_random_uuid()").IsRequired(); // PostgreSQL
+        builder.Property(au => au.FirstName).IsRequired().HasMaxLength(50);
+        builder.Property(au => au.LastName).IsRequired().HasMaxLength(50);
+        builder.Property(au => au.TimeZone).IsRequired().HasMaxLength(50);
+        builder.Property(au => au.Locale).IsRequired().HasMaxLength(10);
+        builder.Property(au => au.Avatar).HasMaxLength(200);
+        builder.Property(au => au.JobTitle).HasMaxLength(100);
+        builder.Property(au => au.Mobile).HasMaxLength(15);
+        builder.Property(au => au.Preferences).HasColumnType("jsonb"); // Store preferences as JSON
+        builder.Property(au => au.IsActive).HasDefaultValue(true);
+        //builder.Property(au => au.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP"); // SQL Server default value
+        builder.Property(au => au.CreatedAt).HasDefaultValueSql("now()"); // PostgreSQL default value
 
         // Configure relationships
-        builder.HasMany(t => t.TenantUsers).WithOne().HasForeignKey(tu => tu.UserId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasMany(au => au.TenantUsers).WithOne().HasForeignKey(tu => tu.UserId).OnDelete(DeleteBehavior.Cascade);
     }
 }

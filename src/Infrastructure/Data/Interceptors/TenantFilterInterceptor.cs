@@ -1,4 +1,3 @@
-using ConnectFlow.Application.Common.Interfaces;
 using ConnectFlow.Application.Common.Services;
 using ConnectFlow.Domain.Common;
 using Microsoft.EntityFrameworkCore;
@@ -8,11 +7,8 @@ namespace ConnectFlow.Infrastructure.Data.Interceptors;
 
 public class TenantFilterInterceptor : SaveChangesInterceptor
 {
-    private readonly ITenantService _tenantService;
-
-    public TenantFilterInterceptor(ITenantService tenantService)
+    public TenantFilterInterceptor()
     {
-        _tenantService = tenantService;
     }
 
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
@@ -32,7 +28,7 @@ public class TenantFilterInterceptor : SaveChangesInterceptor
         if (context == null) return;
 
         // Don't add tenant filter for Super Admin users
-        if (_tenantService.IsSuperAdmin())
+        if (TenantInfo.IsSuperAdmin)
         {
             return;
         }
