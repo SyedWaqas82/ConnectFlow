@@ -27,7 +27,7 @@ app.UseExceptionHandler(options => { });
 app.UseHealthChecks("/health");
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-app.UseTenantMiddleware(); // Add tenant middleware to set tenant context for each request
+app.UseContextMiddleware(); // Add context middleware to set context for each request
 
 app.UseSwaggerUi(settings =>
 {

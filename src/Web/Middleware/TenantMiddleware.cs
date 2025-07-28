@@ -6,11 +6,11 @@ using Microsoft.Extensions.Options;
 
 namespace ConnectFlow.Web.Middleware;
 
-public class TenantMiddleware
+public class ContextMiddleware
 {
     private readonly RequestDelegate _next;
 
-    public TenantMiddleware(RequestDelegate next)
+    public ContextMiddleware(RequestDelegate next)
     {
         _next = next;
     }
@@ -104,10 +104,10 @@ public class TenantMiddleware
 }
 
 // create an extension method to use the middleware easily
-public static class TenantMiddlewareExtensions
+public static class ContextMiddlewareExtensions
 {
-    public static IApplicationBuilder UseTenantMiddleware(this IApplicationBuilder builder)
+    public static IApplicationBuilder UseContextMiddleware(this IApplicationBuilder builder)
     {
-        return builder.UseMiddleware<TenantMiddleware>();
+        return builder.UseMiddleware<ContextMiddleware>();
     }
 }
