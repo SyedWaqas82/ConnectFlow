@@ -15,8 +15,8 @@ public interface IIdentityService
     Task<Result> ChangePasswordAsync(Guid userId, string password, string newPassword);
     Task<Result<AuthToken>> SignInAsync(string email, string password);
     Task<Result<AuthToken>> RefreshTokenAsync(string accessToken, string refreshToken);
-    Task<string?> GetUserNameAsync(Guid userId);
-    Task<bool> IsInRoleAsync(Guid userId, string role);
+    //Task<string?> GetUserNameAsync(Guid userId);
+    //Task<bool> IsInRoleAsync(Guid userId, string role);
     Task<bool> AuthorizeAsync(Guid userId, string policyName);
     Task<Result> RevokeAsync(string email);
     Task<Result> RevokeAllAsync();

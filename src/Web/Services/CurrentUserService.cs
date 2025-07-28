@@ -70,4 +70,14 @@ public class CurrentUserService : IUserService
             }
         }
     }
+
+    public string? GetUserName()
+    {
+        return UserName;
+    }
+
+    public bool IsInRole(string role)
+    {
+        return Roles.Contains(role);
+    }
 }

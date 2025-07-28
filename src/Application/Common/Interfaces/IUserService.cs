@@ -6,4 +6,8 @@ public interface IUserService
     Guid? PublicUserId { get; }
     string? UserName { get; }
     IList<string> Roles { get; }
+
+    string? GetUserName();
+
+    bool IsInRole(string role);
 }

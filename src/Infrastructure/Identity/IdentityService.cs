@@ -302,19 +302,19 @@ public class IdentityService : IIdentityService
         return await ManageTokensAsync(user, false);
     }
 
-    public async Task<string?> GetUserNameAsync(Guid userId)
-    {
-        var user = await _userManager.FindByPublicIdAsync(userId);
+    // public async Task<string?> GetUserNameAsync(Guid userId)
+    // {
+    //     var user = await _userManager.FindByPublicIdAsync(userId);
 
-        return user?.UserName;
-    }
+    //     return user?.UserName;
+    // }
 
-    public async Task<bool> IsInRoleAsync(Guid userId, string role)
-    {
-        var user = await _userManager.FindByPublicIdAsync(userId);
+    // public async Task<bool> IsInRoleAsync(Guid userId, string role)
+    // {
+    //     var user = await _userManager.FindByPublicIdAsync(userId);
 
-        return user != null && await _userManager.IsInRoleAsync(user, role);
-    }
+    //     return user != null && await _userManager.IsInRoleAsync(user, role);
+    // }
 
     public async Task<bool> AuthorizeAsync(Guid userId, string policyName)
     {

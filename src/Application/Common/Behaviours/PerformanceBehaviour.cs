@@ -9,18 +9,13 @@ public class PerformanceBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequ
     private readonly Stopwatch _timer;
     private readonly ILogger<TRequest> _logger;
     private readonly IUserService _currentUserService;
-    private readonly IIdentityService _identityService;
 
-    public PerformanceBehaviour(
-        ILogger<TRequest> logger,
-        IUserService currentUserService,
-        IIdentityService identityService)
+    public PerformanceBehaviour(ILogger<TRequest> logger, IUserService currentUserService)
     {
         _timer = new Stopwatch();
 
         _logger = logger;
         _currentUserService = currentUserService;
-        _identityService = identityService;
     }
 
     public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
@@ -41,11 +36,10 @@ public class PerformanceBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequ
 
             if (userId.HasValue)
             {
-                userName = await _identityService.GetUserNameAsync(userId.Value);
+                userName = await Task.FromResult(_currentUserService.GetUserName());
             }
 
-            _logger.LogWarning("ConnectFlow Long Running Request: {Name} ({ElapsedMilliseconds} milliseconds) {@UserId} {@UserName} {@Request}",
-                requestName, elapsedMilliseconds, userId, userName, request);
+            _logger.LogWarning("ConnectFlow Long Running Request: {Name} ({ElapsedMilliseconds} milliseconds) {@UserId} {@UserName} {@Request}", requestName, elapsedMilliseconds, userId, userName, request);
         }
 
         return response;

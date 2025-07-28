@@ -10,9 +10,7 @@ public class AuthorizationBehaviour<TRequest, TResponse> : IPipelineBehavior<TRe
     private readonly IUserService _currentUserService;
     private readonly IIdentityService _identityService;
 
-    public AuthorizationBehaviour(
-        IUserService currentUserService,
-        IIdentityService identityService)
+    public AuthorizationBehaviour(IUserService currentUserService, IIdentityService identityService)
     {
         _currentUserService = currentUserService;
         _identityService = identityService;
@@ -41,7 +39,7 @@ public class AuthorizationBehaviour<TRequest, TResponse> : IPipelineBehavior<TRe
                 {
                     foreach (var role in roles)
                     {
-                        var isInRole = await _identityService.IsInRoleAsync(_currentUserService.PublicUserId.Value, role.Trim());
+                        var isInRole = _currentUserService.IsInRole(role.Trim());
                         if (isInRole)
                         {
                             authorized = true;

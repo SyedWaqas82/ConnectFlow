@@ -95,6 +95,6 @@ public class TenantService : ITenantService
 
     public bool IsSuperAdmin()
     {
-        return _currentUserService.Roles.Contains(Roles.SuperAdmin);
+        return _currentUserService.IsInRole(Roles.SuperAdmin);
     }
 }

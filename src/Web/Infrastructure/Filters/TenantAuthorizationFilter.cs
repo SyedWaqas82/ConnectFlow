@@ -28,7 +28,7 @@ public class RequiresTenantAttribute : Attribute, IAsyncAuthorizationFilter
         }
 
         // Super admins are always allowed if AllowSuperAdmin is true
-        if (AllowSuperAdmin && currentUserService.Roles.Contains(Roles.SuperAdmin))
+        if (AllowSuperAdmin && currentUserService.IsInRole(Roles.SuperAdmin))
         {
             return;
         }
@@ -79,7 +79,7 @@ public class RequiresTenantRoleAttribute : Attribute, IAsyncAuthorizationFilter
         }
 
         // Super admins are always allowed if AllowSuperAdmin is true
-        if (AllowSuperAdmin && currentUserService.Roles.Contains(Roles.SuperAdmin))
+        if (AllowSuperAdmin && currentUserService.IsInRole(Roles.SuperAdmin))
         {
             return;
         }
