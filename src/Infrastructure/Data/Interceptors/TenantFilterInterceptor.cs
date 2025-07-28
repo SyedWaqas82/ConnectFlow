@@ -1,4 +1,4 @@
-using ConnectFlow.Application.Common.Services;
+using ConnectFlow.Application.Common.Models;
 using ConnectFlow.Domain.Common;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -28,7 +28,7 @@ public class TenantFilterInterceptor : SaveChangesInterceptor
         if (context == null) return;
 
         // Don't add tenant filter for Super Admin users
-        if (TenantInfo.IsSuperAdmin)
+        if (UserInfo.IsSuperAdmin)
         {
             return;
         }

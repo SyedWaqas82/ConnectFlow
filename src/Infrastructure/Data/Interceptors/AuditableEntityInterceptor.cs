@@ -1,4 +1,4 @@
-﻿using ConnectFlow.Application.Common.Interfaces;
+﻿using ConnectFlow.Application.Common.Models;
 using ConnectFlow.Domain.Common;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -8,12 +8,10 @@ namespace ConnectFlow.Infrastructure.Data.Interceptors;
 
 public class AuditableEntityInterceptor : SaveChangesInterceptor
 {
-    private readonly IUserService _currentUserService;
     private readonly TimeProvider _dateTime;
 
-    public AuditableEntityInterceptor(IUserService currentUserService, TimeProvider dateTime)
+    public AuditableEntityInterceptor(TimeProvider dateTime)
     {
-        _currentUserService = currentUserService;
         _dateTime = dateTime;
     }
 
@@ -42,11 +40,11 @@ public class AuditableEntityInterceptor : SaveChangesInterceptor
                 var utcNow = _dateTime.GetUtcNow();
                 if (entry.State == EntityState.Added && !entry.Entity.CreatedBy.HasValue)
                 {
-                    entry.Entity.CreatedBy = _currentUserService.ApplicationUserId;
+                    entry.Entity.CreatedBy = UserInfo.ApplicationUserId;
                     entry.Entity.Created = utcNow;
                 }
 
-                entry.Entity.LastModifiedBy = _currentUserService.ApplicationUserId;
+                entry.Entity.LastModifiedBy = UserInfo.ApplicationUserId;
                 entry.Entity.LastModified = utcNow;
             }
         }

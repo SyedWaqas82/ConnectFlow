@@ -8,14 +8,14 @@ public class PerformanceBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequ
 {
     private readonly Stopwatch _timer;
     private readonly ILogger<TRequest> _logger;
-    private readonly IUserService _currentUserService;
+    private readonly IContextService _contextService;
 
-    public PerformanceBehaviour(ILogger<TRequest> logger, IUserService currentUserService)
+    public PerformanceBehaviour(ILogger<TRequest> logger, IContextService contextService)
     {
         _timer = new Stopwatch();
 
         _logger = logger;
-        _currentUserService = currentUserService;
+        _contextService = contextService;
     }
 
     public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
@@ -31,13 +31,8 @@ public class PerformanceBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequ
         if (elapsedMilliseconds > 500)
         {
             var requestName = typeof(TRequest).Name;
-            var userId = _currentUserService.PublicUserId;
-            var userName = string.Empty;
-
-            if (userId.HasValue)
-            {
-                userName = await Task.FromResult(_currentUserService.GetUserName());
-            }
+            var userId = _contextService.GetCurrentPublicUserId();
+            var userName = _contextService.GetCurrentUserName();
 
             _logger.LogWarning("ConnectFlow Long Running Request: {Name} ({ElapsedMilliseconds} milliseconds) {@UserId} {@UserName} {@Request}", requestName, elapsedMilliseconds, userId, userName, request);
         }

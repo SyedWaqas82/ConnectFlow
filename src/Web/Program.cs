@@ -1,4 +1,5 @@
 using ConnectFlow.Infrastructure.Data;
+using ConnectFlow.Web.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,7 +27,7 @@ app.UseExceptionHandler(options => { });
 app.UseHealthChecks("/health");
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-app.UseTenantContext(); // Add tenant middleware to set tenant context for each request
+app.UseTenantMiddleware(); // Add tenant middleware to set tenant context for each request
 
 app.UseSwaggerUi(settings =>
 {

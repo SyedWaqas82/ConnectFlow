@@ -1,8 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
-using ConnectFlow.Application.Common.Interfaces;
 using ConnectFlow.Infrastructure.Data;
-using ConnectFlow.Domain.Entities;
 
 namespace ConnectFlow.Web.Common
 {
@@ -26,38 +24,39 @@ namespace ConnectFlow.Web.Common
             _ = optionsBuilder.UseNpgsql(connectionString);
             return new ApplicationDbContext(optionsBuilder.Options);
         }
-    }
 
-    // Stub implementation for ITenantService
-    public class DesignTimeTenantService : ITenantService
-    {
-        public Task ClearCurrentTenantAsync()
-        {
-            throw new NotImplementedException();
-        }
+        //     // Stub implementation for ITenantService
+        //     public class DesignTimeTenantService : ITenantService
+        //     {
+        //         public Task ClearCurrentTenantAsync()
+        //         {
+        //             throw new NotImplementedException();
+        //         }
 
-        public Task<Tenant?> GetCurrentTenantAsync()
-        {
-            throw new NotImplementedException();
-        }
+        //         public Task<Tenant?> GetCurrentTenantAsync()
+        //         {
+        //             throw new NotImplementedException();
+        //         }
 
-        // Implement required members with dummy logic
-        public string GetCurrentTenantId() => "design-time-tenant-id"; // Dummy tenant ID for design time
-        public Task<string> GetCurrentTenantIdAsync(CancellationToken cancellationToken = default) => Task.FromResult("design-time-tenant-id");
+        //         // Implement required members with dummy logic
+        //         public string GetCurrentTenantId() => "design-time-tenant-id"; // Dummy tenant ID for design time
+        //         public Task<string> GetCurrentTenantIdAsync(CancellationToken cancellationToken = default) => Task.FromResult("design-time-tenant-id");
 
-        public Task<int?> GetCurrentTenantIdAsync()
-        {
-            throw new NotImplementedException();
-        }
+        //         public Task<int?> GetCurrentTenantIdAsync()
+        //         {
+        //             throw new NotImplementedException();
+        //         }
 
-        public bool IsSuperAdmin()
-        {
-            throw new NotImplementedException();
-        }
+        //         public bool IsSuperAdmin()
+        //         {
+        //             throw new NotImplementedException();
+        //         }
 
-        public Task SetCurrentTenantIdAsync(int tenantId)
-        {
-            throw new NotImplementedException();
-        }
+        //         public Task SetCurrentTenantIdAsync(int tenantId)
+        //         {
+        //             throw new NotImplementedException();
+        //         }
+        //     }
+        // }
     }
 }

@@ -1,9 +1,8 @@
-namespace ConnectFlow.Application.Common.Services;
+namespace ConnectFlow.Application.Common.Models;
 
 public class TenantInfo
 {
     private static readonly AsyncLocal<int?> _currentTenantId = new AsyncLocal<int?>();
-    private static readonly AsyncLocal<bool> _isSuperAdmin = new AsyncLocal<bool>();
 
     /// <summary>
     /// Gets or sets the current tenant ID using AsyncLocal for thread safety
@@ -16,12 +15,10 @@ public class TenantInfo
     }
 
     /// <summary>
-    /// Gets or sets whether the current user is a SuperAdmin
-    /// This is used to bypass tenant filtering for SuperAdmin users
+    /// Clear tenant information infornmation
     /// </summary>
-    public static bool IsSuperAdmin
+    public static void Clear()
     {
-        get => _isSuperAdmin.Value;
-        set => _isSuperAdmin.Value = value;
+        CurrentTenantId = null;
     }
 }

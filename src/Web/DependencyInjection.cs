@@ -1,8 +1,5 @@
 ﻿using Azure.Identity;
-using ConnectFlow.Application.Common.Interfaces;
 using ConnectFlow.Infrastructure.Data;
-using ConnectFlow.Web.Middleware;
-using ConnectFlow.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 
 using NSwag;
@@ -23,7 +20,6 @@ public static class DependencyInjection
         builder.Services.Configure<ApiBehaviorOptions>(options => options.SuppressModelStateInvalidFilter = true);
 
         builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddScoped<IUserService, CurrentUserService>();
 
         builder.Services.AddOpenApiDocument((configure, sp) =>
         {
@@ -51,10 +47,5 @@ public static class DependencyInjection
                 new Uri(keyVaultUri),
                 new DefaultAzureCredential());
         }
-    }
-
-    public static void UseTenantContext(this IApplicationBuilder builder)
-    {
-        builder.UseMiddleware<TenantMiddleware>();
     }
 }

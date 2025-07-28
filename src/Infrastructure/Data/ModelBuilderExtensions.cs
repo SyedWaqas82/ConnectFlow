@@ -1,4 +1,4 @@
-using ConnectFlow.Application.Common.Services;
+using ConnectFlow.Application.Common.Models;
 using ConnectFlow.Domain.Common;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
@@ -9,8 +9,7 @@ public static class ModelBuilderExtensions
 {
     public static void ApplyTenantFilters(this ModelBuilder modelBuilder)
     {
-        var tenantEntityTypes = modelBuilder.Model.GetEntityTypes()
-            .Where(e => typeof(ITenantEntity).IsAssignableFrom(e.ClrType)).ToList();
+        var tenantEntityTypes = modelBuilder.Model.GetEntityTypes().Where(e => typeof(ITenantEntity).IsAssignableFrom(e.ClrType)).ToList();
 
         foreach (var entityType in tenantEntityTypes)
         {
@@ -23,8 +22,7 @@ public static class ModelBuilderExtensions
 
     public static void ApplySoftDeleteFilters(this ModelBuilder modelBuilder)
     {
-        var softDeleteEntityTypes = modelBuilder.Model.GetEntityTypes()
-            .Where(e => typeof(ISoftDelete).IsAssignableFrom(e.ClrType)).ToList();
+        var softDeleteEntityTypes = modelBuilder.Model.GetEntityTypes().Where(e => typeof(ISoftDelete).IsAssignableFrom(e.ClrType)).ToList();
 
         foreach (var entityType in softDeleteEntityTypes)
         {
@@ -37,7 +35,7 @@ public static class ModelBuilderExtensions
 
     private static void SetTenantFilter<T>(ModelBuilder modelBuilder) where T : class, ITenantEntity
     {
-        modelBuilder.Entity<T>().HasQueryFilter(e => TenantInfo.IsSuperAdmin || (TenantInfo.CurrentTenantId.HasValue && e.TenantId == TenantInfo.CurrentTenantId.Value));
+        modelBuilder.Entity<T>().HasQueryFilter(e => UserInfo.IsSuperAdmin || (TenantInfo.CurrentTenantId.HasValue && e.TenantId == TenantInfo.CurrentTenantId.Value));
     }
 
     private static void SetSoftDeleteFilter<T>(ModelBuilder modelBuilder) where T : class, ISoftDelete

@@ -2,7 +2,6 @@ using System.Reflection;
 using ConnectFlow.Application.Common.Exceptions;
 using ConnectFlow.Application.Common.Interfaces;
 using ConnectFlow.Application.Common.Security;
-using ConnectFlow.Application.Common.Services;
 
 namespace ConnectFlow.Application.Common.Behaviours;
 
@@ -12,10 +11,12 @@ namespace ConnectFlow.Application.Common.Behaviours;
 public class EntityLimitBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : notnull
 {
     private readonly ITenantLimitsService _tenantLimitsService;
+    private readonly IContextService _contextService;
 
-    public EntityLimitBehaviour(ITenantLimitsService tenantLimitsService)
+    public EntityLimitBehaviour(ITenantLimitsService tenantLimitsService, IContextService contextService)
     {
         _tenantLimitsService = tenantLimitsService;
+        _contextService = contextService;
     }
 
     public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
@@ -24,10 +25,10 @@ public class EntityLimitBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequ
 
         if (entityLimitAttribute != null)
         {
-            var currentTenantId = TenantInfo.CurrentTenantId;
+            var currentTenantId = _contextService.GetCurrentTenantId();
 
             // If no tenant context or user is SuperAdmin, bypass check
-            if (!currentTenantId.HasValue || TenantInfo.IsSuperAdmin)
+            if (!currentTenantId.HasValue || _contextService.IsSuperAdmin())
             {
                 return await next();
             }

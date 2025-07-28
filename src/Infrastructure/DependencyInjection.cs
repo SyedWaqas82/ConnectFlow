@@ -48,15 +48,23 @@ public static class DependencyInjection
         // Configure Redis
         builder.ConfigureRedis(redisSettings);
 
-        // Add custom services
+        // Add custom services - order matters to avoid circular dependencies
         builder.Services.AddSingleton(TimeProvider.System);
-        builder.Services.AddTransient<IIdentityService, IdentityService>();
-        builder.Services.AddScoped<IAuthTokenService, AuthTokenService>();
         builder.Services.AddScoped<ICacheService, RedisCacheService>();
+        builder.Services.AddScoped<IAuthTokenService, AuthTokenService>();
         builder.Services.AddScoped<IStripeService, StripeService>();
-        builder.Services.AddScoped<ITenantService, TenantService>();
-        builder.Services.AddScoped<ITenantLimitsService, TenantLimitsService>();
+
+        // Register ISubscriptionService before services that depend on it
         builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
+
+        // Register ITenantLimitsService after ISubscriptionService
+        builder.Services.AddScoped<ITenantLimitsService, TenantLimitsService>();
+
+        // Register IContextService last as it might depend on multiple services
+        builder.Services.AddScoped<IContextService, ContextService>();
+
+        // Register IIdentityService after all dependencies are registered
+        builder.Services.AddTransient<IIdentityService, IdentityService>();
     }
 
     private static void ConfigureEntityFramework(this IHostApplicationBuilder builder, string connectionString)

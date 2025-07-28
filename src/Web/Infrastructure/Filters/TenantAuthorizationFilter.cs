@@ -1,5 +1,4 @@
 using ConnectFlow.Application.Common.Interfaces;
-using ConnectFlow.Domain.Constants;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
@@ -18,22 +17,21 @@ public class RequiresTenantAttribute : Attribute, IAsyncAuthorizationFilter
 
     public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
     {
-        var tenantService = context.HttpContext.RequestServices.GetRequiredService<ITenantService>();
-        var currentUserService = context.HttpContext.RequestServices.GetRequiredService<IUserService>();
+        var contextService = context.HttpContext.RequestServices.GetRequiredService<IContextService>();
 
-        if (!currentUserService.ApplicationUserId.HasValue)
+        if (!contextService.GetCurrentApplicationUserId().HasValue)
         {
             context.Result = new UnauthorizedResult();
             return;
         }
 
         // Super admins are always allowed if AllowSuperAdmin is true
-        if (AllowSuperAdmin && currentUserService.IsInRole(Roles.SuperAdmin))
+        if (AllowSuperAdmin && contextService.IsSuperAdmin())
         {
             return;
         }
 
-        var tenantId = await tenantService.GetCurrentTenantIdAsync();
+        var tenantId = contextService.GetCurrentTenantId();
 
         if (!tenantId.HasValue)
         {
@@ -44,7 +42,7 @@ public class RequiresTenantAttribute : Attribute, IAsyncAuthorizationFilter
         // Check if user belongs to the tenant
         var dbContext = context.HttpContext.RequestServices.GetRequiredService<IApplicationDbContext>();
         var tenantUser = await dbContext.TenantUsers
-            .Where(tu => tu.TenantId == tenantId.Value && tu.UserId == currentUserService.ApplicationUserId)
+            .Where(tu => tu.TenantId == tenantId.Value && tu.UserId == contextService.GetCurrentApplicationUserId())
             .FirstOrDefaultAsync();
 
         if (tenantUser == null || !tenantUser.IsActive)
@@ -69,22 +67,21 @@ public class RequiresTenantRoleAttribute : Attribute, IAsyncAuthorizationFilter
 
     public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
     {
-        var tenantService = context.HttpContext.RequestServices.GetRequiredService<ITenantService>();
-        var currentUserService = context.HttpContext.RequestServices.GetRequiredService<IUserService>();
+        var contextService = context.HttpContext.RequestServices.GetRequiredService<IContextService>();
 
-        if (!currentUserService.ApplicationUserId.HasValue)
+        if (!contextService.GetCurrentApplicationUserId().HasValue)
         {
             context.Result = new UnauthorizedResult();
             return;
         }
 
         // Super admins are always allowed if AllowSuperAdmin is true
-        if (AllowSuperAdmin && currentUserService.IsInRole(Roles.SuperAdmin))
+        if (AllowSuperAdmin && contextService.IsSuperAdmin())
         {
             return;
         }
 
-        var tenantId = await tenantService.GetCurrentTenantIdAsync();
+        var tenantId = contextService.GetCurrentTenantId();
 
         if (!tenantId.HasValue)
         {
@@ -97,7 +94,7 @@ public class RequiresTenantRoleAttribute : Attribute, IAsyncAuthorizationFilter
         var tenantUserRoles = await dbContext.TenantUserRoles
             .Include(tur => tur.TenantUser)
             .Where(tur => tur.TenantUser.TenantId == tenantId.Value &&
-                tur.TenantUser.UserId == currentUserService.ApplicationUserId &&
+                tur.TenantUser.UserId == contextService.GetCurrentApplicationUserId() &&
                 tur.TenantUser.IsActive && tur.IsActive)
             .Select(tur => tur.RoleName)
             .ToListAsync();
