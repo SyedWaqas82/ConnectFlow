@@ -7,17 +7,17 @@ namespace ConnectFlow.Infrastructure.Services;
 public class TenantLimitsService : ITenantLimitsService
 {
     private readonly IApplicationDbContext _dbContext;
-    private readonly ISubscriptionService _subscriptionService;
+    private readonly IContextValidationService _contextValidationService;
 
-    public TenantLimitsService(IApplicationDbContext dbContext, ISubscriptionService subscriptionService)
+    public TenantLimitsService(IApplicationDbContext dbContext, IContextValidationService contextValidationService)
     {
         _dbContext = dbContext;
-        _subscriptionService = subscriptionService;
+        _contextValidationService = contextValidationService;
     }
 
     public async Task<bool> CanAddEntityAsync(int tenantId, EntityType entityType)
     {
-        var activeSubscription = await _subscriptionService.GetActiveSubscriptionAsync(tenantId);
+        var activeSubscription = await _contextValidationService.GetActiveSubscriptionAsync(tenantId);
         if (activeSubscription == null) return false;
 
         // Check limits based on entity type
@@ -48,7 +48,7 @@ public class TenantLimitsService : ITenantLimitsService
 
     public async Task<bool> CanAddUserAsync(int tenantId)
     {
-        var activeSubscription = await _subscriptionService.GetActiveSubscriptionAsync(tenantId);
+        var activeSubscription = await _contextValidationService.GetActiveSubscriptionAsync(tenantId);
         if (activeSubscription == null) return false;
 
         int userCount = await _dbContext.TenantUsers.CountAsync(tu => tu.TenantId == tenantId && tu.IsActive);
@@ -57,7 +57,7 @@ public class TenantLimitsService : ITenantLimitsService
 
     public async Task<bool> CanUseAiTokensAsync(int tenantId, int tokenCount)
     {
-        var activeSubscription = await _subscriptionService.GetActiveSubscriptionAsync(tenantId);
+        var activeSubscription = await _contextValidationService.GetActiveSubscriptionAsync(tenantId);
         if (activeSubscription == null) return false;
 
         // Get the current month's token usage

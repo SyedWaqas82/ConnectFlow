@@ -3257,7 +3257,7 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
 
             modelBuilder.Entity("ConnectFlow.Domain.Entities.TenantUserRole", b =>
                 {
-                    b.HasOne("ConnectFlow.Domain.Entities.TenantUser", "AssignedByUser")
+                    b.HasOne("ConnectFlow.Infrastructure.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("AssignedBy")
                         .OnDelete(DeleteBehavior.SetNull);
@@ -3277,8 +3277,6 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         .HasForeignKey("TenantUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("AssignedByUser");
 
                     b.Navigation("TenantUser");
                 });

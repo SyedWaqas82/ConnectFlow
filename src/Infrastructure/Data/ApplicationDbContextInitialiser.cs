@@ -1,5 +1,6 @@
 ﻿using ConnectFlow.Domain.Constants;
 using ConnectFlow.Domain.Entities;
+using ConnectFlow.Domain.Enums;
 using ConnectFlow.Infrastructure.Identity;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
@@ -85,28 +86,99 @@ public class ApplicationDbContextInitialiser
 
     public async Task TrySeedAsync()
     {
-        // Default roles
-        var administratorRole = new ApplicationRole(Roles.SuperAdmin);
+        // 1. Ensure roles exist
+        var superAdminRole = "SuperAdmin";
+        var tenantAdminRole = "TenantAdmin";
 
-        if (_roleManager.Roles.All(r => r.Name != administratorRole.Name))
+        if (!await _roleManager.RoleExistsAsync(superAdminRole))
+            await _roleManager.CreateAsync(new ApplicationRole(superAdminRole));
+        if (!await _roleManager.RoleExistsAsync(tenantAdminRole))
+            await _roleManager.CreateAsync(new ApplicationRole(tenantAdminRole));
+
+        // 2. Create SuperAdmin user
+        var superAdminEmail = "superadmin@connectflow.local";
+        if (_userManager.Users.All(u => u.UserName != superAdminEmail))
         {
-            await _roleManager.CreateAsync(administratorRole);
+            var superAdmin = new ApplicationUser
+            {
+                UserName = superAdminEmail,
+                Email = superAdminEmail,
+                EmailConfirmed = true
+            };
+            await _userManager.CreateAsync(superAdmin, "SuperAdmin123!"); // Use a strong password in production
+            await _userManager.AddToRoleAsync(superAdmin, superAdminRole);
         }
 
-        // Default users
-        var administrator = new ApplicationUser { UserName = "administrator@localhost", Email = "administrator@localhost" };
+        // 3. Create Tenant, Subscription, and TenantAdmin user
 
-        if (_userManager.Users.All(u => u.UserName != administrator.UserName))
+        var tenantAdminEmail = "tenantadmin@connectflow.local";
+
+        if (_userManager.Users.All(u => u.UserName != tenantAdminEmail))
         {
-            await _userManager.CreateAsync(administrator, "Administrator1!");
-            if (!string.IsNullOrWhiteSpace(administratorRole.Name))
+            var tenantAdmin = new ApplicationUser
             {
-                await _userManager.AddToRolesAsync(administrator, new[] { administratorRole.Name });
+                UserName = tenantAdminEmail,
+                Email = tenantAdminEmail,
+                EmailConfirmed = true,
+            };
+            await _userManager.CreateAsync(tenantAdmin, "TenantAdmin123!"); // Use a strong password in production
+            await _userManager.AddToRoleAsync(tenantAdmin, tenantAdminRole);
+
+            var tenantName = "Default Tenant";
+            var tenant = _context.Tenants.FirstOrDefault(t => t.Name == tenantName);
+            if (tenant == null)
+            {
+                tenant = new Tenant
+                {
+                    Code = "Default Tenant",
+                    Domain = "Default Tenant",
+                    Name = "Default Tenant",
+                    Description = "Default Tenant",
+                    CreatedBy = tenantAdmin.Id,
+                };
+
+                _context.Tenants.Add(tenant);
+                await _context.SaveChangesAsync();
+            }
+
+            var tenantUser = new TenantUser
+            {
+                UserId = tenantAdmin.Id,
+                TenantId = tenant.Id,
+                InvitedBy = tenantAdmin.Id,
+                Status = TenantUserStatus.Active,
+                CreatedBy = tenantAdmin.Id,
+                JoinedAt = DateTimeOffset.UtcNow,
+                IsActive = true,
+            };
+
+            tenantUser.TenantUserRoles.Add(new TenantUserRole
+            {
+                RoleName = Roles.TenantAdmin,
+                IsActive = true,
+                AssignedAt = DateTimeOffset.UtcNow,
+                AssignedBy = tenantAdmin.Id,
+                CreatedBy = tenantAdmin.Id
+            });
+
+            _context.TenantUsers.Add(tenantUser);
+            await _context.SaveChangesAsync();
+
+            var subscription = _context.Subscriptions.FirstOrDefault(s => s.TenantId == tenant.Id);
+            if (subscription == null)
+            {
+                subscription = SubscriptionPlans.EnterpriseUnlimited;
+                subscription.StripeCustomerId = "cus_default"; // Placeholder, replace with actual Stripe customer ID
+                subscription.StripeSubscriptionId = "sub_default"; // Placeholder, replace with actual Stripe subscription
+                subscription.TenantId = tenant.Id;
+                subscription.CreatedBy = tenantAdmin.Id;
+
+                _context.Subscriptions.Add(subscription);
+                await _context.SaveChangesAsync();
             }
         }
 
-        // Default data
-        // Seed, if necessary
+        // Seed default TodoList if necessary
         if (!_context.TodoLists.Any())
         {
             _context.TodoLists.Add(new TodoList

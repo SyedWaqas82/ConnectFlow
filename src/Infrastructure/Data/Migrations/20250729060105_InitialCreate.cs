@@ -924,6 +924,12 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                 {
                     table.PrimaryKey("PK_TenantUserRoles", x => x.Id);
                     table.ForeignKey(
+                        name: "FK_TenantUserRoles_AspNetUsers_AssignedBy",
+                        column: x => x.AssignedBy,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
                         name: "FK_TenantUserRoles_AspNetUsers_CreatedBy",
                         column: x => x.CreatedBy,
                         principalTable: "AspNetUsers",
@@ -933,12 +939,6 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         name: "FK_TenantUserRoles_AspNetUsers_LastModifiedBy",
                         column: x => x.LastModifiedBy,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
-                    table.ForeignKey(
-                        name: "FK_TenantUserRoles_TenantUsers_AssignedBy",
-                        column: x => x.AssignedBy,
-                        principalTable: "TenantUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(

@@ -7,7 +7,6 @@ public class TenantUserRole : BaseAuditableEntity
     public DateTimeOffset AssignedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset? RevokedAt { get; set; }
     public int? AssignedBy { get; set; } // UserId who assigned this role
-    public TenantUser? AssignedByUser { get; set; } // Navigation property for the user who assigned this role
     public int TenantUserId { get; set; }
     public TenantUser TenantUser { get; set; } = null!;
 }

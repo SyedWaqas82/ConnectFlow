@@ -54,14 +54,14 @@ public static class DependencyInjection
         builder.Services.AddScoped<IAuthTokenService, AuthTokenService>();
         builder.Services.AddScoped<IStripeService, StripeService>();
 
-        // Register ISubscriptionService before services that depend on it
-        builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
-
-        // Register ITenantLimitsService after ISubscriptionService
-        builder.Services.AddScoped<ITenantLimitsService, TenantLimitsService>();
-
         // Register IContextService last as it might depend on multiple services
         builder.Services.AddScoped<IContextService, ContextService>();
+
+        // Register IContextValidationService before services that depend on it
+        builder.Services.AddScoped<IContextValidationService, ContextValidationService>();
+
+        // Register ITenantLimitsService after IContextValidationService
+        builder.Services.AddScoped<ITenantLimitsService, TenantLimitsService>();
 
         // Register IIdentityService after all dependencies are registered
         builder.Services.AddTransient<IIdentityService, IdentityService>();

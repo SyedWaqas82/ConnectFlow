@@ -73,7 +73,7 @@ public class IdentityService : IIdentityService
         var tenant = tenantResult.Data;
 
         // Join the tenant as the admin user
-        await JoinTenantInternalAsync(newUser.Id, tenant.Id, validRoles, _contextService.GetCurrentApplicationUserId());
+        await JoinTenantInternalAsync(newUser, tenant.Id, validRoles, _contextService.GetCurrentApplicationUserId());
 
         // Create subscription
         await CreateSubscriptionForTenantAsync(tenant, plan);
@@ -110,7 +110,7 @@ public class IdentityService : IIdentityService
         var tenant = tenantResult.Data;
 
         // Join the tenant as the admin user
-        await JoinTenantInternalAsync(existingUser.Id, tenant.Id, validRoles, _contextService.GetCurrentApplicationUserId());
+        await JoinTenantInternalAsync(existingUser, tenant.Id, validRoles, _contextService.GetCurrentApplicationUserId());
 
         // Add role to user's global roles if not already present
         foreach (var role in validRoles)
@@ -139,7 +139,7 @@ public class IdentityService : IIdentityService
 
             if (tenantId.HasValue)
             {
-                await JoinTenantInternalAsync(result.Result.Data.Id, tenantId.Value, validRoles, _contextService.GetCurrentApplicationUserId());
+                await JoinTenantInternalAsync(result.Result.Data, tenantId.Value, validRoles, _contextService.GetCurrentApplicationUserId());
             }
 
             return Result<UserToken>.Success(new UserToken() { ApplicationUserId = result.Result.Data.PublicId, Token = result.ConfirmationToken });
@@ -160,7 +160,7 @@ public class IdentityService : IIdentityService
             return Result.Failure(new[] { "user not found" });
         }
 
-        await JoinTenantInternalAsync(existingUser.Id, tenantId, validRoles, _contextService.GetCurrentApplicationUserId());
+        await JoinTenantInternalAsync(existingUser, tenantId, validRoles, _contextService.GetCurrentApplicationUserId());
 
         foreach (var role in validRoles)
         {
@@ -417,15 +417,15 @@ public class IdentityService : IIdentityService
         return (result.ToApplicationResult(user), string.Empty);
     }
 
-    private async Task JoinTenantInternalAsync(int userId, int tenantId, string[] roles, int? invitedBy)
+    private async Task JoinTenantInternalAsync(ApplicationUser user, int tenantId, string[] roles, int? invitedBy)
     {
         var tenantUser = new TenantUser
         {
-            UserId = userId,
+            UserId = user.Id,
             TenantId = tenantId,
             InvitedBy = invitedBy,
             Status = TenantUserStatus.Active,
-            CreatedBy = invitedBy ?? userId,
+            CreatedBy = invitedBy ?? user.Id,
             JoinedAt = DateTimeOffset.UtcNow,
             IsActive = true
         };
@@ -444,8 +444,8 @@ public class IdentityService : IIdentityService
                 IsActive = true,
                 RoleName = role,
                 AssignedAt = DateTimeOffset.UtcNow,
-                AssignedBy = invitedBy ?? userId,
-                CreatedBy = invitedBy ?? userId
+                AssignedBy = invitedBy ?? user.Id,
+                CreatedBy = invitedBy ?? user.Id
             };
 
             _context.TenantUserRoles.Add(tenantUserRole);

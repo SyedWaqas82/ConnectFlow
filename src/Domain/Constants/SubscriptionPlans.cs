@@ -72,6 +72,22 @@ public static class SubscriptionPlans
         CurrentPeriodEndsAt = DateTimeOffset.UtcNow.AddMonths(1),
     };
 
+    public static readonly Subscription EnterpriseUnlimited = new Subscription
+    {
+        UserLimit = int.MaxValue,
+        LeadLimit = int.MaxValue,
+        ContactLimit = int.MaxValue,
+        CompanyLimit = int.MaxValue,
+        CustomFieldLimit = int.MaxValue,
+        MonthlyAITokenLimit = int.MaxValue,
+        Amount = 0,
+        Currency = "USD",
+        Plan = SubscriptionPlan.Enterprise,
+        BillingCycle = BillingCycle.Monthly,
+        Status = SubscriptionStatus.Active,
+        CurrentPeriodStartsAt = DateTimeOffset.UtcNow,
+    };
+
     public static Subscription GetPlanByName(SubscriptionPlan plan)
     {
         return plan switch

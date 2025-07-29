@@ -1,4 +1,5 @@
 using ConnectFlow.Domain.Entities;
+using ConnectFlow.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -19,6 +20,6 @@ public class TenantUserRoleConfiguration : BaseAuditableConfiguration<TenantUser
 
         // Configure relationships
         builder.HasOne(tur => tur.TenantUser).WithMany(tu => tu.TenantUserRoles).HasForeignKey(tur => tur.TenantUserId).OnDelete(DeleteBehavior.Cascade);
-        builder.HasOne(tur => tur.AssignedByUser).WithMany().HasForeignKey(tur => tur.AssignedBy).OnDelete(DeleteBehavior.SetNull);
+        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(tur => tur.AssignedBy).OnDelete(DeleteBehavior.SetNull);
     }
 }
