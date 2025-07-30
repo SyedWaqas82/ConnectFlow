@@ -1,17 +1,24 @@
 ﻿using System.Reflection;
+using Asp.Versioning;
+using Asp.Versioning.Builder;
 
 namespace ConnectFlow.Web.Infrastructure;
 
 public static class WebApplicationExtensions
 {
-    public static RouteGroupBuilder MapGroup(this WebApplication app, EndpointGroupBase group)
+    public static RouteGroupBuilder MapGroup(this WebApplication app, EndpointGroupBase group, ApiVersionSet? apiVersionSet = null)
     {
         var groupName = group.GetType().Name;
 
+        if (apiVersionSet == null)
+        {
+            apiVersionSet = app.NewApiVersionSet().HasApiVersion(new ApiVersion(1, 0)).ReportApiVersions().Build();
+        }
+
+        // Create a versioned route group - use format that matches our Swagger configuration
         return app
-            .MapGroup($"/api/{groupName}")
-            .WithGroupName(groupName)
-            .WithTags(groupName);
+            .MapGroup($"/api/v{{apiVersion:apiVersion}}/{groupName.ToLowerInvariant()}").WithTags(groupName)
+            .WithApiVersionSet(apiVersionSet);
     }
 
     public static WebApplication MapEndpoints(this WebApplication app)

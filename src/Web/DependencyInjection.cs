@@ -1,9 +1,8 @@
-﻿using Azure.Identity;
+﻿using Asp.Versioning;
+using Azure.Identity;
 using ConnectFlow.Infrastructure.Data;
+using ConnectFlow.Web.Common;
 using Microsoft.AspNetCore.Mvc;
-
-using NSwag;
-using NSwag.Generation.Processors.Security;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -21,21 +20,9 @@ public static class DependencyInjection
 
         builder.Services.AddEndpointsApiExplorer();
 
-        builder.Services.AddOpenApiDocument((configure, sp) =>
-        {
-            configure.Title = "ConnectFlow API";
-
-            // Add JWT
-            configure.AddSecurity("JWT", Enumerable.Empty<string>(), new OpenApiSecurityScheme
-            {
-                Type = OpenApiSecuritySchemeType.ApiKey,
-                Name = "Authorization",
-                In = OpenApiSecurityApiKeyLocation.Header,
-                Description = "Type into the textbox: Bearer {your JWT token}."
-            });
-
-            configure.OperationProcessors.Add(new AspNetCoreOperationSecurityScopeProcessor("JWT"));
-        });
+        builder.Services.AddSwaggerGen();
+        //builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerGenOptions>();
+        builder.Services.ConfigureOptions<ConfigureSwaggerGenOptions>();
     }
 
     public static void AddKeyVaultIfConfigured(this IHostApplicationBuilder builder)
@@ -47,5 +34,31 @@ public static class DependencyInjection
                 new Uri(keyVaultUri),
                 new DefaultAzureCredential());
         }
+    }
+
+    /// <summary>
+    /// Adds API versioning services to the specified <see cref="WebApplicationBuilder"/>.
+    /// </summary>
+    public static WebApplicationBuilder AddApiVersioning(this WebApplicationBuilder builder)
+    {
+        builder.Services
+            .AddApiVersioning(options =>
+            {
+                options.DefaultApiVersion = new ApiVersion(1, 0);
+                options.AssumeDefaultVersionWhenUnspecified = true;
+                options.ReportApiVersions = true;
+                options.ApiVersionReader = new UrlSegmentApiVersionReader();
+            })
+            .AddApiExplorer(options =>
+            {
+                // Format the version as "v1" in the Swagger UI
+                options.GroupNameFormat = "'v'VVV";
+                // Replace version in the URL path
+                options.SubstituteApiVersionInUrl = true;
+                // This is important for Swagger to discover all versions
+                options.AssumeDefaultVersionWhenUnspecified = true;
+            });
+
+        return builder;
     }
 }

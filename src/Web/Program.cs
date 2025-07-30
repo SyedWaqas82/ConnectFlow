@@ -8,6 +8,7 @@ builder.AddKeyVaultIfConfigured();
 builder.AddApplicationServices();
 builder.AddInfrastructureServices();
 builder.AddWebServices();
+builder.AddApiVersioning();
 
 var app = builder.Build();
 
@@ -23,21 +24,37 @@ else
 }
 
 app.UseExceptionHandler(options => { });
-
 app.UseHealthChecks("/health");
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseContextMiddleware(); // Add context middleware to set context for each request
 
-app.UseSwaggerUi(settings =>
+// Automatically discover and map all EndpointGroupBase implementations before Swagger UI for proper API version discovery.
+app.MapEndpoints();
+
+// Configure Swagger and Swagger UI
+app.UseSwagger();
+app.UseSwaggerUI(options =>
 {
-    settings.Path = "/api";
-    settings.DocumentPath = "/api/specification.json";
+    var descriptions = app.DescribeApiVersions();
+
+    // // Add a swagger endpoint for each discovered API version
+    foreach (var description in descriptions)
+    {
+        var url = $"/swagger/{description.GroupName}/swagger.json";
+        var apiName = $"ConnectFlow API {description.GroupName}";
+
+        options.SwaggerEndpoint(url, apiName);
+    }
+
+    options.RoutePrefix = string.Empty; // Serve Swagger UI at the root URL
+
+    //options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
+    //options.SwaggerEndpoint("/swagger/v2/swagger.json", "v2");
 });
 
-app.Map("/", () => Results.Redirect("/api"));
-
-app.MapEndpoints();
+// Default route redirect to Swagger UI
+//app.Map("/", () => Results.Redirect("/swagger"));
 
 app.Run();
 
