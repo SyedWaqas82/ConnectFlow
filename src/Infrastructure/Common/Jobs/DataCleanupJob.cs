@@ -1,6 +1,6 @@
 using Quartz;
 
-namespace ConnectFlow.Infrastructure.Jobs;
+namespace ConnectFlow.Infrastructure.Common.Jobs;
 
 /// <summary>
 /// Job that handles cleanup of expired data from the system

@@ -1,12 +1,11 @@
 using ConnectFlow.Application.Common.Models;
 using ConnectFlow.Infrastructure.Common.Enrichers;
 using Microsoft.Extensions.Hosting;
-using Serilog;
 using Serilog.Events;
 using Serilog.Exceptions;
 using Serilog.Sinks.Grafana.Loki;
 
-namespace ConnectFlow.Infrastructure.Configuration;
+namespace ConnectFlow.Infrastructure.Common.Configuration;
 
 /// <summary>
 /// Configures structured logging with Serilog for unified observability.

@@ -3,17 +3,15 @@ using ConnectFlow.Application.Common.Interfaces;
 using ConnectFlow.Application.Common.Models;
 using ConnectFlow.Domain.Constants;
 using ConnectFlow.Infrastructure.Common.Interfaces;
-using ConnectFlow.Infrastructure.Configuration;
+using ConnectFlow.Infrastructure.Common.Configuration;
 using ConnectFlow.Infrastructure.Data;
 using ConnectFlow.Infrastructure.Data.Interceptors;
 using ConnectFlow.Infrastructure.Identity;
 using ConnectFlow.Infrastructure.Services;
-using Serilog;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 

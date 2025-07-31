@@ -1,9 +1,6 @@
-using Microsoft.Extensions.Logging;
 using Quartz;
-using Serilog.Context;
-using System.Diagnostics;
 
-namespace ConnectFlow.Infrastructure.Jobs;
+namespace ConnectFlow.Infrastructure.Common.Jobs;
 
 /// <summary>
 /// Job that generates periodic reports for the system

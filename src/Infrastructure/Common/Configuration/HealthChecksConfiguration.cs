@@ -3,7 +3,7 @@ using ConnectFlow.Infrastructure.Data;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 
-namespace ConnectFlow.Infrastructure.Configuration;
+namespace ConnectFlow.Infrastructure.Common.Configuration;
 
 public static class HealthChecksConfiguration
 {

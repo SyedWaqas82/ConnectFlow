@@ -1,9 +1,6 @@
-using Microsoft.Extensions.Logging;
 using Npgsql;
-using System.IO;
-using System.Reflection;
 
-namespace ConnectFlow.Infrastructure.Configuration;
+namespace ConnectFlow.Infrastructure.Common.Initializers;
 
 /// <summary>
 /// Handles the creation of Quartz schema tables in PostgreSQL

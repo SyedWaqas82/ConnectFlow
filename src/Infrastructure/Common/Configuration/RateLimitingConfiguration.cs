@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Hosting;
 
-namespace ConnectFlow.Infrastructure.Configuration;
+namespace ConnectFlow.Infrastructure.Common.Configuration;
 
 public static class RateLimitingConfiguration
 {

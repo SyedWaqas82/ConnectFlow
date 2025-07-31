@@ -4,7 +4,7 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
-namespace ConnectFlow.Infrastructure.Configuration;
+namespace ConnectFlow.Infrastructure.Common.Configuration;
 
 public static class ObservabilityConfiguration
 {

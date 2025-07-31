@@ -1,6 +1,4 @@
-﻿using ConnectFlow.Infrastructure.Identity;
-
-namespace ConnectFlow.Web.Endpoints;
+﻿namespace ConnectFlow.Web.Endpoints;
 
 public class Users : EndpointGroupBase
 {

@@ -1,7 +1,6 @@
-using Microsoft.Extensions.Logging;
 using Quartz;
 
-namespace ConnectFlow.Infrastructure.Jobs;
+namespace ConnectFlow.Infrastructure.Common.Jobs;
 
 /// <summary>
 /// A job that simulates long-running processes that might cause misfires
