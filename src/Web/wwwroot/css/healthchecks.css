@@ -1,0 +1,53 @@
+/* Health Checks UI Custom Styling */
+:root {
+  --primary-color: #2d6da3;
+  --secondary-color: #4f9bd9;
+  --success-color: #28a745;
+  --danger-color: #dc3545;
+  --warning-color: #ffc107;
+  --info-color: #17a2b8;
+}
+
+/* Header customization */
+.navbar-brand img {
+  max-height: 30px;
+}
+
+.navbar-dark {
+  background-color: var(--primary-color) !important;
+}
+
+/* Status indicators */
+.hc-status--healthy {
+  background-color: var(--success-color) !important;
+}
+
+.hc-status--degraded {
+  background-color: var(--warning-color) !important;
+}
+
+.hc-status--unhealthy {
+  background-color: var(--danger-color) !important;
+}
+
+/* Button customization */
+.btn-primary {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+  background-color: var(--secondary-color);
+  border-color: var(--secondary-color);
+}
+
+/* Dashboard elements */
+.hc-chart {
+  margin-bottom: 1.5rem;
+}
+
+/* Footer customization */
+footer {
+  margin-top: 2rem;
+  font-size: 0.85rem;
+}

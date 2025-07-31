@@ -1,8 +1,9 @@
 ﻿using Asp.Versioning;
 using Azure.Identity;
-using ConnectFlow.Infrastructure.Data;
 using ConnectFlow.Web.Common;
 using Microsoft.AspNetCore.Mvc;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -12,7 +13,6 @@ public static class DependencyInjection
     {
         builder.Services.AddDatabaseDeveloperPageExceptionFilter();
         builder.Services.AddHttpContextAccessor();
-        builder.Services.AddHealthChecks().AddDbContextCheck<ApplicationDbContext>();
         builder.Services.AddExceptionHandler<CustomExceptionHandler>();
 
         // Customise default API behaviour
@@ -60,5 +60,33 @@ public static class DependencyInjection
             });
 
         return builder;
+    }
+
+    public static void UseCustomHealthChecks(this WebApplication app)
+    {
+        // Configure health check endpoints
+        app.UseHealthChecks("/health/live", new HealthCheckOptions
+        {
+            Predicate = reg => reg.Tags.Contains("live"),
+            ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+        });
+
+        app.UseHealthChecks("/health/ready", new HealthCheckOptions
+        {
+            Predicate = reg => reg.Tags.Contains("ready"),
+            ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+        });
+
+        app.UseHealthChecks("/health", new HealthCheckOptions
+        {
+            ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+        });
+
+        // Add Health Checks UI endpoint
+        app.MapHealthChecksUI(options =>
+        {
+            options.UIPath = "/healthz";
+            options.ApiPath = "/healthz-api";
+        });
     }
 }

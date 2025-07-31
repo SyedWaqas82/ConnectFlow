@@ -22,7 +22,6 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="9.0.7" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.7" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.7" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.3" />
@@ -31,10 +30,4 @@
   <ItemGroup>
     <Folder Include="Services/" />
   </ItemGroup>
-
-  <!-- Auto-generated Open API specification and Angular TypeScript clients -->
-  <PropertyGroup>
-    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
-  </PropertyGroup>
-
 </Project>

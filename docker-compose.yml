@@ -15,13 +15,26 @@ services:
   #     - ASPNETCORE_ENVIRONMENT=Development
   #     - ConnectionStrings__ConnectFlowDb=Host=postgres;Database=connectflow;Username=postgres;Password=postgres
   #     - ConnectionStrings__Redis=redis:6379
-  #     - JWT__Secret=${JWT_SECRET}
-  #     - JWT__Issuer=${JWT_ISSUER}
-  #     - JWT__Audience=${JWT_AUDIENCE}
+  #     - Monitoring__UseLoki=true
+  #     - Monitoring__LokiUrl=http://loki:3100
+  #     - Monitoring__OtlpEndpoint=http://tempo:4317
+  #     - Monitoring__PrometheusUrl=http://prometheus:9090
+  #     - Monitoring__GrafanaUrl=http://grafana:3000
   #   depends_on:
-  #     - postgres
-  #     - redis
+  #     postgres:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_started
+  #   networks:
+  #     - default
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost/health/live"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 40s
 
+  # Database
   postgres:
     container_name: postgres
     image: postgres:14-alpine
@@ -34,7 +47,15 @@ services:
       - POSTGRES_PASSWORD=postgres
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - default
 
+  # Cache
   redis:
     container_name: redis
     image: redis:alpine
@@ -43,9 +64,96 @@ services:
       - "6379:6379"
     volumes:
       - redis-data:/data
+    networks:
+      - default
+
+  # Node metrics
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: unless-stopped
+    ports:
+      - "9100:9100"
+    networks:
+      - default
+
+  # Metrics storage and collection
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:v2.47.2
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+    networks:
+      - default
+    restart: unless-stopped
+
+  # Dashboard and visualization
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:10.2.2
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+      - grafana-data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_FEATURE_TOGGLES_ENABLE=traceqlEditor
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
+    networks:
+      - default
+    restart: unless-stopped
+
+  # Log aggregation
+  loki:
+    container_name: loki
+    image: grafana/loki:2.9.2
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./monitoring/loki/local-config.yaml:/etc/loki/local-config.yaml
+      - loki-data:/loki
+    networks:
+      - default
+    restart: unless-stopped
+
+  # Distributed tracing
+  tempo:
+    container_name: tempo
+    image: grafana/tempo:2.3.0
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes:
+      - ./monitoring/tempo/tempo.yaml:/etc/tempo.yaml
+      - tempo-data:/tmp/tempo
+    ports:
+      - "3200:3200" # tempo
+      - "4317:4317" # otlp grpc
+      - "4318:4318" # otlp http
+    networks:
+      - default
+    restart: unless-stopped
 
 volumes:
   postgres-data:
     name: local_postgres_volume
   redis-data:
     name: local_redis_volume
+  prometheus-data:
+    name: prometheus_volume
+  grafana-data:
+    name: grafana_volume
+  loki-data:
+    name: loki_volume
+  tempo-data:
+    name: tempo_volume

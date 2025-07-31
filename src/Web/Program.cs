@@ -24,10 +24,12 @@ else
 }
 
 app.UseExceptionHandler(options => { });
-app.UseHealthChecks("/health");
+app.UseCustomHealthChecks();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-app.UseContextMiddleware(); // Add context middleware to set context for each request
+app.UseCorrelationIdMapping();
+app.UseRateLimiter();
+app.MapPrometheusScrapingEndpoint("/metrics");
 
 // Automatically discover and map all EndpointGroupBase implementations before Swagger UI for proper API version discovery.
 app.MapEndpoints();

@@ -3,10 +3,12 @@ using ConnectFlow.Application.Common.Interfaces;
 using ConnectFlow.Application.Common.Models;
 using ConnectFlow.Domain.Constants;
 using ConnectFlow.Infrastructure.Common.Interfaces;
+using ConnectFlow.Infrastructure.Configuration;
 using ConnectFlow.Infrastructure.Data;
 using ConnectFlow.Infrastructure.Data.Interceptors;
 using ConnectFlow.Infrastructure.Identity;
 using ConnectFlow.Infrastructure.Services;
+using Serilog;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -46,7 +48,7 @@ public static class DependencyInjection
         builder.ConfigureAuthenticationAndAuthorization(jwtSettings);
 
         // Configure Redis
-        builder.ConfigureRedis(redisSettings);
+        builder.ConfigureOtherServices(redisSettings);
 
         // Add custom services - order matters to avoid circular dependencies
         builder.Services.AddSingleton(TimeProvider.System);
@@ -148,12 +150,27 @@ public static class DependencyInjection
         //services.AddAuthorization(options => options.AddPolicy(Policies.CanPurge, policy => policy.RequireRole(Roles.Administrator)));
     }
 
-    private static void ConfigureRedis(this IHostApplicationBuilder builder, RedisSettings redisSettings)
+    private static void ConfigureOtherServices(this IHostApplicationBuilder builder, RedisSettings redisSettings)
     {
         builder.Services.AddStackExchangeRedisCache(options =>
         {
             options.Configuration = redisSettings.Configuration;
             options.InstanceName = redisSettings.InstanceName;
         });
+
+        // Configure Serilog first, before any other services to ensure proper logging
+        builder.AddStructuredLogging();
+
+        // Register background job services with Quartz
+        builder.AddQuartzInfrastructure();
+
+        // Add observability services (metrics, tracing)
+        builder.AddOpenTelemetry();
+
+        // Add rate limiting services
+        builder.AddRateLimiting();
+
+        // Add health checks
+        builder.AddEnhancedHealthChecks();
     }
 }
