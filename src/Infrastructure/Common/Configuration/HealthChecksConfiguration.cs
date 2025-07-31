@@ -1,4 +1,5 @@
 using ConnectFlow.Application.Common.Models;
+using ConnectFlow.Infrastructure.Common.HealthChecks;
 using ConnectFlow.Infrastructure.Data;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
@@ -38,6 +39,10 @@ public static class HealthChecksConfiguration
                 builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379",
                 name: "redis",
                 tags: new[] { "cache", "redis", "ready" })
+            .AddCheck<QuartzHealthCheck>(
+                "quartz",
+                failureStatus: HealthStatus.Degraded,
+                tags: new[] { "jobs", "quartz", "ready" })
             .AddCheck("API", () => HealthCheckResult.Healthy(),
                 tags: new[] { "service", "live" });
 

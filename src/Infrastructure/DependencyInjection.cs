@@ -21,8 +21,11 @@ public static class DependencyInjection
 {
     public static void AddInfrastructureServices(this IHostApplicationBuilder builder)
     {
-        var connectionString = builder.Configuration.GetConnectionString("ConnectFlowDb");
-        Guard.Against.Null(connectionString, message: "Connection string 'ConnectFlowDb' not found.");
+        var dbConnectionString = builder.Configuration.GetConnectionString("ConnectFlowDb");
+        Guard.Against.Null(dbConnectionString, message: "Connection string 'ConnectFlowDb' not found.");
+
+        var redisConnectionString = builder.Configuration.GetConnectionString("Redis");
+        Guard.Against.Null(redisConnectionString, message: "Connection string 'Redis' not found.");
 
         var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
         Guard.Against.Null(jwtSettings, message: "JWT settings not found in configuration.");
@@ -37,7 +40,7 @@ public static class DependencyInjection
         builder.Services.Configure<RedisSettings>(builder.Configuration.GetSection("RedisSettings"));
 
         // Configure Entity Framework
-        builder.ConfigureEntityFramework(connectionString);
+        builder.ConfigureEntityFramework(dbConnectionString);
 
         // Configure Identity
         builder.ConfigureIdentity();
@@ -46,7 +49,7 @@ public static class DependencyInjection
         builder.ConfigureAuthenticationAndAuthorization(jwtSettings);
 
         // Configure Redis
-        builder.ConfigureOtherServices(redisSettings);
+        builder.ConfigureOtherServices(redisConnectionString, redisSettings);
 
         // Add custom services - order matters to avoid circular dependencies
         builder.Services.AddSingleton(TimeProvider.System);
@@ -148,11 +151,11 @@ public static class DependencyInjection
         //services.AddAuthorization(options => options.AddPolicy(Policies.CanPurge, policy => policy.RequireRole(Roles.Administrator)));
     }
 
-    private static void ConfigureOtherServices(this IHostApplicationBuilder builder, RedisSettings redisSettings)
+    private static void ConfigureOtherServices(this IHostApplicationBuilder builder, string redisConnectionString, RedisSettings redisSettings)
     {
         builder.Services.AddStackExchangeRedisCache(options =>
         {
-            options.Configuration = redisSettings.Configuration;
+            options.Configuration = redisConnectionString;
             options.InstanceName = redisSettings.InstanceName;
         });
 
