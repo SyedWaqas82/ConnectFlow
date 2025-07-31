@@ -33,6 +33,7 @@ public static class ObservabilityConfiguration
                 ConfigureMetrics(metrics);
             });
 
+        // Configure settings in DI container for use elsewhere
         builder.Services.Configure<ObservabilitySettings>(builder.Configuration.GetSection("Monitoring"));
     }
 

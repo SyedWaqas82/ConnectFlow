@@ -42,6 +42,7 @@ public static class RateLimitingConfiguration
             };
         });
 
+        // Configure settings in DI container for use elsewhere
         builder.Services.Configure<RateLimitingSettings>(builder.Configuration.GetSection("RateLimiting"));
     }
 
