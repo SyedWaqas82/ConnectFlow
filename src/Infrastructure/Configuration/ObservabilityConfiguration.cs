@@ -81,7 +81,12 @@ public static class ObservabilityConfiguration
         metrics.AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation()
             .AddRuntimeInstrumentation()
-            .AddPrometheusExporter()
-            .AddMeter("ConnectFlow.Metrics");
+            .AddPrometheusExporter(options =>
+            {
+                // Configure Prometheus to collect metrics more frequently
+                options.ScrapeResponseCacheDurationMilliseconds = 5000; // 5 seconds cache
+            })
+            .AddMeter("ConnectFlow.Metrics") // Collects application metrics including Quartz
+            .AddMeter("Quartz"); // Collects built-in Quartz metrics if available
     }
 }

@@ -12,8 +12,8 @@ scrape_configs:
     metrics_path: /metrics
     static_configs:
       - targets: ['host.docker.internal:5001']  # For when running app outside Docker but monitoring in Docker
-    scrape_interval: 5s                         # More frequent scraping for application metrics
-    scrape_timeout: 3s                          # Shorter timeout to fail faster
+    scrape_interval: 2s                         # More frequent scraping for application metrics
+    scrape_timeout: 1s                          # Shorter timeout to fail faster
     tls_config:
       insecure_skip_verify: true                # Skip certificate verification for development
     
