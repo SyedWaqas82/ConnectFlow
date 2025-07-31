@@ -70,23 +70,21 @@ public static class QuartzConfiguration
     {
         // Get settings from configuration
         var quartzSettings = builder.Configuration.GetSection("QuartzSettings").Get<QuartzSettings>() ?? new QuartzSettings();
-        var connectionString = builder.Configuration.GetConnectionString(quartzSettings.ConnectionStringName) ?? builder.Configuration.GetConnectionString("ConnectFlowDb");
+        var connectionString = builder.Configuration.GetConnectionString(quartzSettings.ConnectionStringName);
 
         if (string.IsNullOrEmpty(connectionString))
         {
             throw new InvalidOperationException("Connection string for Quartz is not configured. Please check your connection string settings.");
         }
 
-        // Initialize Quartz schema tables first if using persistent store
+        // Register Quartz settings with DI container
+        builder.Services.Configure<QuartzSettings>(builder.Configuration.GetSection("QuartzSettings"));
+
         if (quartzSettings.UsePersistentStore)
         {
-            // Create a logger factory to use during initialization
-            using var loggerFactory = LoggerFactory.Create(config => config.AddConsole());
-            var logger = loggerFactory.CreateLogger<QuartzSchemaInitializer>();
-
-            // Initialize schema
-            var initializer = new QuartzSchemaInitializer(connectionString, quartzSettings.TablePrefix, logger);
-            initializer.EnsureTablesCreated();
+            // Register Quartz schema provider to manage schema initialization
+            builder.Services.AddSingleton<QuartzSchemaProvider>();
+            builder.Services.AddHostedService<QuartzSchemaInitializer>();
         }
 
         // Configure Quartz with production best practices
@@ -143,20 +141,22 @@ public static class QuartzConfiguration
             AddScheduledJobs(q, builder.Configuration);
         });
 
-        // Configure the Quartz hosted service
+
+
+        // Register Quartz metrics provider - used by Prometheus for monitoring
+        builder.Services.AddSingleton<QuartzMetricsProvider>();
+
+
+
+        // Configure the Quartz hosted service (will be started after QuartzSchemaInitializerService)
         builder.Services.AddQuartzHostedService(options =>
         {
             options.WaitForJobsToComplete = true;
             options.AwaitApplicationStarted = true;
         });
 
-        // Register Quartz settings with DI container
-        builder.Services.Configure<QuartzSettings>(builder.Configuration.GetSection("QuartzSettings"));
-
-        // Register Quartz metrics provider - used by Prometheus for monitoring
-        builder.Services.AddSingleton<QuartzMetricsProvider>();
-
-        // Initialize the metrics provider on application start
+        // Register Quartz schema and metrics initializers as hosted services
+        // This will ensure tables are created after application startup and migrations
         builder.Services.AddHostedService<QuartzMetricsInitializer>();
     }
 

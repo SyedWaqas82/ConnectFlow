@@ -14,7 +14,6 @@ public class QuartzMetricsProvider
 {
     private readonly ILogger<QuartzMetricsProvider> _logger;
     private readonly ISchedulerFactory _schedulerFactory;
-    private readonly QuartzSettings _settings;
 
     // Meter for exposing metrics to OpenTelemetry
     internal readonly Meter _meter;
@@ -35,7 +34,6 @@ public class QuartzMetricsProvider
     {
         _logger = logger;
         _schedulerFactory = schedulerFactory;
-        _settings = settings.Value;
 
         _logger.LogInformation("Initializing Quartz metrics provider");
 
