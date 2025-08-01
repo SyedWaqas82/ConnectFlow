@@ -1,6 +1,222 @@
+````markdown
 # ConnectFlow Unified Observability
 
-This document provides a comprehensive guide to the observability stack in ConnectFlow.
+This document ## 3. Using the Observability Tools - User Guide
+
+This section provides a practical guide for using ConnectFlow's observability tools to monitor, troubleshoot, and gain insights into system performance and health.
+
+### 3.1 Accessing the Monitoring Stack
+
+1. **Login to Grafana**
+   - URL: [http://localhost:3000](http://localhost:3000)
+   - Default credentials: `admin` / `admin`
+   - On first login, you'll be prompted to change the password
+
+2. **Home Dashboard**
+   - After login, you'll see the Grafana home dashboard with links to all available dashboards
+   - Use the left sidebar to navigate between dashboards, explore data, or manage alerts
+
+### 3.2 Pre-configured Dashboards
+
+ConnectFlow includes specialized dashboards for different monitoring needs:
+
+#### Health Dashboard
+- **Access**: [http://localhost:3000/d/connectflow-health](http://localhost:3000/d/connectflow-health)
+- **Purpose**: Monitor overall system health and component status
+- **Key Features**:
+  - Color-coded health status indicators (green/yellow/red)
+  - Historical health trends with timeline view
+  - Component-specific health details with drill-down capability
+  - Direct links to component-specific metrics and logs
+
+#### API Performance Dashboard
+- **Access**: [http://localhost:3000/d/cf-api-performance](http://localhost:3000/d/cf-api-performance)
+- **Purpose**: Track API response times, throughput, and error rates
+- **Key Features**:
+  - Request volume by endpoint with time-based trends
+  - Response time percentiles (p50/p90/p99) for detecting slowness
+  - Error rate tracking with status code breakdown
+  - Filter by endpoint, method, or status code using dashboard variables
+
+#### .NET Runtime Dashboard
+- **Access**: [http://localhost:3000/d/cf-dotnet-runtime](http://localhost:3000/d/cf-dotnet-runtime)
+- **Purpose**: Monitor application resource usage and performance
+- **Key Features**:
+  - Memory consumption trends and garbage collection metrics
+  - CPU utilization patterns across application components
+  - Thread pool statistics for concurrency monitoring
+  - Exception tracking with type and frequency analysis
+
+#### Quartz Jobs Dashboard
+- **Access**: [http://localhost:3000/d/cf-quartz-jobs](http://localhost:3000/d/cf-quartz-jobs)
+- **Purpose**: Track background job execution and reliability
+- **Key Features**:
+  - Job execution success/failure rates over time
+  - Execution duration metrics for performance monitoring
+  - Scheduled vs. actual execution time comparison
+  - Failure tracking with error categorization
+
+#### Rate Limits Dashboard
+- **Access**: [http://localhost:3000/d/cf-rate-limiting](http://localhost:3000/d/cf-rate-limiting)
+- **Purpose**: Monitor API usage patterns and throttling events
+- **Key Features**:
+  - Throttling events by endpoint and client
+  - Usage patterns by tenant with quota visualization
+  - Rejection rate trends for abuse detection
+  - IP-based request pattern analysis
+
+### 3.3 Common Monitoring Scenarios
+
+#### Scenario 1: Investigating System Slowness
+1. Start with the **API Performance Dashboard** to check:
+   - Are response times elevated across all endpoints or just specific ones?
+   - Is request volume unusually high?
+   - Are there error spikes correlating with slowness?
+
+2. Check the **.NET Runtime Dashboard** for:
+   - High memory usage or frequent garbage collections
+   - CPU spikes or thread pool exhaustion
+   - Exception rate increases
+
+3. For detailed investigation:
+   - Use the **Explore** view to search logs during the slow period
+   - Sample traces from slow endpoints to identify bottlenecks
+   - Check for concurrent background jobs that might be consuming resources
+
+#### Scenario 2: Troubleshooting Failed Requests
+1. Start with the **API Performance Dashboard**:
+   - Look for increased error rates (4xx/5xx status codes)
+   - Identify which endpoints are experiencing failures
+
+2. Check the **Health Dashboard**:
+   - Is any component (database, cache, etc.) showing unhealthy status?
+   - Did health status change around the time failures started?
+
+3. Detailed investigation:
+   - Search error logs in the **Explore** view with filter: `{app="connectflow"} |= "error" | json`
+   - Find a failed request's correlation ID from logs
+   - Use the correlation ID to find the complete trace and identify the failure point
+
+#### Scenario 3: Monitoring Background Jobs
+1. Use the **Quartz Jobs Dashboard** to:
+   - Check job execution success rates
+   - Identify frequently failing jobs
+   - Monitor execution times for performance degradation
+
+2. For job failures:
+   - Find the specific job execution in logs: `{app="connectflow"} |= "job" |= "failed" | json`
+   - Check if failures correlate with other system issues
+   - Analyze error patterns across job executions
+
+### 3.4 Data Exploration Tools
+
+#### Log Exploration
+- **Access**: [http://localhost:3000/explore?left={"datasource":"loki"}](http://localhost:3000/explore?left={"datasource":"loki"})
+- **Common Queries**:
+  - All logs: `{app="connectflow"}`
+  - Error logs: `{app="connectflow"} |= "error" | json`
+  - Logs by endpoint: `{app="connectflow"} | json | endpoint="/api/weatherforecast"`
+  - Slow requests: `{app="connectflow"} | json | ResponseTimeMs > 1000`
+  - Logs by correlation ID: `{app="connectflow"} |= "correlation_id=abc123"`
+  - Multi-tenant filtering: `{app="connectflow"} | json | tenant_id="customer-a"`
+
+- **Advanced Features**:
+  - Use the "Live" button to watch logs in real-time
+  - Click on any JSON field to add it as a filter
+  - Use split view to compare logs from different time periods
+  - Create dashboard from log query using the "Add to dashboard" button
+
+#### Trace Exploration
+- **Access**: [http://localhost:3000/explore?left={"datasource":"tempo"}](http://localhost:3000/explore?left={"datasource":"tempo"})
+- **Finding Traces**:
+  - By service: Select "connectflow" from the service dropdown
+  - By operation: Select an operation from the operation dropdown
+  - By duration: Set a minimum duration threshold to find slow traces
+  - By trace ID: Paste a trace ID from logs or HTTP headers
+
+- **Analyzing Traces**:
+  - View the full request flow through all components
+  - See timing breakdown for each operation
+  - Expand spans to view detailed attributes and events
+  - Use the "Service Graph" view to visualize dependencies
+
+#### Metrics Exploration
+- **Grafana**: [http://localhost:3000/explore?left={"datasource":"prometheus"}](http://localhost:3000/explore?left={"datasource":"prometheus"})
+- **Direct Prometheus**: [http://localhost:9090](http://localhost:9090)
+- **Key Metrics**:
+  - `http_request_duration_seconds`: API response time
+  - `http_requests_total`: Request count by endpoint and status
+  - `health_status`: Overall system health (0=Unhealthy, 1=Healthy)
+  - `health_check_status`: Individual component health (0=Unhealthy, 1=Degraded, 2=Healthy)
+  - `dotnet_gc_*`: GC metrics for memory monitoring
+  - `quartz_jobs_executed_count`: Job execution metrics
+  - `rate_limit_exceeded_total`: API rate limiting events
+
+- **Common PromQL Queries**:
+  - Error rate: `sum(rate(http_requests_total{status_code=~"5.."}[5m])) / sum(rate(http_requests_total[5m]))`
+  - 95th percentile latency: `histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, endpoint))`
+  - Request rate by endpoint: `sum(rate(http_requests_total[5m])) by (endpoint)`
+
+### 3.5 Connecting the Dots: Unified Observability
+
+ConnectFlow's unified observability system allows seamless navigation between different data types:
+
+#### Cross-Navigation Features
+
+- **From Logs to Traces**:
+  1. Find an interesting log entry with a trace ID
+  2. Click on the trace ID value to open the complete distributed trace
+  3. See the full context of the operation across all components
+
+- **From Traces to Logs**:
+  1. Find an interesting trace with potential issues
+  2. Note the trace ID from the trace view
+  3. Go to Loki and query: `{app="connectflow"} |= "<trace_id>"`
+  4. See all logs associated with that specific trace
+
+- **From Metrics to Logs**:
+  1. Identify a spike or anomaly in a dashboard graph
+  2. Use the time range selector to zoom in on the event
+  3. Click "Explore" to view logs during that specific time period
+  4. Find correlated events in the log data
+
+- **Using the Service Graph**:
+  1. Navigate to [http://localhost:3000/explore?left={"datasource":"tempo","queryType":"serviceMap"}](http://localhost:3000/explore?left={"datasource":"tempo","queryType":"serviceMap"})
+  2. View all service dependencies and traffic flow
+  3. Click on connections to see trace samples between services
+  4. Identify high error rate paths highlighted in red
+
+### 3.6 Health Status Dashboard
+
+- **Access**: [http://localhost:5000/healthz](http://localhost:5000/healthz)
+- **Features**:
+  - Interactive UI showing real-time component health
+  - Detailed status information for each health check
+  - Historical health status trends
+  - Component filtering by health check tags
+  - Direct links to component-specific logs and metrics
+
+### 3.7 Tips for Effective Monitoring
+
+1. **Start broad, then narrow down**:
+   - Begin with overview dashboards to identify problem areas
+   - Drill down into specific components as needed
+   - Use correlation IDs to track individual requests
+
+2. **Use dashboard time controls effectively**:
+   - Synchronize time ranges across dashboard panels
+   - Use the time range picker to zoom in on specific events
+   - Compare current metrics with historical baselines
+
+3. **Leverage variables and filters**:
+   - Use dashboard variables to filter by endpoint, status, or tenant
+   - Create custom variables for your specific analysis needs
+   - Save filtered views as dashboard snapshots for sharing
+
+4. **Create custom views**:
+   - Use the "Add to dashboard" feature to save useful queries
+   - Create personal dashboards for your most common tasks
+   - Arrange panels in logical groups for efficient workflowmprehensive guide to the observability stack in ConnectFlow.
 
 ## 1. Observability Stack Overview
 
@@ -176,6 +392,7 @@ ConnectFlow provides production-grade health monitoring through the `HealthCheck
 - **Rich visualization**: Interactive health UI dashboard with historical data
 - **Comprehensive coverage**: Monitoring of all system dependencies (database, cache, background jobs)
 - **Kubernetes-ready**: Health checks designed for containerized deployments with proper probes
+- **Prometheus integration**: Health metrics exposed for advanced visualization and alerting in Grafana
 
 The health checking system categorizes checks by tags:
 
@@ -189,7 +406,14 @@ Endpoints:
 - Basic health: `/health` - Provides overall health status
 - Liveness probe: `/health/live` - For container orchestration to detect if the app is running
 - Readiness probe: `/health/ready` - For container orchestration to detect if the app can accept traffic
+- Prometheus metrics: `/metrics/health` - Exposes health check results as Prometheus metrics
 - Health UI dashboard: `/healthz` - Rich UI for administrators with historical trends
+
+Health Metrics in Prometheus:
+
+- `health_check_status` - Status of each health check component (0=Unhealthy, 1=Degraded, 2=Healthy)
+- `health_check_duration_seconds` - Execution time for each health check component
+- `health_status` - Overall system health status (0=Unhealthy, 1=Healthy)
 
 Kubernetes integration:
 
@@ -467,6 +691,18 @@ ConnectFlow includes a suite of pre-built Grafana dashboards tailored for differ
   - End-to-end latency for key business transactions
   - Error rate trends across all system components
   - Alerting status and recent notifications
+
+#### Health Check Dashboard
+
+- **URL**: [http://localhost:3000/d/connectflow-health](http://localhost:3000/d/connectflow-health)
+- **Target audience**: Operations team, DevOps, SREs
+- **Update frequency**: 10s refresh
+- **Key metrics**:
+  - Health status of individual components (database, Redis, Quartz)
+  - Response time trends for health check components
+  - Historical health status with time-based visualization
+  - Consolidated view of all system health indicators
+  - Detailed component status with tag information
 
 ### 4.4 Exploration and Debugging
 

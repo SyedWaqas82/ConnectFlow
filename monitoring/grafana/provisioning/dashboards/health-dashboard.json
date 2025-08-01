@@ -105,7 +105,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
-          "expr": "health_status",
+          "expr": "health_status{job=\"connectflow-health\", instance=\"host.docker.internal:5001\"}",
           "instant": false,
           "legendFormat": "{{status}}",
           "range": true,
@@ -196,14 +196,14 @@
             "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
-          "expr": "health_check_status",
+          "expr": "health_check_status{job=\"connectflow-health\", instance=\"host.docker.internal:5001\"}",
           "instant": false,
           "legendFormat": "{{name}}",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Health Check Status",
+      "title": "Health Checks Status",
       "type": "bargauge"
     },
     {
@@ -216,7 +216,7 @@
       },
       "id": 8,
       "panels": [],
-      "title": "Performance",
+      "title": "Response Time",
       "type": "row"
     },
     {
@@ -224,13 +224,14 @@
         "type": "prometheus",
         "uid": "PBFA97CFB590B2093"
       },
-      "description": "Response time for each health check endpoint",
+      "description": "Duration of each health check in seconds",
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
@@ -246,6 +247,9 @@
             },
             "insertNulls": false,
             "lineInterpolation": "smooth",
+            "lineStyle": {
+              "fill": "solid"
+            },
             "lineWidth": 2,
             "pointSize": 5,
             "scaleDistribution": {
@@ -288,13 +292,13 @@
       "id": 6,
       "options": {
         "legend": {
-          "calcs": ["mean", "max", "lastNotNull"],
-          "displayMode": "table",
-          "placement": "right",
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
           "showLegend": true
         },
         "tooltip": {
-          "mode": "multi",
+          "mode": "single",
           "sort": "none"
         }
       },
@@ -306,14 +310,14 @@
             "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
-          "expr": "health_check_duration_seconds",
+          "expr": "health_check_duration_seconds{job=\"connectflow-health\", instance=\"host.docker.internal:5001\"}",
           "instant": false,
           "legendFormat": "{{name}}",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Health Check Response Times",
+      "title": "Health Check Duration",
       "type": "timeseries"
     },
     {
@@ -324,7 +328,7 @@
         "x": 0,
         "y": 18
       },
-      "id": 14,
+      "id": 4,
       "panels": [],
       "title": "Details",
       "type": "row"
@@ -334,16 +338,18 @@
         "type": "prometheus",
         "uid": "PBFA97CFB590B2093"
       },
-      "description": "Health check status history over time",
+      "description": "Current status of all health checks with detailed information",
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "thresholds"
           },
           "custom": {
-            "fillOpacity": 70,
-            "lineWidth": 0,
-            "spanNulls": false
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
           },
           "mappings": [
             {
@@ -385,29 +391,83 @@
             ]
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 100
+              },
+              {
+                "id": "displayName",
+                "value": "Status"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "name"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Name"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "tags"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Tags"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "description"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Description"
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
-        "h": 8,
+        "h": 7,
         "w": 24,
         "x": 0,
         "y": 19
       },
-      "id": 4,
+      "id": 1,
       "options": {
-        "alignValue": "left",
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": ["sum"],
+          "show": false
         },
-        "mergeValues": true,
-        "rowHeight": 0.9,
-        "showValue": "auto",
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": false,
+            "displayName": "Name"
+          }
+        ]
       },
       "pluginVersion": "10.2.2",
       "targets": [
@@ -417,32 +477,57 @@
             "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
-          "expr": "health_check_status",
-          "instant": false,
-          "legendFormat": "{{name}} ({{tags}})",
-          "range": true,
+          "expr": "health_check_status{job=\"connectflow-health\", instance=\"host.docker.internal:5001\"}",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "{{name}}",
+          "range": false,
           "refId": "A"
         }
       ],
-      "title": "Health Check Status History",
-      "type": "state-timeline"
+      "title": "Health Check Details",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "instance": true,
+              "job": true
+            },
+            "indexByName": {
+              "Time": 0,
+              "Value": 6,
+              "__name__": 1,
+              "description": 5,
+              "instance": 2,
+              "job": 3,
+              "name": 4,
+              "tags": 7
+            },
+            "renameByName": {}
+          }
+        }
+      ],
+      "type": "table"
     }
   ],
-  "refresh": "10s",
+  "refresh": "5s",
   "schemaVersion": 38,
   "style": "dark",
-  "tags": ["health", "monitoring", "connectflow"],
+  "tags": ["health", "monitoring"],
   "templating": {
     "list": []
   },
   "time": {
-    "from": "now-1h",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "",
-  "title": "ConnectFlow Health Dashboard",
-  "uid": "connectflow-health",
-  "version": 1,
+  "title": "Health Checks",
+  "uid": "health",
+  "version": 2,
   "weekStart": ""
 }
