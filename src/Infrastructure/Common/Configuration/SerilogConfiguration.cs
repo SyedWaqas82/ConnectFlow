@@ -76,13 +76,13 @@ public static class SerilogConfiguration
             .Enrich.WithProperty("ApplicationVersion", typeof(SerilogConfiguration).Assembly.GetName().Version?.ToString() ?? "1.0.0")
             // Write logs to console
             .WriteTo.Console(
-                outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3} {CorrelationId}] {Message:lj}{NewLine}{Exception}",
+                outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3} {CorrelationId}] [Tenant: {TenantId}] {ClientIP} {ClientId} {HttpMethod} {RequestPath} {StatusCode} {ResponseTimeMs}ms {Message:lj}{NewLine}{Exception}",
                 theme: Serilog.Sinks.SystemConsole.Themes.SystemConsoleTheme.Literate)
             // Write logs to rolling file
             .WriteTo.File(
                 path: "logs/connectflow-dev-.log",
                 rollingInterval: RollingInterval.Day,
-                outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} {Level:u3} {CorrelationId}] {Message:lj}{NewLine}{Exception}",
+                outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} {Level:u3} {CorrelationId}] [Tenant: {TenantId}] [{ClientIP}] [{ClientId}] [{HttpMethod} {RequestPath}] [{StatusCode}] [{ResponseTimeMs}ms] {Message:lj}{NewLine}{Exception}",
                 fileSizeLimitBytes: 10485760,
                 retainedFileCountLimit: 7)
             // Write error-level logs to a separate file
@@ -91,7 +91,7 @@ public static class SerilogConfiguration
                 .WriteTo.File(
                     path: "logs/connectflow-dev-error-.log",
                     rollingInterval: RollingInterval.Day,
-                    outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} {Level:u3} {CorrelationId}] {Message:lj}{NewLine}{Exception}{NewLine}",
+                    outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} {Level:u3} {CorrelationId}] [Tenant: {TenantId}] [{ClientIP}] [{ClientId}] [{HttpMethod} {RequestPath}] [{StatusCode}] [{ResponseTimeMs}ms] {Message:lj}{NewLine}{Exception}{NewLine}",
                     fileSizeLimitBytes: 10485760,
                     retainedFileCountLimit: 30));
     }
@@ -122,7 +122,13 @@ public static class SerilogConfiguration
                 "level",
                 "service",
                 "trace_id",
-                "span_id"
+                "span_id",
+                "CorrelationId",
+                "TenantId",
+                "ClientIP",
+                "ClientId",
+                "HttpMethod",
+                "StatusCode"
             });
     }
 }

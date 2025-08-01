@@ -72,4 +72,3 @@ public static class MiddlewareExtensions
         return builder.UseMiddleware<CorrelationMiddleware>();
     }
 }
-

@@ -27,7 +27,9 @@ app.UseExceptionHandler(options => { });
 app.UseCustomHealthChecks();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+app.UseContextSettings();
 app.UseCorrelationIdMapping();
+app.UseRequestLogging(); // Add request/response logging
 app.UseRateLimiter();
 app.MapPrometheusScrapingEndpoint("/metrics");
 

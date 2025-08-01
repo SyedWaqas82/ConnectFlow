@@ -106,7 +106,7 @@ public class ContextMiddleware
 // create an extension method to use the middleware easily
 public static class ContextMiddlewareExtensions
 {
-    public static IApplicationBuilder UseContextMiddleware(this IApplicationBuilder builder)
+    public static IApplicationBuilder UseContextSettings(this IApplicationBuilder builder)
     {
         return builder.UseMiddleware<ContextMiddleware>();
     }
