@@ -4,6 +4,9 @@ using ConnectFlow.Web.Common;
 using Microsoft.AspNetCore.Mvc;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using System.Text;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -80,6 +83,43 @@ public static class DependencyInjection
         app.UseHealthChecks("/health", new HealthCheckOptions
         {
             ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+        });
+
+        // Add Prometheus metrics endpoint for health checks
+        app.UseHealthChecks("/metrics/health", new HealthCheckOptions
+        {
+            ResponseWriter = async (context, report) =>
+            {
+                context.Response.ContentType = "text/plain; charset=utf-8";
+
+                // Format each health check as a Prometheus metric
+                var sb = new StringBuilder();
+                sb.AppendLine("# HELP health_check_status Health check status (0=Unhealthy, 1=Degraded, 2=Healthy)");
+                sb.AppendLine("# TYPE health_check_status gauge");
+
+                foreach (var entry in report.Entries)
+                {
+                    // Convert health status to numeric value
+                    var statusValue = entry.Value.Status switch
+                    {
+                        HealthStatus.Unhealthy => 0,
+                        HealthStatus.Degraded => 1,
+                        HealthStatus.Healthy => 2,
+                        _ => 0
+                    };
+
+                    // Format as Prometheus metric with labels
+                    sb.AppendLine($"health_check_status{{name=\"{entry.Key}\",tags=\"{string.Join(",", entry.Value.Tags)}\",description=\"{entry.Value.Description?.Replace("\"", "'")}\"}} {statusValue}");
+
+                    // Add duration metric
+                    sb.AppendLine($"health_check_duration_seconds{{name=\"{entry.Key}\"}} {entry.Value.Duration.TotalSeconds}");
+                }
+
+                // Add overall health status
+                sb.AppendLine($"health_status{{status=\"{report.Status}\"}} {(report.Status == HealthStatus.Healthy ? 1 : 0)}");
+
+                await context.Response.WriteAsync(sb.ToString());
+            }
         });
 
         // Add Health Checks UI endpoint

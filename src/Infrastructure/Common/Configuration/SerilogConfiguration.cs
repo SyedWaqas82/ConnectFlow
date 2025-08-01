@@ -128,7 +128,8 @@ public static class SerilogConfiguration
                 "ClientIP",
                 "ClientId",
                 "HttpMethod",
-                "StatusCode"
+                "StatusCode",
+                "ResponseTimeMs"
             });
     }
 }

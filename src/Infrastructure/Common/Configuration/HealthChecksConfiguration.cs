@@ -1,8 +1,16 @@
 using ConnectFlow.Application.Common.Models;
 using ConnectFlow.Infrastructure.Common.HealthChecks;
 using ConnectFlow.Infrastructure.Data;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
+using OpenTelemetry.Trace;
+using System.Text;
+using System.Text.Json;
 
 namespace ConnectFlow.Infrastructure.Common.Configuration;
 
@@ -54,6 +62,13 @@ public static class HealthChecksConfiguration
             options.SetApiMaxActiveRequests(1);
             options.SetMinimumSecondsBetweenFailureNotifications(healthCheckSettings.MinimumSecondsBetweenFailureNotifications);
         }).AddInMemoryStorage();
+
+        // Add OpenTelemetry instrumentation for health checks
+        builder.Services.AddOpenTelemetry()
+            .WithTracing(tracerProviderBuilder =>
+            {
+                tracerProviderBuilder.AddSource("Microsoft.Extensions.Diagnostics.HealthChecks");
+            });
 
         // Configure settings in DI container for use elsewhere
         builder.Services.Configure<HealthChecksSettings>(builder.Configuration.GetSection("HealthChecksUI"));

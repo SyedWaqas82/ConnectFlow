@@ -16,6 +16,16 @@ scrape_configs:
     scrape_timeout: 1s                          # Shorter timeout to fail faster
     tls_config:
       insecure_skip_verify: true                # Skip certificate verification for development
+      
+  - job_name: 'connectflow-health'
+    scheme: https
+    metrics_path: /metrics/health
+    static_configs:
+      - targets: ['host.docker.internal:5001']  # For when running app outside Docker but monitoring in Docker
+    scrape_interval: 5s                         # Health checks don't need to be as frequent
+    scrape_timeout: 2s                          
+    tls_config:
+      insecure_skip_verify: true                # Skip certificate verification for development
     
   - job_name: 'node-exporter'
     static_configs:
