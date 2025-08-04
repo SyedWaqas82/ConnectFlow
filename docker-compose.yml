@@ -9,17 +9,43 @@ services:
   #     context: .
   #     dockerfile: src/Web/Dockerfile
   #   ports:
-  #     - "5000:80"
-  #     - "5001:443"
+  #     - "5010:80"
   #   environment:
   #     - ASPNETCORE_ENVIRONMENT=Development
+  #     - ASPNETCORE_URLS=http://+:80
   #     - ConnectionStrings__ConnectFlowDb=Host=postgres;Database=connectflow;Username=postgres;Password=postgres
   #     - ConnectionStrings__Redis=redis:6379
+  #     - RedisSettings__InstanceName="ConnectFlow_Dev:"
+  #     - JwtSettings__Key=development_key_min_256_bits_please_change_in_production_87654321
+  #     - JwtSettings__Issuer=ConnectFlow.Dev
+  #     - JwtSettings__Audience=ConnectFlow.Dev
+  #     - JwtSettings__AccessTokenExpirationMinutes=60
+  #     - JwtSettings__RefreshTokenExpirationDays=7
+  #     - TenantSettings__HeaderName=X-Tenant-Id
   #     - Monitoring__UseLoki=true
   #     - Monitoring__LokiUrl=http://loki:3100
   #     - Monitoring__OtlpEndpoint=http://tempo:4317
   #     - Monitoring__PrometheusUrl=http://prometheus:9090
   #     - Monitoring__GrafanaUrl=http://grafana:3000
+  #     - RateLimiting__Enabled=true
+  #     - RateLimiting__FixedWindow__PermitLimit=300
+  #     - RateLimiting__FixedWindow__WindowSeconds=60
+  #     - RateLimiting__TokenBucket__TokenLimit=100
+  #     - RateLimiting__TokenBucket__TokensPerPeriod=20
+  #     - QuartzSettings__ConnectionStringName=ConnectFlowDb
+  #     - QuartzSettings__SchedulerName=ConnectFlowScheduler
+  #     - QuartzSettings__InstanceId=AUTO
+  #     - QuartzSettings__UsePersistentStore=true
+  #     - QuartzSettings__UseProperties=true
+  #     - QuartzSettings__TablePrefix=QRTZ_
+  #     - QuartzSettings__UseClustering=false
+  #     - QuartzSettings__ClusterCheckinIntervalSeconds=15
+  #     - QuartzSettings__MaxConnections=5
+  #     - QuartzSettings__MisfireThresholdSeconds=60
+  #     - QuartzSettings__MaxMisfireCount=20
+  #     - QuartzSettings__SerializerType=json
+  #     - QuartzSettings__ValidateSchema=true
+  #     - HealthChecksUI__HealthChecks__0__Uri=http://api:80/health
   #   depends_on:
   #     postgres:
   #       condition: service_healthy
@@ -28,7 +54,7 @@ services:
   #   networks:
   #     - default
   #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost/health/live"]
+  #     test: ["CMD", "curl", "-f", "http://localhost:80/health"]
   #     interval: 30s
   #     timeout: 10s
   #     retries: 3
