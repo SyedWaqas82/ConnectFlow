@@ -14,6 +14,13 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using ConnectFlow.Infrastructure.Common.Models;
+using ConnectFlow.Application.Users.EventHandlers.Messaging;
+using ConnectFlow.Infrastructure.Common.Messaging.RabbitMQ.Consumers;
+using ConnectFlow.Application.Common.Messaging;
+using ConnectFlow.Infrastructure.Common.Messaging.RabbitMQ;
+using ConnectFlow.Domain.Events.UserEmailEvents;
+using ConnectFlow.Infrastructure.Common.Messaging.RabbitMQ.Configurations;
+using ConnectFlow.Infrastructure.Metrics;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -50,6 +57,9 @@ public static class DependencyInjection
 
         // Configure Redis
         builder.ConfigureOtherServices(redisConnectionString, redisSettings);
+
+        // Configure RabbitMQ
+        builder.AddRabbitMqServices();
 
         // Add custom services - order matters to avoid circular dependencies
         builder.Services.AddSingleton(TimeProvider.System);
@@ -173,5 +183,46 @@ public static class DependencyInjection
 
         // Add health checks
         builder.AddEnhancedHealthChecks();
+    }
+
+    private static void AddRabbitMqServices(this IHostApplicationBuilder builder)
+    {
+        // Configure RabbitMQ settings
+        builder.Services.Configure<RabbitMQSettings>(builder.Configuration.GetSection(RabbitMQSettings.SectionName));
+
+        // Core RabbitMQ services
+        builder.Services.AddSingleton<IRabbitMQConnectionManager, RabbitMQConnectionManager>();
+        builder.Services.AddSingleton<IRabbitMQSetupService, RabbitMQSetupService>();
+        builder.Services.AddScoped<IMessagePublisher, RabbitMQPublisher>();
+
+        // Add RabbitMQ metrics
+        builder.Services.AddSingleton<RabbitMQMetrics>();
+
+        // Message handlers
+        builder.Services.AddScoped<IMessageHandler<EmailSendRequestedEvent>, EmailSendRequestedHandler>();
+
+        // Consumers as hosted services
+        builder.Services.AddHostedService<EmailConsumer>();
+
+        // Setup service
+        builder.Services.AddHostedService<RabbitMQSetupHostedService>();
+
+        // Register all message handlers from the assembly
+        var assembly = typeof(EmailSendRequestedHandler).Assembly;
+
+        var handlerTypes = assembly.GetTypes()
+            .Where(t => t.IsClass && !t.IsAbstract)
+            .Where(t => t.GetInterfaces().Any(i =>
+                i.IsGenericType &&
+                i.GetGenericTypeDefinition() == typeof(IMessageHandler<>)))
+            .ToList();
+
+        foreach (var handlerType in handlerTypes)
+        {
+            var interfaceType = handlerType.GetInterfaces()
+                .First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IMessageHandler<>));
+
+            builder.Services.AddScoped(interfaceType, handlerType);
+        }
     }
 }

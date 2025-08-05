@@ -44,7 +44,9 @@ public static class HealthChecksConfiguration
                 failureStatus: HealthStatus.Degraded,
                 tags: new[] { "jobs", "quartz", "ready" })
             .AddCheck("API", () => HealthCheckResult.Healthy(),
-                tags: new[] { "service", "live" });
+                tags: new[] { "service", "live" })
+            // Health checks
+            .AddCheck<RabbitMQHealthCheck>("rabbitmq", HealthStatus.Unhealthy, tags: new[] { "messaging", "rabbitmq" });
 
         // Add Health Checks UI
         builder.Services.AddHealthChecksUI(options =>

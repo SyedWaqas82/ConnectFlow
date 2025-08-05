@@ -46,6 +46,20 @@ services:
   #     - QuartzSettings__SerializerType=json
   #     - QuartzSettings__ValidateSchema=true
   #     - HealthChecksUI__HealthChecks__0__Uri=http://api:80/health
+  #     - RabbitMQ__HostName=rabbitmq
+  #     - RabbitMQ__Port=5672
+  #     - RabbitMQ__UserName=guest
+  #     - RabbitMQ__Password=guest
+  #     - RabbitMQ__VirtualHost=/
+  #     - RabbitMQ__UseSSL=false
+  #     - RabbitMQ__ConnectionRetryCount=5
+  #     - RabbitMQ__ConnectionRetryDelay=2000
+  #     - RabbitMQ__PrefetchCount=10
+  #     - RabbitMQ__MaxConcurrentConsumers=5
+  #     - RabbitMQ__ExchangeName=domain-events-exchange
+  #     - RabbitMQ__DeadLetterExchangeName=dead-letter-exchange
+  #     - RabbitMQ__MessageTTL=86400000
+  #     - RabbitMQ__RetryLimit=3
   #   depends_on:
   #     postgres:
   #       condition: service_healthy
@@ -121,6 +135,28 @@ services:
     restart: unless-stopped
     ports:
       - "9100:9100"
+    networks:
+      - default
+
+  # RabbitMQ metrics exporter
+  rabbitmq-exporter:
+    image: kbudde/rabbitmq-exporter:latest
+    container_name: rabbitmq-exporter
+    restart: unless-stopped
+    ports:
+      - "9419:9419"
+    environment:
+      - RABBIT_URL=http://rabbitmq:15672
+      - RABBIT_USER=guest
+      - RABBIT_PASSWORD=guest
+      - PUBLISH_PORT=9419
+      - INCLUDE_QUEUES=.*
+      - RABBIT_CAPABILITIES=bert,no_sort
+      - MAX_QUEUES=100
+      - RABBIT_EXPORTERS=exchange,node,overview,queue,connections,channels,consumers
+      - OUTPUT_FORMAT=prometheus
+    depends_on:
+      - rabbitmq
     networks:
       - default
 
