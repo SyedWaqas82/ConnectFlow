@@ -1,4 +1,4 @@
-namespace ConnectFlow.Domain.Events.Subscriptions;
+namespace ConnectFlow.Domain.Events.Mediator.Subscriptions;
 
 public class SubscriptionCreatedEvent : BaseEvent
 {

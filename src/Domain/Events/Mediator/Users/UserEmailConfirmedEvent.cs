@@ -1,4 +1,4 @@
-namespace ConnectFlow.Domain.Events.Users;
+namespace ConnectFlow.Domain.Events.Mediator.Users;
 
 public class UserEmailConfirmedEvent : BaseEvent
 {

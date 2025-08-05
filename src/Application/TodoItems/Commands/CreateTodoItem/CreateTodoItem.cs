@@ -1,6 +1,6 @@
 ﻿using ConnectFlow.Application.Common.Interfaces;
 using ConnectFlow.Domain.Entities;
-using ConnectFlow.Domain.Events;
+using ConnectFlow.Domain.Events.Mediator;
 
 namespace ConnectFlow.Application.TodoItems.Commands.CreateTodoItem;
 

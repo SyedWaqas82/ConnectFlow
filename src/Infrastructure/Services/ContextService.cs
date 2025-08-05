@@ -1,6 +1,6 @@
 using ConnectFlow.Application.Common.Interfaces;
-using ConnectFlow.Application.Common.Models;
 using ConnectFlow.Domain.Constants;
+using ConnectFlow.Infrastructure.Common.Models;
 using ConnectFlow.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;

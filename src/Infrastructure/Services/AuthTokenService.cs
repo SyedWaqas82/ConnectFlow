@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 using ConnectFlow.Infrastructure.Identity;
 using ConnectFlow.Infrastructure.Common.Interfaces;
 using System.Security.Cryptography;
-using ConnectFlow.Application.Common.Models;
+using ConnectFlow.Infrastructure.Common.Models;
 
 namespace ConnectFlow.Infrastructure.Services;
 

@@ -1,4 +1,6 @@
-﻿namespace ConnectFlow.Domain.Entities;
+﻿using ConnectFlow.Domain.Events.Mediator;
+
+namespace ConnectFlow.Domain.Entities;
 
 public class TodoItem : BaseAuditableEntity
 {

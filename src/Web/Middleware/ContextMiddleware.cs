@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using ConnectFlow.Application.Common.Interfaces;
-using ConnectFlow.Application.Common.Models;
 using ConnectFlow.Domain.Constants;
+using ConnectFlow.Infrastructure.Common.Models;
 using Microsoft.Extensions.Options;
 
 namespace ConnectFlow.Web.Middleware;

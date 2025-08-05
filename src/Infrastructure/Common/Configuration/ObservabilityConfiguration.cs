@@ -1,4 +1,4 @@
-using ConnectFlow.Application.Common.Models;
+using ConnectFlow.Infrastructure.Common.Models;
 using Microsoft.Extensions.Hosting;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;

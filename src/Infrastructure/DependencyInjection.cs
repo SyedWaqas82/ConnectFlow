@@ -1,6 +1,5 @@
 ﻿using System.Text;
 using ConnectFlow.Application.Common.Interfaces;
-using ConnectFlow.Application.Common.Models;
 using ConnectFlow.Domain.Constants;
 using ConnectFlow.Infrastructure.Common.Interfaces;
 using ConnectFlow.Infrastructure.Common.Configuration;
@@ -14,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
+using ConnectFlow.Infrastructure.Common.Models;
 
 namespace Microsoft.Extensions.DependencyInjection;
 

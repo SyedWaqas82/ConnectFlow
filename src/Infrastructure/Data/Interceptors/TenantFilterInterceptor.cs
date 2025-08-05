@@ -1,5 +1,5 @@
-using ConnectFlow.Application.Common.Models;
 using ConnectFlow.Domain.Common;
+using ConnectFlow.Infrastructure.Common.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 

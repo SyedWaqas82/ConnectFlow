@@ -1,16 +1,8 @@
-using ConnectFlow.Application.Common.Models;
 using ConnectFlow.Infrastructure.Common.HealthChecks;
+using ConnectFlow.Infrastructure.Common.Models;
 using ConnectFlow.Infrastructure.Data;
-using HealthChecks.UI.Client;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
-using OpenTelemetry.Trace;
-using System.Text;
-using System.Text.Json;
 
 namespace ConnectFlow.Infrastructure.Common.Configuration;
 

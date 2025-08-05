@@ -1,4 +1,4 @@
-namespace ConnectFlow.Application.Common.Models;
+namespace ConnectFlow.Infrastructure.Common.Models;
 
 /// <summary>
 /// Configuration settings for monitoring and observability

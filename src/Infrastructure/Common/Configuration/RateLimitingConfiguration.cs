@@ -1,6 +1,6 @@
 using System.Diagnostics.Metrics;
 using System.Threading.RateLimiting;
-using ConnectFlow.Application.Common.Models;
+using ConnectFlow.Infrastructure.Common.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.RateLimiting;

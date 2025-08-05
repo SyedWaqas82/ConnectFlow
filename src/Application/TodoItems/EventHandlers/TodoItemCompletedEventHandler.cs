@@ -1,4 +1,4 @@
-﻿using ConnectFlow.Domain.Events;
+﻿using ConnectFlow.Domain.Events.Mediator;
 using Microsoft.Extensions.Logging;
 
 namespace ConnectFlow.Application.TodoItems.EventHandlers;

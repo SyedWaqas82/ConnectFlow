@@ -1,9 +1,9 @@
 using Quartz;
 using ConnectFlow.Infrastructure.Common.Jobs;
 using Microsoft.Extensions.Hosting;
-using ConnectFlow.Application.Common.Models;
 using ConnectFlow.Infrastructure.Common.Initializers;
 using ConnectFlow.Infrastructure.Common.Providers;
+using ConnectFlow.Infrastructure.Common.Models;
 
 namespace ConnectFlow.Infrastructure.Common.Configuration;
 

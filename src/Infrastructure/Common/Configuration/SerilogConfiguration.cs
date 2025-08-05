@@ -1,5 +1,5 @@
-using ConnectFlow.Application.Common.Models;
 using ConnectFlow.Infrastructure.Common.Enrichers;
+using ConnectFlow.Infrastructure.Common.Models;
 using Microsoft.Extensions.Hosting;
 using Serilog.Events;
 using Serilog.Exceptions;

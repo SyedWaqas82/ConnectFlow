@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using ConnectFlow.Application.Common.Models;
 using ConnectFlow.Infrastructure.Common.Providers;
+using ConnectFlow.Infrastructure.Common.Models;
 
 namespace ConnectFlow.Infrastructure.Common.Initializers;
 

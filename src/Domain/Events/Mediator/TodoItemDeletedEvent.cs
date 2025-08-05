@@ -1,4 +1,4 @@
-﻿namespace ConnectFlow.Domain.Events;
+﻿namespace ConnectFlow.Domain.Events.Mediator;
 
 public class TodoItemDeletedEvent : BaseEvent
 {

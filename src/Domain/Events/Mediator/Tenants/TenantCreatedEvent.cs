@@ -1,4 +1,4 @@
-namespace ConnectFlow.Domain.Events.Tenants;
+namespace ConnectFlow.Domain.Events.Mediator.Tenants;
 
 public class TenantCreatedEvent : BaseEvent
 {
