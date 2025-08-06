@@ -26,10 +26,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<Stage> Stages => Set<Stage>();
     public DbSet<ContactScore> ContactScores => Set<ContactScore>();
     public DbSet<Pipeline> Pipelines => Set<Pipeline>();
-    public DbSet<TodoList> TodoLists => Set<TodoList>();
-    public DbSet<TodoItem> TodoItems => Set<TodoItem>();
-
-
 
     // public DbSet<Appointment> Appointments => Set<Appointment>();
 

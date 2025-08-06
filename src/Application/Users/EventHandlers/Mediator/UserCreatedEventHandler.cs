@@ -1,4 +1,5 @@
 using ConnectFlow.Application.Common.Messaging;
+using ConnectFlow.Domain.Constants;
 using ConnectFlow.Domain.Events.Mediator.Users;
 using ConnectFlow.Domain.Events.UserEmailEvents;
 using Microsoft.Extensions.Logging;
@@ -20,14 +21,13 @@ public class UserCreatedEventHandler : INotificationHandler<UserCreatedEvent>
     {
         _logger.LogInformation("ConnectFlow Domain Event: {DomainEvent}", notification.GetType().Name);
 
-        //await _messagePublisher.PublishAsync(notification, MessagingConfiguration.RoutingKeys.Email, cancellationToken);
-
         var emailEvent = new EmailSendRequestedEvent()
         {
             UserId = notification.UserId,
         };
 
-        await _messagePublisher.PublishAsync(emailEvent, "event.email", cancellationToken);
+        var queue = MessagingConfiguration.GetQueueByTypeAndDomain(MessagingConfiguration.QueueType.Default, MessagingConfiguration.QueueDomain.Email);
 
+        await _messagePublisher.PublishAsync(emailEvent, queue.RoutingKey, cancellationToken);
     }
 }

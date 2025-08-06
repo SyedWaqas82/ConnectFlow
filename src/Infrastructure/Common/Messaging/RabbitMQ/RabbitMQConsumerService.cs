@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using ConnectFlow.Application.Common.Messaging;
 using ConnectFlow.Domain.Common;
+using ConnectFlow.Domain.Constants;
 using ConnectFlow.Infrastructure.Common.Messaging.RabbitMQ.Configurations;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
@@ -16,24 +17,21 @@ public abstract class RabbitMQConsumerService<T> : BackgroundService, IMessageCo
     private readonly RabbitMQSettings _settings;
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<RabbitMQConsumerService<T>> _logger;
-    private readonly string _queueName;
+    private readonly MessagingConfiguration.Queue _queue;
+    private readonly MessagingConfiguration.Queue _retryQueue;
     private readonly SemaphoreSlim _semaphore;
     private readonly Metrics.RabbitMQMetrics? _metrics;
     private IChannel? _channel;
     private AsyncEventingBasicConsumer? _consumer;
 
-    protected RabbitMQConsumerService(
-        IRabbitMQConnectionManager connectionManager,
-        IOptions<RabbitMQSettings> settings,
-        IServiceProvider serviceProvider,
-        ILogger<RabbitMQConsumerService<T>> logger,
-        string queueName)
+    protected RabbitMQConsumerService(IRabbitMQConnectionManager connectionManager, IOptions<RabbitMQSettings> settings, IServiceProvider serviceProvider, ILogger<RabbitMQConsumerService<T>> logger, MessagingConfiguration.Queue queue, MessagingConfiguration.Queue retryQueue)
     {
         _connectionManager = connectionManager;
         _settings = settings.Value;
         _serviceProvider = serviceProvider;
         _logger = logger;
-        _queueName = queueName;
+        _queue = queue;
+        _retryQueue = retryQueue;
         _semaphore = new SemaphoreSlim(_settings.MaxConcurrentConsumers, _settings.MaxConcurrentConsumers);
         _metrics = serviceProvider.GetService<Metrics.RabbitMQMetrics>();
     }
@@ -54,12 +52,12 @@ public abstract class RabbitMQConsumerService<T> : BackgroundService, IMessageCo
             _consumer.ReceivedAsync += HandleMessageAsync;
 
             await _channel.BasicConsumeAsync(
-                queue: _queueName,
+                queue: _queue.Name,
                 autoAck: false,
                 consumer: _consumer,
                 cancellationToken: cancellationToken);
 
-            _logger.LogInformation("Started consuming messages from queue {QueueName}", _queueName);
+            _logger.LogInformation("Started consuming messages from queue {Name}", _queue.Name);
 
             // Keep the consumer running
             while (!cancellationToken.IsCancellationRequested)
@@ -69,11 +67,11 @@ public abstract class RabbitMQConsumerService<T> : BackgroundService, IMessageCo
         }
         catch (OperationCanceledException)
         {
-            _logger.LogInformation("Consumer for queue {QueueName} was cancelled", _queueName);
+            _logger.LogInformation("Consumer for queue {Name} was cancelled", _queue.Name);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error in consumer for queue {QueueName}", _queueName);
+            _logger.LogError(ex, "Error in consumer for queue {Name}", _queue.Name);
             throw;
         }
     }
@@ -93,11 +91,11 @@ public abstract class RabbitMQConsumerService<T> : BackgroundService, IMessageCo
                 _channel.Dispose();
             }
 
-            _logger.LogInformation("Stopped consuming messages from queue {QueueName}", _queueName);
+            _logger.LogInformation("Stopped consuming messages from queue {Name}", _queue.Name);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error stopping consumer for queue {QueueName}", _queueName);
+            _logger.LogError(ex, "Error stopping consumer for queue {Name}", _queue.Name);
         }
     }
 
@@ -110,13 +108,13 @@ public abstract class RabbitMQConsumerService<T> : BackgroundService, IMessageCo
             var messageId = eventArgs.BasicProperties?.MessageId ?? "unknown";
             var correlationId = eventArgs.BasicProperties?.CorrelationId ?? "unknown";
 
-            _logger.LogDebug("Processing message {MessageId} from queue {QueueName}", messageId, _queueName);
+            _logger.LogDebug("Processing message {MessageId} from queue {Name}", messageId, _queue.Name);
 
             var message = DeserializeMessage(eventArgs.Body.ToArray());
 
             if (message == null)
             {
-                _logger.LogError("Failed to deserialize message payload {MessageId} from queue {QueueName}", messageId, _queueName);
+                _logger.LogError("Failed to deserialize message payload {MessageId} from queue {Name}", messageId, _queue.Name);
                 await _channel!.BasicNackAsync(eventArgs.DeliveryTag, false, false);
                 return;
             }
@@ -139,7 +137,7 @@ public abstract class RabbitMQConsumerService<T> : BackgroundService, IMessageCo
                 {
                     await _channel!.BasicAckAsync(eventArgs.DeliveryTag, false);
                     _logger.LogDebug("Message {MessageId} processed successfully", messageId);
-                    _metrics?.IncrementConsumedMessages(_queueName, message.MessageType ?? typeof(T).Name);
+                    _metrics?.IncrementConsumedMessages(_queue.Name, message.MessageType ?? typeof(T).Name);
                 }
                 else if (message.IsRejected)
                 {
@@ -148,13 +146,13 @@ public abstract class RabbitMQConsumerService<T> : BackgroundService, IMessageCo
                         await PublishToRetryQueue(message, eventArgs);
                         await _channel!.BasicAckAsync(eventArgs.DeliveryTag, false);
                         _logger.LogWarning("Message {MessageId} sent to retry queue", messageId);
-                        _metrics?.IncrementRetryMessages(_queueName);
+                        _metrics?.IncrementRetryMessages(_queue.Name);
                     }
                     else
                     {
                         await _channel!.BasicNackAsync(eventArgs.DeliveryTag, false, message.Requeue);
                         _logger.LogWarning("Message {MessageId} rejected after max retries", messageId);
-                        _metrics?.IncrementDeadLetterMessages(_queueName, "max_retries_exceeded");
+                        _metrics?.IncrementDeadLetterMessages(_queue.Name, "max_retries_exceeded");
                     }
                 }
                 else
@@ -165,24 +163,24 @@ public abstract class RabbitMQConsumerService<T> : BackgroundService, IMessageCo
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error processing message {MessageId} from queue {QueueName}", messageId, _queueName);
+                _logger.LogError(ex, "Error processing message {MessageId} from queue {Name}", messageId, _queue.Name);
 
                 if (ShouldRetry(message))
                 {
                     await PublishToRetryQueue(message, eventArgs);
                     await _channel!.BasicAckAsync(eventArgs.DeliveryTag, false);
-                    _metrics?.IncrementRetryMessages(_queueName);
+                    _metrics?.IncrementRetryMessages(_queue.Name);
                 }
                 else
                 {
                     await _channel!.BasicNackAsync(eventArgs.DeliveryTag, false, false);
-                    _metrics?.IncrementDeadLetterMessages(_queueName, "exception_" + ex.GetType().Name);
+                    _metrics?.IncrementDeadLetterMessages(_queue.Name, "exception_" + ex.GetType().Name);
                 }
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error processing message from queue {QueueName}", _queueName);
+            _logger.LogError(ex, "Unexpected error processing message from queue {Name}", _queue.Name);
             await _channel!.BasicNackAsync(eventArgs.DeliveryTag, false, false);
         }
         finally
@@ -209,7 +207,7 @@ public abstract class RabbitMQConsumerService<T> : BackgroundService, IMessageCo
 
     private bool ShouldRetry(T message)
     {
-        return message.RetryCount < _settings.RetryLimit;
+        return message.RetryCount < _queue.MaxRetries;
     }
 
     private async Task PublishToRetryQueue(T message, BasicDeliverEventArgs eventArgs)
@@ -219,7 +217,7 @@ public abstract class RabbitMQConsumerService<T> : BackgroundService, IMessageCo
             message.RetryCount++;
             message.Timestamp = DateTime.UtcNow;
 
-            var retryQueueName = GetRetryQueueName();
+            var retryQueueName = _retryQueue.Name;
             var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message, new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
@@ -239,13 +237,13 @@ public abstract class RabbitMQConsumerService<T> : BackgroundService, IMessageCo
                     ["UserId"] = message.UserId,
                     ["MessageType"] = message.MessageType,
                     ["RetryCount"] = message.RetryCount,
-                    ["OriginalQueue"] = _queueName
+                    ["OriginalQueue"] = _queue?.Name
                 }
             };
 
             await _channel!.BasicPublishAsync(
-                exchange: MessagingConfiguration.Exchanges.Retry,
-                routingKey: GetRetryRoutingKey(),
+                exchange: MessagingConfiguration.GetExchange().Retry,
+                routingKey: _retryQueue.RoutingKey,
                 mandatory: true,
                 basicProperties: properties,
                 body: body);
@@ -255,9 +253,6 @@ public abstract class RabbitMQConsumerService<T> : BackgroundService, IMessageCo
             _logger.LogError(ex, "Failed to publish message {MessageId} to retry queue", message.MessageId);
         }
     }
-
-    protected abstract string GetRetryQueueName();
-    protected abstract string GetRetryRoutingKey();
 
     public override void Dispose()
     {

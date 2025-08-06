@@ -17,10 +17,6 @@ public interface IApplicationDbContext
     DbSet<Pipeline> Pipelines { get; }
     DbSet<ContactScore> ContactScores { get; }
 
-    DbSet<TodoItem> TodoItems { get; } // Keep for now to avoid breaking existing code
-    DbSet<TodoList> TodoLists { get; } // Keep for now to avoid breaking existing code
-
-
     // DbSet<Appointment> Appointments { get; }
     // DbSet<Attachment> Attachments { get; }
     // DbSet<Channel> Channels { get; }

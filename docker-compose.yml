@@ -52,14 +52,8 @@ services:
   #     - RabbitMQ__Password=guest
   #     - RabbitMQ__VirtualHost=/
   #     - RabbitMQ__UseSSL=false
-  #     - RabbitMQ__ConnectionRetryCount=5
-  #     - RabbitMQ__ConnectionRetryDelay=2000
   #     - RabbitMQ__PrefetchCount=10
   #     - RabbitMQ__MaxConcurrentConsumers=5
-  #     - RabbitMQ__ExchangeName=domain-events-exchange
-  #     - RabbitMQ__DeadLetterExchangeName=dead-letter-exchange
-  #     - RabbitMQ__MessageTTL=86400000
-  #     - RabbitMQ__RetryLimit=3
   #   depends_on:
   #     postgres:
   #       condition: service_healthy
@@ -109,7 +103,7 @@ services:
 
   # Message Broker
   rabbitmq:
-    container_name: connectflow-rabbitmq
+    container_name: rabbitmq
     image: rabbitmq:3.13-management
     restart: unless-stopped
     ports:

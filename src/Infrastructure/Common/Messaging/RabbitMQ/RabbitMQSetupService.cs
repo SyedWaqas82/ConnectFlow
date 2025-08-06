@@ -1,4 +1,4 @@
-using ConnectFlow.Infrastructure.Common.Messaging.RabbitMQ.Configurations;
+using ConnectFlow.Domain.Constants;
 using RabbitMQ.Client;
 
 namespace ConnectFlow.Infrastructure.Common.Messaging.RabbitMQ;
@@ -19,88 +19,80 @@ public class RabbitMQSetupService : IRabbitMQSetupService
         _logger.LogInformation("Setting up RabbitMQ topology...");
 
         await EnsureExchangesAsync(cancellationToken);
-        await EnsureQueuesAsync(cancellationToken);
 
         _logger.LogInformation("RabbitMQ topology setup completed");
     }
 
-    public async Task EnsureExchangesAsync(CancellationToken cancellationToken = default)
+    private async Task EnsureExchangesAsync(CancellationToken cancellationToken = default)
     {
         using var channel = await _connectionManager.CreateChannelAsync();
+
+        var exchangeConfig = MessagingConfiguration.GetExchange();
 
         // Main domain events exchange
         await channel.ExchangeDeclareAsync(
-            exchange: MessagingConfiguration.Exchanges.DomainEvents,
+            exchange: exchangeConfig.DomainEvents,
             type: ExchangeType.Topic,
             durable: true,
             autoDelete: false,
             arguments: null,
             cancellationToken: cancellationToken);
 
-        _logger.LogDebug("Declared exchange {ExchangeName}", MessagingConfiguration.Exchanges.DomainEvents);
+        _logger.LogDebug("Declared exchange {ExchangeName}", exchangeConfig.DomainEvents);
 
         // Dead letter exchange
         await channel.ExchangeDeclareAsync(
-            exchange: MessagingConfiguration.Exchanges.DeadLetter,
+            exchange: exchangeConfig.DeadLetter,
             type: ExchangeType.Topic,
             durable: true,
             autoDelete: false,
             arguments: null,
             cancellationToken: cancellationToken);
 
-        _logger.LogDebug("Declared exchange {ExchangeName}", MessagingConfiguration.Exchanges.DeadLetter);
+        _logger.LogDebug("Declared exchange {ExchangeName}", exchangeConfig.DeadLetter);
 
         // Retry exchange
         await channel.ExchangeDeclareAsync(
-            exchange: MessagingConfiguration.Exchanges.Retry,
+            exchange: exchangeConfig.Retry,
             type: ExchangeType.Topic,
             durable: true,
             autoDelete: false,
             arguments: null,
             cancellationToken: cancellationToken);
 
-        _logger.LogDebug("Declared exchange {ExchangeName}", MessagingConfiguration.Exchanges.Retry);
+        _logger.LogDebug("Declared exchange {ExchangeName}", exchangeConfig.Retry);
+
+        await EnsureQueuesAsync(exchangeConfig, cancellationToken);
     }
 
-    public async Task EnsureQueuesAsync(CancellationToken cancellationToken = default)
+    private async Task EnsureQueuesAsync(MessagingConfiguration.Exchange exchangeConfig, CancellationToken cancellationToken = default)
     {
         using var channel = await _connectionManager.CreateChannelAsync();
-        var queueConfigurations = MessagingConfiguration.GetQueueConfigurations();
 
-        foreach (var (queueKey, config) in queueConfigurations)
+        foreach (var queueConfig in exchangeConfig.Queues)
         {
             // Declare queue
             await channel.QueueDeclareAsync(
-                queue: config.QueueName,
-                durable: config.Durable,
-                exclusive: config.Exclusive,
-                autoDelete: config.AutoDelete,
-                arguments: config.Arguments,
+                queue: queueConfig.Name,
+                durable: queueConfig.Durable,
+                exclusive: queueConfig.Exclusive,
+                autoDelete: queueConfig.AutoDelete,
+                arguments: queueConfig.Arguments,
                 cancellationToken: cancellationToken);
 
-            _logger.LogDebug("Declared queue {QueueName}", config.QueueName);
+            _logger.LogDebug("Declared queue {Name}", queueConfig.Name);
 
             // Bind queue to appropriate exchange
-            var exchangeName = GetExchangeForQueue(config.QueueName);
+            var exchangeName = MessagingConfiguration.GetExchangeForQueueType(exchangeConfig, queueConfig.Type);
 
             await channel.QueueBindAsync(
-                queue: config.QueueName,
+                queue: queueConfig.Name,
                 exchange: exchangeName,
-                routingKey: config.RoutingKey,
+                routingKey: queueConfig.RoutingKey,
                 arguments: null,
                 cancellationToken: cancellationToken);
 
-            _logger.LogDebug("Bound queue {QueueName} to exchange {ExchangeName} with routing key {RoutingKey}", config.QueueName, exchangeName, config.RoutingKey);
+            _logger.LogDebug("Bound queue {Name} to exchange {ExchangeName} with routing key {RoutingKey}", queueConfig.Name, exchangeName, queueConfig.RoutingKey);
         }
-    }
-
-    private static string GetExchangeForQueue(string queueName)
-    {
-        return queueName switch
-        {
-            var name when name.EndsWith(".dlx") => MessagingConfiguration.Exchanges.DeadLetter,
-            var name when name.EndsWith(".retry") => MessagingConfiguration.Exchanges.Retry,
-            _ => MessagingConfiguration.Exchanges.DomainEvents
-        };
     }
 }

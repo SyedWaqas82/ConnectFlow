@@ -2,8 +2,7 @@ using System.Text;
 using System.Text.Json;
 using ConnectFlow.Application.Common.Messaging;
 using ConnectFlow.Domain.Common;
-using ConnectFlow.Infrastructure.Common.Messaging.RabbitMQ.Configurations;
-using Microsoft.Extensions.Options;
+using ConnectFlow.Domain.Constants;
 using RabbitMQ.Client;
 
 namespace ConnectFlow.Infrastructure.Common.Messaging.RabbitMQ;
@@ -11,22 +10,19 @@ namespace ConnectFlow.Infrastructure.Common.Messaging.RabbitMQ;
 public class RabbitMQPublisher : IMessagePublisher, IDisposable
 {
     private readonly IRabbitMQConnectionManager _connectionManager;
-    private readonly RabbitMQSettings _settings;
     private readonly ILogger<RabbitMQPublisher> _logger;
     private readonly Metrics.RabbitMQMetrics _metrics;
     private IChannel? _channel;
     private bool _disposed;
+    private readonly string _exchangeName = string.Empty;
 
-    public RabbitMQPublisher(
-        IRabbitMQConnectionManager connectionManager,
-        IOptions<RabbitMQSettings> settings,
-        ILogger<RabbitMQPublisher> logger,
-        Metrics.RabbitMQMetrics metrics)
+    public RabbitMQPublisher(IRabbitMQConnectionManager connectionManager, ILogger<RabbitMQPublisher> logger, Metrics.RabbitMQMetrics metrics)
     {
         _connectionManager = connectionManager;
-        _settings = settings.Value;
         _logger = logger;
         _metrics = metrics;
+
+        _exchangeName = MessagingConfiguration.DefaultExchangeName;
     }
 
     public async Task PublishAsync<T>(T message, string routingKey, CancellationToken cancellationToken = default) where T : MessageBaseEvent
@@ -41,14 +37,14 @@ public class RabbitMQPublisher : IMessagePublisher, IDisposable
             var properties = CreateBasicProperties(channel, message);
 
             await channel.BasicPublishAsync(
-                exchange: _settings.ExchangeName,
+                exchange: _exchangeName,
                 routingKey: routingKey,
                 mandatory: true,
                 basicProperties: properties,
                 body: body,
                 cancellationToken: cancellationToken);
 
-            _logger.LogDebug("Published message {MessageType} with ID {MessageId} to exchange {Exchange} with routing key {RoutingKey}", typeof(T).Name, message.MessageId, _settings.ExchangeName, routingKey);
+            _logger.LogDebug("Published message {MessageType} with ID {MessageId} to exchange {Exchange} with routing key {RoutingKey}", typeof(T).Name, message.MessageId, _exchangeName, routingKey);
             _metrics.IncrementPublishedMessages(routingKey);
         }
         catch (Exception ex)
@@ -78,7 +74,7 @@ public class RabbitMQPublisher : IMessagePublisher, IDisposable
                 var properties = CreateBasicProperties(channel, message);
 
                 await channel.BasicPublishAsync(
-                    exchange: _settings.ExchangeName,
+                    exchange: _exchangeName,
                     routingKey: routingKey,
                     mandatory: true,
                     basicProperties: properties,
