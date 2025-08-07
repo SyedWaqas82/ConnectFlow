@@ -1,8 +1,17 @@
 ﻿# For more info on HTTP files go to https://aka.ms/vs/httpfile
 @Web_HostAddress = https://localhost:5001/api/v1
 
-@Email=administrator@localhost
-@Password=Administrator1!
+# Super Admin Credentials
+# @Email=superadmin@connectflow.local
+# @Password=SuperAdmin123!
+
+# Tenant Admin Credentials
+# @Email=tenantadmin@connectflow.local
+# @Password=TenantAdmin123!
+
+@Email=syed@test.com
+@Password=SyedWaqas123!
+
 @BearerToken=<YourToken>
 
 # POST Users Register
@@ -10,8 +19,10 @@ POST {{Web_HostAddress}}/Users/Register
 Content-Type: application/json
 
 {
-  "email": "{{Email}}",
-  "password": "{{Password}}"
+  "email": "syed@test.com",
+  "password": "SyedWaqas123!",
+  "firstName": "Syed",
+  "lastName": "Waqas"
 }
 
 ###

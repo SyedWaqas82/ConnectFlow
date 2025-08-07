@@ -30,71 +30,71 @@ public class RequestLoggingMiddleware
         // Start timing
         var sw = Stopwatch.StartNew();
 
-        try
+        // try
+        // {
+        // Extract client IP
+        var clientIp = GetClientIp(context);
+
+        // Extract client ID from JWT token
+        var clientId = GetClientIdFromToken(context);
+
+        // Extract tenant ID from request header
+        var tenantId = GetTenantId(context);
+
+        // HTTP Method and Target Endpoint
+        var method = context.Request.Method;
+        var path = context.Request.Path.Value;
+        var queryString = context.Request.QueryString.Value;
+
+        // Enrich the log context with request details
+        using (LogContext.PushProperty("ClientIP", clientIp))
+        using (LogContext.PushProperty("ClientId", clientId))
+        using (LogContext.PushProperty("TenantId", tenantId))
+        using (LogContext.PushProperty("HttpMethod", method))
+        using (LogContext.PushProperty("RequestPath", path))
+        using (LogContext.PushProperty("QueryString", queryString))
         {
-            // Extract client IP
-            var clientIp = GetClientIp(context);
+            // Log request starting
+            _logger.LogInformation("HTTP Request: [Tenant: {TenantId}] {HttpMethod} {RequestPath}{QueryString}", tenantId, method, path, queryString);
 
-            // Extract client ID from JWT token
-            var clientId = GetClientIdFromToken(context);
+            // Call the next middleware in the pipeline
+            await _next(context);
 
-            // Extract tenant ID from request header
-            var tenantId = GetTenantId(context);
+            // Stop timing
+            sw.Stop();
 
-            // HTTP Method and Target Endpoint
-            var method = context.Request.Method;
-            var path = context.Request.Path.Value;
-            var queryString = context.Request.QueryString.Value;
+            // Log response details
+            var statusCode = context.Response.StatusCode;
+            var responseTimeMs = sw.ElapsedMilliseconds;
 
-            // Enrich the log context with request details
-            using (LogContext.PushProperty("ClientIP", clientIp))
-            using (LogContext.PushProperty("ClientId", clientId))
-            using (LogContext.PushProperty("TenantId", tenantId))
-            using (LogContext.PushProperty("HttpMethod", method))
-            using (LogContext.PushProperty("RequestPath", path))
-            using (LogContext.PushProperty("QueryString", queryString))
+            using (LogContext.PushProperty("StatusCode", statusCode))
+            using (LogContext.PushProperty("ResponseTimeMs", responseTimeMs))
             {
-                // Log request starting
-                _logger.LogInformation("HTTP Request: [Tenant: {TenantId}] {HttpMethod} {RequestPath}{QueryString}", tenantId, method, path, queryString);
-
-                // Call the next middleware in the pipeline
-                await _next(context);
-
-                // Stop timing
-                sw.Stop();
-
-                // Log response details
-                var statusCode = context.Response.StatusCode;
-                var responseTimeMs = sw.ElapsedMilliseconds;
-
-                using (LogContext.PushProperty("StatusCode", statusCode))
-                using (LogContext.PushProperty("ResponseTimeMs", responseTimeMs))
+                // Categorize response by status code
+                if (statusCode >= 500)
                 {
-                    // Categorize response by status code
-                    if (statusCode >= 500)
-                    {
-                        _logger.LogError("HTTP Response: [Tenant: {TenantId}] {StatusCode} in {ResponseTimeMs}ms for {HttpMethod} {RequestPath}",
-                            tenantId, statusCode, responseTimeMs, method, path);
-                    }
-                    else if (statusCode >= 400)
-                    {
-                        _logger.LogWarning("HTTP Response: [Tenant: {TenantId}] {StatusCode} in {ResponseTimeMs}ms for {HttpMethod} {RequestPath}",
-                            tenantId, statusCode, responseTimeMs, method, path);
-                    }
-                    else
-                    {
-                        _logger.LogInformation("HTTP Response: [Tenant: {TenantId}] {StatusCode} in {ResponseTimeMs}ms for {HttpMethod} {RequestPath}",
-                            tenantId, statusCode, responseTimeMs, method, path);
-                    }
+                    _logger.LogError("HTTP Response: [Tenant: {TenantId}] {StatusCode} in {ResponseTimeMs}ms for {HttpMethod} {RequestPath}",
+                        tenantId, statusCode, responseTimeMs, method, path);
+                }
+                else if (statusCode >= 400)
+                {
+                    _logger.LogWarning("HTTP Response: [Tenant: {TenantId}] {StatusCode} in {ResponseTimeMs}ms for {HttpMethod} {RequestPath}",
+                        tenantId, statusCode, responseTimeMs, method, path);
+                }
+                else
+                {
+                    _logger.LogInformation("HTTP Response: [Tenant: {TenantId}] {StatusCode} in {ResponseTimeMs}ms for {HttpMethod} {RequestPath}",
+                        tenantId, statusCode, responseTimeMs, method, path);
                 }
             }
         }
-        catch (Exception ex)
-        {
-            // Log middleware exception
-            _logger.LogError(ex, "Error in request logging middleware");
-            await _next(context);
-        }
+        // }
+        // catch (Exception ex)
+        // {
+        //     // Log middleware exception
+        //     _logger.LogError(ex, "Error in request logging middleware");
+        //     await _next(context);
+        // }
     }
 
     private string GetClientIp(HttpContext context)

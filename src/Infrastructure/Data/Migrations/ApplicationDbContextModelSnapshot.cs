@@ -1678,11 +1678,6 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
                     b.Property<string>("Country")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
@@ -1701,7 +1696,6 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         .HasColumnType("character varying(500)");
 
                     b.Property<string>("Domain")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
@@ -1751,13 +1745,7 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Code")
-                        .IsUnique();
-
                     b.HasIndex("CreatedBy");
-
-                    b.HasIndex("Domain")
-                        .IsUnique();
 
                     b.HasIndex("LastModifiedBy");
 

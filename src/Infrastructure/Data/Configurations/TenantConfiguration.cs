@@ -10,11 +10,8 @@ public class TenantConfiguration : BaseAuditableConfiguration<Tenant>
     {
         base.Configure(builder);
 
-        builder.HasIndex(t => t.Code).IsUnique();
-        builder.HasIndex(t => t.Domain).IsUnique();
-        builder.Property(t => t.Code).IsRequired().HasMaxLength(50);
         builder.Property(t => t.Name).IsRequired().HasMaxLength(100);
-        builder.Property(t => t.Domain).IsRequired().HasMaxLength(100);
+        builder.Property(t => t.Domain).HasMaxLength(100);
         builder.Property(t => t.Description).HasMaxLength(500);
         builder.Property(t => t.Avatar).HasMaxLength(200);
         builder.Property(t => t.Phone).HasMaxLength(20);

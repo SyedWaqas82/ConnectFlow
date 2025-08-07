@@ -41,20 +41,11 @@ public class IdentityService : IIdentityService
 
     #region User and Tenant Management
 
-    public async Task<Result<UserToken>> CreateTenantForNewUserAsync(string code, string domain, string name, string description, string settings, string email, string password, string firstName, string lastName, string? jobTitle, string? phoneNumber, string? mobile, string? timeZone, string? locale, SubscriptionPlan plan = SubscriptionPlan.Free)
+    public async Task<Result<UserToken>> CreateTenantForNewUserAsync(string email, string password, string firstName, string lastName, string? jobTitle, string? phoneNumber, string? mobile, string? timeZone, string? locale, SubscriptionPlan plan = SubscriptionPlan.Free)
     {
         var validRoles = new[] { Roles.TenantAdmin };
 
-        // Check if tenant code or domain already exists
-        var tenantValidationResult = await IsValidTenantAsync(code, domain);
-
-        if (!tenantValidationResult.Succeeded)
-        {
-            return Result<UserToken>.Failure(tenantValidationResult.Errors, null);
-        }
-
-
-        var userCreationResult = await CreateApplicationUserAsync(email, password, firstName, lastName, jobTitle, phoneNumber, mobile, timeZone, locale, false, validRoles);
+        var userCreationResult = await CreateApplicationUserAsync(email, password, firstName, lastName, jobTitle, phoneNumber, mobile, timeZone, locale, true, validRoles);
 
         if (!userCreationResult.Result.Succeeded || userCreationResult.Result.Data == null)
         {
@@ -63,7 +54,7 @@ public class IdentityService : IIdentityService
 
         var newUser = userCreationResult.Result.Data;
 
-        var tenantResult = await CreateTenant(code, domain, name, description, settings, newUser);
+        var tenantResult = await CreateTenant($"{firstName}'s Tenant", newUser);
 
         if (!tenantResult.Succeeded || tenantResult.Data == null)
         {
@@ -81,7 +72,7 @@ public class IdentityService : IIdentityService
         return Result<UserToken>.Success(new UserToken() { ApplicationUserId = newUser.PublicId, Token = userCreationResult.ConfirmationToken });
     }
 
-    public async Task<Result> CreateTenantForExistingUserAsync(string code, string domain, string name, string description, string settings, string email, SubscriptionPlan plan = SubscriptionPlan.Free)
+    public async Task<Result> CreateTenantForExistingUserAsync(string email, SubscriptionPlan plan = SubscriptionPlan.Free)
     {
         var validRoles = new[] { Roles.TenantAdmin };
 
@@ -92,15 +83,7 @@ public class IdentityService : IIdentityService
             return Result.Failure(new[] { "user not found" });
         }
 
-        // Check if tenant code or domain already exists
-        var tenantValidationResult = await IsValidTenantAsync(code, domain);
-
-        if (!tenantValidationResult.Succeeded)
-        {
-            return tenantValidationResult;
-        }
-
-        var tenantResult = await CreateTenant(code, domain, name, description, settings, existingUser);
+        var tenantResult = await CreateTenant($"{existingUser.FirstName}'s Tenant", existingUser);
 
         if (!tenantResult.Succeeded || tenantResult.Data == null)
         {
@@ -127,16 +110,15 @@ public class IdentityService : IIdentityService
         return Result.Success();
     }
 
-    public async Task<Result<UserToken>> JoinTenantAsNewUserAsync(string email, string password, string firstName, string lastName, string? jobTitle, string? phoneNumber, string? mobile, string? timeZone, string? locale, string[] roles, int? tenantId)
+    public async Task<Result<UserToken>> JoinTenantAsNewUserAsync(string email, string password, string firstName, string lastName, string[] roles, string? jobTitle, string? phoneNumber, string? mobile, string? timeZone, string? locale, int? tenantId)
     {
         var validRoles = roles.Where(r => Roles.AllRoles.Contains(r)).ToArray();
         validRoles = validRoles.Length > 0 ? validRoles : new[] { Roles.NonTenantAdmin };
 
-        var result = await CreateApplicationUserAsync(email, password, firstName, lastName, jobTitle, phoneNumber, mobile, timeZone, locale, false, validRoles);
+        var result = await CreateApplicationUserAsync(email, password, firstName, lastName, jobTitle, phoneNumber, mobile, timeZone, locale, true, validRoles);
 
         if (result.Result.Succeeded && result.Result.Data != null)
         {
-
             if (tenantId.HasValue)
             {
                 await JoinTenantInternalAsync(result.Result.Data, tenantId.Value, validRoles, _contextService.GetCurrentApplicationUserId());
@@ -231,7 +213,7 @@ public class IdentityService : IIdentityService
 
         if (result.Succeeded)
         {
-            await _mediator.Publish(new UserPasswordResettedEvent(user.Id, user.PublicId, user.Email!, user.FirstName, user.LastName, user.JobTitle, user.PhoneNumber, user.Mobile, user.TimeZone, user.Locale, user.EmailConfirmed, passwordToken));
+            await _mediator.Publish(new UserPasswordChangedEvent(user.Id, user.PublicId, user.Email!, user.FirstName, user.LastName, user.JobTitle, user.PhoneNumber, user.Mobile, user.TimeZone, user.Locale, user.EmailConfirmed));
         }
 
         return result.ToApplicationResult();
@@ -361,15 +343,12 @@ public class IdentityService : IIdentityService
 
     #region Private Methods
 
-    private async Task<Result<Tenant>> CreateTenant(string code, string domain, string name, string description, string settings, ApplicationUser adminUser)
+    private async Task<Result<Tenant>> CreateTenant(string name, ApplicationUser adminUser)
     {
         var tenant = new Tenant
         {
-            Code = code,
-            Domain = domain,
             Name = name,
-            Description = description,
-            Settings = settings,
+            Settings = "{}",
             CreatedBy = _contextService.GetCurrentApplicationUserId() ?? adminUser.Id
         };
 
@@ -396,6 +375,7 @@ public class IdentityService : IIdentityService
             Locale = locale ?? "en-US",
             EmailConfirmed = !requireEmailConfirmation,
             IsActive = true,
+            Preferences = "{}" // Default preferences, can be updated later,
         };
 
         var result = await _userManager.CreateAsync(user, password);
@@ -408,7 +388,12 @@ public class IdentityService : IIdentityService
                 await _userManager.AddToRolesAsync(user, roles);
             }
 
-            string confirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            string confirmationToken = string.Empty;
+            if (requireEmailConfirmation)
+            {
+                confirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            }
+
             await _mediator.Publish(new UserCreatedEvent(user.Id, user.PublicId, user.Email, user.FirstName, user.LastName, user.JobTitle, user.PhoneNumber, user.Mobile, user.TimeZone, user.Locale, user.EmailConfirmed, confirmationToken));
 
             return (Result<ApplicationUser>.Success(user), confirmationToken);
@@ -468,18 +453,18 @@ public class IdentityService : IIdentityService
         return Result<Subscription>.Success(subscription);
     }
 
-    private async Task<Result> IsValidTenantAsync(string code, string domain)
-    {
-        // Check if tenant code or domain already exists
-        var existingTenant = await _context.Tenants.FirstOrDefaultAsync(t => t.Code == code || t.Domain == domain);
+    // private async Task<Result> IsValidTenantAsync(string code, string domain)
+    // {
+    //     // Check if tenant code or domain already exists
+    //     var existingTenant = await _context.Tenants.FirstOrDefaultAsync(t => t.Code == code || t.Domain == domain);
 
-        if (existingTenant != null)
-        {
-            return Result.Failure(new[] { existingTenant.Code == code ? "Tenant with this code already exists" : "Tenant with this domain already exists" });
-        }
+    //     if (existingTenant != null)
+    //     {
+    //         return Result.Failure(new[] { existingTenant.Code == code ? "Tenant with this code already exists" : "Tenant with this domain already exists" });
+    //     }
 
-        return Result.Success();
-    }
+    //     return Result.Success();
+    // }
 
     private async Task<Result<AuthToken>> ManageTokensAsync(ApplicationUser user, bool generateNewRefreshToken)
     {

@@ -3,8 +3,8 @@ namespace ConnectFlow.Domain.Entities;
 public class Subscription : BaseAuditableEntity
 {
     // Stripe and Billing
-    public string StripeCustomerId { get; set; } = default!;
-    public string StripeSubscriptionId { get; set; } = default!;
+    public string StripeCustomerId { get; set; } = string.Empty;
+    public string StripeSubscriptionId { get; set; } = string.Empty;
     public decimal Amount { get; set; } // Actual amount charged for this subscription
     public string Currency { get; set; } = "USD";
     public BillingCycle BillingCycle { get; set; } // Monthly, Yearly, etc.

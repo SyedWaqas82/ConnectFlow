@@ -3,9 +3,8 @@ namespace ConnectFlow.Domain.Entities;
 public class Tenant : BaseAuditableEntity
 {
     public string Name { get; set; } = string.Empty;
-    public string Code { get; set; } = string.Empty; // Unique tenant identifier
     public string? Description { get; set; }
-    public string Domain { get; set; } = string.Empty; // e.g., company.yoursaas.com
+    public string? Domain { get; set; } = string.Empty; // e.g., company.yoursaas.com
     public string? Avatar { get; set; }
     public string? Phone { get; set; }
     public string? Email { get; set; }

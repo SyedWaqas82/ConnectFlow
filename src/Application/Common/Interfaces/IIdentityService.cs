@@ -5,9 +5,9 @@ namespace ConnectFlow.Application.Common.Interfaces;
 
 public interface IIdentityService
 {
-    Task<Result<UserToken>> CreateTenantForNewUserAsync(string code, string domain, string name, string description, string settings, string email, string password, string firstName, string lastName, string? jobTitle, string? phoneNumber, string? mobile, string? timeZone, string? locale, SubscriptionPlan plan = SubscriptionPlan.Free);
-    Task<Result> CreateTenantForExistingUserAsync(string code, string domain, string name, string description, string settings, string email, SubscriptionPlan plan = SubscriptionPlan.Free);
-    Task<Result<UserToken>> JoinTenantAsNewUserAsync(string email, string password, string firstName, string lastName, string? jobTitle, string? phoneNumber, string? mobile, string? timeZone, string? locale, string[] roles, int? tenantId);
+    Task<Result<UserToken>> CreateTenantForNewUserAsync(string email, string password, string firstName, string lastName, string? jobTitle = null, string? phoneNumber = null, string? mobile = null, string? timeZone = null, string? locale = null, SubscriptionPlan plan = SubscriptionPlan.Free);
+    Task<Result> CreateTenantForExistingUserAsync(string email, SubscriptionPlan plan = SubscriptionPlan.Free);
+    Task<Result<UserToken>> JoinTenantAsNewUserAsync(string email, string password, string firstName, string lastName, string[] roles, string? jobTitle = null, string? phoneNumber = null, string? mobile = null, string? timeZone = null, string? locale = null, int? tenantId = null);
     Task<Result> JoinTenantAsExistingUserAsync(string email, string[] roles, int tenantId);
     Task<Result> ConfirmEmailAsync(Guid userId, string confirmationToken);
     Task<Result<UserToken>> ResetPasswordTokenAsync(string email);

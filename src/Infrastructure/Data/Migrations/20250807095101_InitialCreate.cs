@@ -186,9 +186,8 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    Code = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    Domain = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Domain = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     Avatar = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     Phone = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
                     Email = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
@@ -2247,21 +2246,9 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                 column: "TenantId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Tenants_Code",
-                table: "Tenants",
-                column: "Code",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Tenants_CreatedBy",
                 table: "Tenants",
                 column: "CreatedBy");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Tenants_Domain",
-                table: "Tenants",
-                column: "Domain",
-                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Tenants_LastModifiedBy",
