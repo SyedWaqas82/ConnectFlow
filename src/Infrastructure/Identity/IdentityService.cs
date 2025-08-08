@@ -476,10 +476,14 @@ public class IdentityService : IIdentityService
     private async Task<Result<AuthToken>> ManageTokensAsync(ApplicationUser user, bool generateNewRefreshToken)
     {
         var accessTokenResult = await _authTokenService.CreateAccessTokenAsync(user);
-        var refreshTokenResult = _authTokenService.CreateRefreshToken();
+        var refreshToken = user.RefreshToken ?? string.Empty;
 
         if (generateNewRefreshToken)
         {
+            var refreshTokenResult = _authTokenService.CreateRefreshToken();
+
+            refreshToken = refreshTokenResult.RefreshToken;
+
             user.RefreshToken = refreshTokenResult.RefreshToken;
             user.RefreshTokenExpiryTime = refreshTokenResult.Expiry;
         }
@@ -487,7 +491,7 @@ public class IdentityService : IIdentityService
         user.LastLoginAt = DateTimeOffset.UtcNow;
         await _userManager.UpdateAsync(user);
 
-        AuthToken authToken = new() { ApplicationUserId = user.PublicId, Email = user.Email!, ExpiresIn = accessTokenResult.ExpiresInMinutes * 60, AccessToken = accessTokenResult.AccessToken, RefreshToken = refreshTokenResult.RefreshToken };
+        AuthToken authToken = new() { ApplicationUserId = user.PublicId, Email = user.Email!, ExpiresIn = accessTokenResult.ExpiresInMinutes * 60, AccessToken = accessTokenResult.AccessToken, RefreshToken = refreshToken };
 
         return Result<AuthToken>.Success(authToken);
     }

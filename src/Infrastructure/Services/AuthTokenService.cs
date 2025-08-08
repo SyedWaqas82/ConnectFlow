@@ -26,13 +26,21 @@ public class AuthTokenService : IAuthTokenService
     {
         var userRoles = await _userManager.GetRolesAsync(user);
 
-        var expiration = DateTimeOffset.UtcNow.AddMinutes(_jwtSettings.AccessTokenExpirationMinutes);
+        // Use a consistent DateTimeOffset for all time-related operations
+        // Get the current UTC time as the basis for all time calculations
+        DateTimeOffset utcNow = DateTimeOffset.UtcNow;
+
+        // Convert to Unix timestamp in seconds for the token claims
+        long unixTimeSeconds = utcNow.ToUnixTimeSeconds();
+
+        // Calculate expiration time
+        DateTimeOffset expirationTime = utcNow.AddMinutes(_jwtSettings.AccessTokenExpirationMinutes);
 
         var claims = new List<Claim>
         {
                 new Claim(JwtRegisteredClaimNames.Sub, user.PublicId.ToString()),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()),
+                new Claim(JwtRegisteredClaimNames.Iat, unixTimeSeconds.ToString(), ClaimValueTypes.Integer64),
                 new Claim(ClaimTypes.NameIdentifier, user.PublicId.ToString()),
                 new Claim(ClaimTypes.Name, user.UserName!),
                 new Claim(ClaimTypes.Email, user.Email!),
@@ -42,7 +50,8 @@ public class AuthTokenService : IAuthTokenService
 
         var signingCredentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key)), SecurityAlgorithms.HmacSha256);
 
-        JwtSecurityToken jwtSecurityToken = new(_jwtSettings.Issuer, _jwtSettings.Audience, claims, expires: expiration.DateTime, signingCredentials: signingCredentials);
+        // Create the JWT token with consistent time values
+        JwtSecurityToken jwtSecurityToken = new(issuer: _jwtSettings.Issuer, audience: _jwtSettings.Audience, claims: claims, notBefore: utcNow.UtcDateTime, expires: expirationTime.UtcDateTime, signingCredentials: signingCredentials);
 
         return (new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken), _jwtSettings.AccessTokenExpirationMinutes);
     }
@@ -53,18 +62,22 @@ public class AuthTokenService : IAuthTokenService
         using var rng = RandomNumberGenerator.Create();
         rng.GetBytes(randomNumber);
 
-        return (Convert.ToBase64String(randomNumber), DateTimeOffset.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationDays));
+        // Use DateTimeOffset for refresh token expiry
+        var now = DateTimeOffset.UtcNow;
+        var expiry = now.AddDays(_jwtSettings.RefreshTokenExpirationDays);
+        return (Convert.ToBase64String(randomNumber), expiry);
     }
 
     public ClaimsPrincipal? GetPrincipalFromExpiredToken(string accessToken)
     {
         var tokenValidationParameters = new TokenValidationParameters
         {
-            ValidateAudience = false,
-            ValidateIssuer = false,
-            ValidateIssuerSigningKey = true,
+            ValidateAudience = false, // Don't validate audience when checking expired tokens
+            ValidateIssuer = false,   // Don't validate issuer when checking expired tokens
+            ValidateIssuerSigningKey = true, // Still validate the signing key
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key)),
-            ValidateLifetime = false
+            ValidateLifetime = false, // Don't validate lifetime since we're explicitly checking an expired token
+            ClockSkew = TimeSpan.Zero // Use zero clock skew for exact time validation
         };
 
         var tokenHandler = new JwtSecurityTokenHandler();
