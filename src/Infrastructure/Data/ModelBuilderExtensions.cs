@@ -1,13 +1,14 @@
+using ConnectFlow.Application.Common.Interfaces;
 using ConnectFlow.Domain.Common;
-using ConnectFlow.Infrastructure.Common.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
+
 
 namespace ConnectFlow.Infrastructure.Data;
 
 public static class ModelBuilderExtensions
 {
-    public static void ApplyTenantFilters(this ModelBuilder modelBuilder)
+    public static void ApplyTenantFilters(this ModelBuilder modelBuilder, ICurrentTenantService currentTenantService, ICurrentUserService currentUserService)
     {
         var tenantEntityTypes = modelBuilder.Model.GetEntityTypes().Where(e => typeof(ITenantEntity).IsAssignableFrom(e.ClrType)).ToList();
 
@@ -16,7 +17,7 @@ public static class ModelBuilderExtensions
             var entityClrType = entityType.ClrType;
             var method = typeof(ModelBuilderExtensions).GetMethod(nameof(SetTenantFilter), BindingFlags.NonPublic | BindingFlags.Static)?.MakeGenericMethod(entityClrType);
 
-            method?.Invoke(null, new object[] { modelBuilder });
+            method?.Invoke(null, new object[] { modelBuilder, currentTenantService, currentUserService });
         }
     }
 
@@ -33,9 +34,10 @@ public static class ModelBuilderExtensions
         }
     }
 
-    private static void SetTenantFilter<T>(ModelBuilder modelBuilder) where T : class, ITenantEntity
+    private static void SetTenantFilter<T>(ModelBuilder modelBuilder, ICurrentTenantService currentTenantService, ICurrentUserService currentUserService) where T : class, ITenantEntity
     {
-        modelBuilder.Entity<T>().HasQueryFilter(e => UserInfo.IsSuperAdmin || (TenantInfo.CurrentTenantId.HasValue && e.TenantId == TenantInfo.CurrentTenantId.Value));
+        var tenantId = currentTenantService.GetCurrentTenantId();
+        modelBuilder.Entity<T>().HasQueryFilter(e => currentUserService.IsSuperAdmin() || (tenantId.HasValue && e.TenantId == tenantId.Value));
     }
 
     private static void SetSoftDeleteFilter<T>(ModelBuilder modelBuilder) where T : class, ISoftDelete

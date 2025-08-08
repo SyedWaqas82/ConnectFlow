@@ -1,5 +1,5 @@
+using ConnectFlow.Application.Common.Interfaces;
 using ConnectFlow.Domain.Common;
-using ConnectFlow.Infrastructure.Common.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
@@ -7,9 +7,17 @@ namespace ConnectFlow.Infrastructure.Data.Interceptors;
 
 public class TenantFilterInterceptor : SaveChangesInterceptor
 {
-    public TenantFilterInterceptor()
+    private readonly IServiceProvider _serviceProvider;
+    private ICurrentUserService? _currentUserService;
+    private ICurrentTenantService? _currentTenantService;
+
+    public TenantFilterInterceptor(IServiceProvider serviceProvider)
     {
+        _serviceProvider = serviceProvider;
     }
+
+    private ICurrentUserService CurrentUserService => _currentUserService ??= _serviceProvider.GetRequiredService<ICurrentUserService>();
+    private ICurrentTenantService CurrentTenantService => _currentTenantService ??= _serviceProvider.GetRequiredService<ICurrentTenantService>();
 
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {
@@ -28,14 +36,15 @@ public class TenantFilterInterceptor : SaveChangesInterceptor
         if (context == null) return;
 
         // Don't add tenant filter for Super Admin users
-        if (UserInfo.IsSuperAdmin)
+        if (CurrentUserService.IsSuperAdmin())
         {
             return;
         }
         else
         {
-            // Get the tenant ID from AsyncLocal storage
-            var currentTenantId = TenantInfo.CurrentTenantId;
+            // Get the tenant ID from the current tenant service, This will work in both HTTP and non-HTTP contexts, because TenantInfo uses AsyncLocal storage
+            var currentTenantId = CurrentTenantService.GetCurrentTenantId();
+
             if (!currentTenantId.HasValue) return;
 
             // Set TenantId for all entities implementing ITenantEntity

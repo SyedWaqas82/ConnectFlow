@@ -1,5 +1,7 @@
-﻿using System.Reflection;
+﻿using System.Linq.Expressions;
+using System.Reflection;
 using ConnectFlow.Application.Common.Interfaces;
+using ConnectFlow.Domain.Common;
 using ConnectFlow.Domain.Entities;
 using ConnectFlow.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -9,10 +11,17 @@ namespace ConnectFlow.Infrastructure.Data;
 
 public class ApplicationDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, int, ApplicationUserClaim, ApplicationUserRole, ApplicationUserLogin, ApplicationRoleClaim, ApplicationUserToken>, IApplicationDbContext
 {
+    private readonly IServiceProvider _serviceProvider;
+    private ICurrentUserService? _currentUserService;
+    private ICurrentTenantService? _currentTenantService;
 
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
+    public ApplicationDbContext(IServiceProvider serviceProvider, DbContextOptions<ApplicationDbContext> options) : base(options)
     {
+        _serviceProvider = serviceProvider;
     }
+
+    private ICurrentUserService CurrentUserService => _currentUserService ??= _serviceProvider.GetRequiredService<ICurrentUserService>();
+    private ICurrentTenantService CurrentTenantService => _currentTenantService ??= _serviceProvider.GetRequiredService<ICurrentTenantService>();
 
     public DbSet<Tenant> Tenants => Set<Tenant>();
     public DbSet<TenantUser> TenantUsers => Set<TenantUser>();
@@ -91,7 +100,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
         builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
         // Apply tenant and soft delete filters
-        builder.ApplyTenantFilters();
+        builder.ApplyTenantFilters(CurrentTenantService, CurrentUserService);
         builder.ApplySoftDeleteFilters();
     }
 }

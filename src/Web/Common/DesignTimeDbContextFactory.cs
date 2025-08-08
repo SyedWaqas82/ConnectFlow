@@ -22,41 +22,15 @@ namespace ConnectFlow.Web.Common
 
             DbContextOptionsBuilder<ApplicationDbContext> optionsBuilder = new();
             _ = optionsBuilder.UseNpgsql(connectionString);
-            return new ApplicationDbContext(optionsBuilder.Options);
+            return new ApplicationDbContext(new DesignTimeServiceProvider(), optionsBuilder.Options);
         }
 
-        //     // Stub implementation for ICurrentTenantService
-        //     public class DesignTimeTenantService : ICurrentTenantService
-        //     {
-        //         public Task ClearCurrentTenantAsync()
-        //         {
-        //             throw new NotImplementedException();
-        //         }
-
-        //         public Task<Tenant?> GetCurrentTenantAsync()
-        //         {
-        //             throw new NotImplementedException();
-        //         }
-
-        //         // Implement required members with dummy logic
-        //         public string GetCurrentTenantId() => "design-time-tenant-id"; // Dummy tenant ID for design time
-        //         public Task<string> GetCurrentTenantIdAsync(CancellationToken cancellationToken = default) => Task.FromResult("design-time-tenant-id");
-
-        //         public Task<int?> GetCurrentTenantIdAsync()
-        //         {
-        //             throw new NotImplementedException();
-        //         }
-
-        //         public bool IsSuperAdmin()
-        //         {
-        //             throw new NotImplementedException();
-        //         }
-
-        //         public Task SetCurrentTenantIdAsync(int tenantId)
-        //         {
-        //             throw new NotImplementedException();
-        //         }
-        //     }
-        // }
+        public class DesignTimeServiceProvider : IServiceProvider
+        {
+            public object? GetService(Type serviceType)
+            {
+                throw new NotImplementedException();
+            }
+        }
     }
 }
