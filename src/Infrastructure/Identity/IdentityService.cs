@@ -179,7 +179,7 @@ public class IdentityService : IIdentityService
         return result.ToApplicationResult();
     }
 
-    public async Task<Result<UserToken>> ResetPasswordTokenAsync(string email)
+    public async Task<Result<UserToken>> ResetPasswordAsync(string email)
     {
         var user = await _userManager.FindByEmailAsync(email);
 
@@ -200,7 +200,7 @@ public class IdentityService : IIdentityService
         return Result<UserToken>.Success(new UserToken() { ApplicationUserId = user.PublicId, Token = resetPasswordToken });
     }
 
-    public async Task<Result> ResetPasswordAsync(Guid userId, string passwordToken, string newPassword)
+    public async Task<Result> UpdatePasswordAsync(Guid userId, string passwordToken, string newPassword)
     {
         var user = await _userManager.FindByPublicIdAsync(userId);
 

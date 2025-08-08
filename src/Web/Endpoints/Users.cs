@@ -1,6 +1,5 @@
 ﻿using ConnectFlow.Application.Common.Models;
-using ConnectFlow.Application.Users.Commands.CreateUser;
-using ConnectFlow.Application.Users.Commands.Login;
+using ConnectFlow.Application.Users.Commands;
 
 namespace ConnectFlow.Web.Endpoints;
 
@@ -10,7 +9,10 @@ public class Users : EndpointGroupBase
     {
         app.MapGroup(this).AllowAnonymous()
             .MapPost(Register, "register")
-            .MapPost(Login, "login");
+            .MapPost(ConfirmEmail, "ConfirmEmail")
+            .MapPost(Login, "login")
+            .MapPost(ResetPassword, "ResetPassword")
+            .MapPost(UpdatePassword, "UpdatePassword");
     }
 
     public async Task<Result<UserToken>> Register(ISender sender, CreateUserCommand request)
@@ -18,8 +20,23 @@ public class Users : EndpointGroupBase
         return await sender.Send(request);
     }
 
+    public Task<Result> ConfirmEmail(ISender sender, ConfirmEmailCommand command)
+    {
+        return sender.Send(command);
+    }
+
     public async Task<Result<AuthToken>> Login(ISender sender, LoginCommand request)
     {
         return await sender.Send(request);
+    }
+
+    public Task<Result<UserToken>> ResetPassword(ISender sender, ResetPasswordCommand command)
+    {
+        return sender.Send(command);
+    }
+
+    public Task<Result> UpdatePassword(ISender sender, UpdatePasswordCommand command)
+    {
+        return sender.Send(command);
     }
 }

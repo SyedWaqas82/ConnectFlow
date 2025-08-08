@@ -10,8 +10,8 @@ public interface IIdentityService
     Task<Result<UserToken>> JoinTenantAsNewUserAsync(string email, string password, string firstName, string lastName, string[] roles, string? jobTitle = null, string? phoneNumber = null, string? mobile = null, string? timeZone = null, string? locale = null, int? tenantId = null);
     Task<Result> JoinTenantAsExistingUserAsync(string email, string[] roles, int tenantId);
     Task<Result> ConfirmEmailAsync(Guid userId, string confirmationToken);
-    Task<Result<UserToken>> ResetPasswordTokenAsync(string email);
-    Task<Result> ResetPasswordAsync(Guid userId, string passwordToken, string newPassword);
+    Task<Result<UserToken>> ResetPasswordAsync(string email);
+    Task<Result> UpdatePasswordAsync(Guid userId, string passwordToken, string newPassword);
     Task<Result> ChangePasswordAsync(Guid userId, string password, string newPassword);
     Task<Result<AuthToken>> SignInAsync(string email, string password);
     Task<Result<AuthToken>> RefreshTokenAsync(string accessToken, string refreshToken);
