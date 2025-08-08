@@ -1,4 +1,4 @@
-namespace ConnectFlow.Application.Users.Commands;
+namespace ConnectFlow.Application.Users.Commands.CreateUser;
 
 public class CreateUserCommandValidator : AbstractValidator<CreateUserCommand>
 {

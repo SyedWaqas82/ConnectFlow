@@ -1,7 +1,7 @@
 using ConnectFlow.Application.Common.Interfaces;
 using ConnectFlow.Application.Common.Models;
 
-namespace ConnectFlow.Application.Users.Commands;
+namespace ConnectFlow.Application.Users.Commands.ResetPassword;
 
 public class ResetPasswordCommand : IRequest<Result<UserToken>>
 {
@@ -19,6 +19,6 @@ public class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordCommand,
 
     public async Task<Result<UserToken>> Handle(ResetPasswordCommand request, CancellationToken cancellationToken)
     {
-        return await _identityService.ResetPasswordTokenAsync(request.Email);
+        return await _identityService.ResetPasswordAsync(request.Email);
     }
 }

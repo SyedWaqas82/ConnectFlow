@@ -188,14 +188,9 @@ public class IdentityService : IIdentityService
             return Result<UserToken>.Failure(new[] { "user not found" }, null);
         }
 
-        if (!await _userManager.IsEmailConfirmedAsync(user))
-        {
-            return Result<UserToken>.Failure(new[] { "account not confirmed yet" }, new UserToken() { ApplicationUserId = user.PublicId });
-        }
-
         string resetPasswordToken = await _userManager.GeneratePasswordResetTokenAsync(user);
 
-        await _mediator.Publish(new UserRestPasswordTokenGeneratedEvent(user.Id, user.PublicId, user.Email!, user.FirstName, user.LastName, user.JobTitle, user.PhoneNumber, user.Mobile, user.TimeZone, user.Locale, user.EmailConfirmed, resetPasswordToken));
+        await _mediator.Publish(new UserPasswordResetEvent(user.Id, user.PublicId, user.Email!, user.FirstName, user.LastName, user.JobTitle, user.PhoneNumber, user.Mobile, user.TimeZone, user.Locale, user.EmailConfirmed, resetPasswordToken));
 
         return Result<UserToken>.Success(new UserToken() { ApplicationUserId = user.PublicId, Token = resetPasswordToken });
     }
@@ -213,7 +208,7 @@ public class IdentityService : IIdentityService
 
         if (result.Succeeded)
         {
-            await _mediator.Publish(new UserPasswordChangedEvent(user.Id, user.PublicId, user.Email!, user.FirstName, user.LastName, user.JobTitle, user.PhoneNumber, user.Mobile, user.TimeZone, user.Locale, user.EmailConfirmed));
+            await _mediator.Publish(new UserPasswordUpdateEvent(user.Id, user.PublicId, user.Email!, user.FirstName, user.LastName, user.JobTitle, user.PhoneNumber, user.Mobile, user.TimeZone, user.Locale, user.EmailConfirmed));
         }
 
         return result.ToApplicationResult();
@@ -232,7 +227,7 @@ public class IdentityService : IIdentityService
 
         if (result.Succeeded)
         {
-            await _mediator.Publish(new UserPasswordChangedEvent(user.Id, user.PublicId, user.Email!, user.FirstName, user.LastName, user.JobTitle, user.PhoneNumber, user.Mobile, user.TimeZone, user.Locale, user.EmailConfirmed));
+            await _mediator.Publish(new UserPasswordUpdateEvent(user.Id, user.PublicId, user.Email!, user.FirstName, user.LastName, user.JobTitle, user.PhoneNumber, user.Mobile, user.TimeZone, user.Locale, user.EmailConfirmed));
         }
 
         return result.ToApplicationResult();
@@ -284,19 +279,31 @@ public class IdentityService : IIdentityService
         return await ManageTokensAsync(user, false);
     }
 
-    // public async Task<string?> GetUserNameAsync(Guid userId)
-    // {
-    //     var user = await _userManager.FindByPublicIdAsync(userId);
+    public async Task<string?> GetUserNameAsync(Guid userId)
+    {
+        var user = await _userManager.FindByPublicIdAsync(userId);
 
-    //     return user?.UserName;
-    // }
+        return user?.UserName;
+    }
 
-    // public async Task<bool> IsInRoleAsync(Guid userId, string role)
-    // {
-    //     var user = await _userManager.FindByPublicIdAsync(userId);
+    public async Task<bool> IsInRoleAsync(Guid userId, string role)
+    {
+        var user = await _userManager.FindByPublicIdAsync(userId);
 
-    //     return user != null && await _userManager.IsInRoleAsync(user, role);
-    // }
+        return user != null && await _userManager.IsInRoleAsync(user, role);
+    }
+
+    public async Task<Result<(Guid UserId, string FirstName, string LastName, string Email)>> GetUserAsync(Guid userId)
+    {
+        var user = await _userManager.FindByPublicIdAsync(userId);
+
+        if (user == null || user.Email == null)
+        {
+            return Result<(Guid, string, string, string)>.Failure(new[] { "user not found" }, default);
+        }
+
+        return Result<(Guid UserId, string FirstName, string LastName, string Email)>.Success((user.PublicId, user.FirstName, user.LastName, user.Email));
+    }
 
     public async Task<bool> AuthorizeAsync(Guid userId, string policyName)
     {

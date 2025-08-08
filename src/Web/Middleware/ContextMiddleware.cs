@@ -21,7 +21,7 @@ public class ContextMiddleware
         {
             // Skip tenant resolution for static files, health checks, and API docs
             var path = context.Request.Path;
-            if (path.StartsWithSegments("/api/specification.json") || path.StartsWithSegments("/health") || path.Value?.EndsWith(".js") == true || path.Value?.EndsWith(".css") == true || path.Value?.EndsWith(".html") == true || path.Value?.EndsWith(".ico") == true)
+            if (path.StartsWithSegments("/api/specification.json") || path.StartsWithSegments("/swagger/v1/swagger.json") || path.StartsWithSegments("/health") || path.StartsWithSegments("/metrics") == true || path.Value?.EndsWith(".js") == true || path.Value?.EndsWith(".css") == true || path.Value?.EndsWith(".html") == true || path.Value?.EndsWith(".ico") == true)
             {
                 await _next(context);
                 return;

@@ -1,7 +1,7 @@
 using ConnectFlow.Application.Common.Interfaces;
 using ConnectFlow.Application.Common.Models;
 
-namespace ConnectFlow.Application.Users.Commands;
+namespace ConnectFlow.Application.Users.Commands.CreateUser;
 
 public class CreateUserCommand : IRequest<Result<UserToken>>
 {

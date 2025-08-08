@@ -1,8 +1,7 @@
-using System;
 using ConnectFlow.Application.Common.Interfaces;
 using ConnectFlow.Application.Common.Models;
 
-namespace ConnectFlow.Application.Users.Commands;
+namespace ConnectFlow.Application.Users.Commands.UpdatePassword;
 
 public class UpdatePasswordCommand : IRequest<Result>
 {

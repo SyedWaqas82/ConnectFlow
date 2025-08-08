@@ -1,4 +1,4 @@
-namespace ConnectFlow.Application.Users.Commands;
+namespace ConnectFlow.Application.Users.Commands.ResetPassword;
 
 public class ResetPasswordCommandValidator : AbstractValidator<ResetPasswordCommand>
 {

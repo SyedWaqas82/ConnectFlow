@@ -1,4 +1,4 @@
-namespace ConnectFlow.Application.Users.Commands;
+namespace ConnectFlow.Application.Users.Commands.UpdatePassword;
 
 public class UpdatePasswordCommandValidator : AbstractValidator<UpdatePasswordCommand>
 {

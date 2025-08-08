@@ -1,6 +1,6 @@
 namespace ConnectFlow.Domain.Events.Mediator.Users;
 
-public class UserRestPasswordTokenGeneratedEvent : BaseEvent
+public class UserPasswordResetEvent : BaseEvent
 {
     public int UserId { get; }
     public Guid PublicId { get; }
@@ -15,7 +15,7 @@ public class UserRestPasswordTokenGeneratedEvent : BaseEvent
     public bool EmailConfirmed { get; }
     public string ResetPasswordToken { get; }
 
-    public UserRestPasswordTokenGeneratedEvent(int userId, Guid publicId, string email, string firstName, string lastName, string? jobTitle, string? phoneNumber, string? mobile, string? timeZone, string? locale, bool emailConfirmed, string resetPasswordToken)
+    public UserPasswordResetEvent(int userId, Guid publicId, string email, string firstName, string lastName, string? jobTitle, string? phoneNumber, string? mobile, string? timeZone, string? locale, bool emailConfirmed, string resetPasswordToken)
     {
         UserId = userId;
         PublicId = publicId;

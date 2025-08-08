@@ -1,4 +1,4 @@
-namespace ConnectFlow.Application.Users.Commands;
+namespace ConnectFlow.Application.Users.Commands.Login;
 
 public class LoginCommandValidator : AbstractValidator<LoginCommand>
 {
