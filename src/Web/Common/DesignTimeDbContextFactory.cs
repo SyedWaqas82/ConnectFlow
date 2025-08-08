@@ -25,8 +25,8 @@ namespace ConnectFlow.Web.Common
             return new ApplicationDbContext(optionsBuilder.Options);
         }
 
-        //     // Stub implementation for ITenantService
-        //     public class DesignTimeTenantService : ITenantService
+        //     // Stub implementation for ICurrentTenantService
+        //     public class DesignTimeTenantService : ICurrentTenantService
         //     {
         //         public Task ClearCurrentTenantAsync()
         //         {

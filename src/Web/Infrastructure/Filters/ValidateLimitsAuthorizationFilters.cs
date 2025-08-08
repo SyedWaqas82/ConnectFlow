@@ -19,7 +19,7 @@
 
 //     public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
 //     {
-//         var tenantService = context.HttpContext.RequestServices.GetRequiredService<ITenantService>();
+//         var tenantService = context.HttpContext.RequestServices.GetRequiredService<ICurrentTenantService>();
 //         var tenantLimitsService = context.HttpContext.RequestServices.GetRequiredService<ITenantLimitsService>();
 
 //         var tenantId = await tenantService.GetCurrentTenantIdAsync();
@@ -51,7 +51,7 @@
 // {
 //     public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
 //     {
-//         var tenantService = context.HttpContext.RequestServices.GetRequiredService<ITenantService>();
+//         var tenantService = context.HttpContext.RequestServices.GetRequiredService<ICurrentTenantService>();
 //         var tenantLimitsService = context.HttpContext.RequestServices.GetRequiredService<ITenantLimitsService>();
 
 //         var tenantId = await tenantService.GetCurrentTenantIdAsync();
@@ -90,7 +90,7 @@
 
 //     public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
 //     {
-//         var tenantService = context.HttpContext.RequestServices.GetRequiredService<ITenantService>();
+//         var tenantService = context.HttpContext.RequestServices.GetRequiredService<ICurrentTenantService>();
 //         var tenantLimitsService = context.HttpContext.RequestServices.GetRequiredService<ITenantLimitsService>();
 
 //         var tenantId = await tenantService.GetCurrentTenantIdAsync();

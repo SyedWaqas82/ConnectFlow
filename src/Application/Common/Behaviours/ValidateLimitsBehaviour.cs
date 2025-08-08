@@ -11,12 +11,12 @@ namespace ConnectFlow.Application.Common.Behaviours;
 public class ValidateLimitsBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : notnull
 {
     private readonly ITenantLimitsService _tenantLimitsService;
-    private readonly IContextService _contextService;
+    private readonly ICurrentTenantService _tenantService;
 
-    public ValidateLimitsBehaviour(ITenantLimitsService tenantLimitsService, IContextService contextService)
+    public ValidateLimitsBehaviour(ITenantLimitsService tenantLimitsService, ICurrentTenantService tenantService)
     {
         _tenantLimitsService = tenantLimitsService;
-        _contextService = contextService;
+        _tenantService = tenantService;
     }
 
     public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
@@ -26,10 +26,11 @@ public class ValidateLimitsBehaviour<TRequest, TResponse> : IPipelineBehavior<TR
         if (attribute == null)
             return await next();
 
-        var tenantId = _contextService.GetCurrentTenantId();
+        var tenantId = _tenantService.GetCurrentTenantId();
+        var currentUserService = _tenantService as ICurrentUserService;
 
         // Bypass check if no tenant context or user is SuperAdmin
-        if (!tenantId.HasValue || _contextService.IsSuperAdmin())
+        if (!tenantId.HasValue || (currentUserService != null && currentUserService.IsSuperAdmin()))
             return await next();
 
         foreach (var entityType in attribute.EntityTypes.Distinct())

@@ -7,12 +7,12 @@ namespace ConnectFlow.Application.Common.Behaviours;
 
 public class AuthorizationBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : notnull
 {
-    private readonly IContextService _contextService;
+    private readonly ICurrentUserService _currentUserService;
     private readonly IIdentityService _identityService;
 
-    public AuthorizationBehaviour(IContextService contextService, IIdentityService identityService)
+    public AuthorizationBehaviour(ICurrentUserService currentUserService, IIdentityService identityService)
     {
-        _contextService = contextService;
+        _currentUserService = currentUserService;
         _identityService = identityService;
     }
 
@@ -23,7 +23,7 @@ public class AuthorizationBehaviour<TRequest, TResponse> : IPipelineBehavior<TRe
         if (authorizeAttributes.Any())
         {
             // Must be authenticated user
-            if (_contextService.GetCurrentPublicUserId().HasValue == false)
+            if (_currentUserService.GetCurrentUserId().HasValue == false)
             {
                 throw new UnauthorizedAccessException();
             }
@@ -39,7 +39,7 @@ public class AuthorizationBehaviour<TRequest, TResponse> : IPipelineBehavior<TRe
                 {
                     foreach (var role in roles)
                     {
-                        var isInRole = _contextService.IsInRole(role.Trim());
+                        var isInRole = _currentUserService.GetCurrentUserRoles().Contains(role.Trim());
                         if (isInRole)
                         {
                             authorized = true;
@@ -57,7 +57,7 @@ public class AuthorizationBehaviour<TRequest, TResponse> : IPipelineBehavior<TRe
 
             // Policy-based authorization
             var authorizeAttributesWithPolicies = authorizeAttributes.Where(a => !string.IsNullOrWhiteSpace(a.Policy));
-            var currentUserId = _contextService.GetCurrentPublicUserId();
+            var currentUserId = _currentUserService.GetCurrentUserId();
 
             if (authorizeAttributesWithPolicies.Any() && currentUserId.HasValue)
             {

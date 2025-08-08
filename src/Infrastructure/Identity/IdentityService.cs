@@ -20,20 +20,25 @@ public class IdentityService : IIdentityService
 {
     private readonly IApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
-    private readonly RoleManager<ApplicationRole> _roleManager;
     private readonly IMediator _mediator;
-    private readonly IContextService _contextService;
+    private readonly ICurrentUserService _currentUserService;
     private readonly IAuthTokenService _authTokenService;
     private readonly IUserClaimsPrincipalFactory<ApplicationUser> _userClaimsPrincipalFactory;
     private readonly IAuthorizationService _authorizationService;
 
-    public IdentityService(IApplicationDbContext context, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, IMediator mediator, IContextService contextService, IAuthTokenService authTokenService, IUserClaimsPrincipalFactory<ApplicationUser> userClaimsPrincipalFactory, IAuthorizationService authorizationService)
+    public IdentityService(
+        IApplicationDbContext context,
+        UserManager<ApplicationUser> userManager,
+        IMediator mediator,
+        ICurrentUserService currentUserService,
+        IAuthTokenService authTokenService,
+        IUserClaimsPrincipalFactory<ApplicationUser> userClaimsPrincipalFactory,
+        IAuthorizationService authorizationService)
     {
         _context = context;
         _userManager = userManager;
-        _roleManager = roleManager;
         _mediator = mediator;
-        _contextService = contextService;
+        _currentUserService = currentUserService;
         _authTokenService = authTokenService;
         _userClaimsPrincipalFactory = userClaimsPrincipalFactory;
         _authorizationService = authorizationService;
@@ -64,7 +69,7 @@ public class IdentityService : IIdentityService
         var tenant = tenantResult.Data;
 
         // Join the tenant as the admin user
-        await JoinTenantInternalAsync(newUser, tenant.Id, validRoles, _contextService.GetCurrentApplicationUserId());
+        await JoinTenantInternalAsync(newUser, tenant.Id, validRoles, _currentUserService.GetCurrentApplicationUserId());
 
         // Create subscription
         await CreateSubscriptionForTenantAsync(tenant, plan);
@@ -93,7 +98,7 @@ public class IdentityService : IIdentityService
         var tenant = tenantResult.Data;
 
         // Join the tenant as the admin user
-        await JoinTenantInternalAsync(existingUser, tenant.Id, validRoles, _contextService.GetCurrentApplicationUserId());
+        await JoinTenantInternalAsync(existingUser, tenant.Id, validRoles, _currentUserService.GetCurrentApplicationUserId());
 
         // Add role to user's global roles if not already present
         foreach (var role in validRoles)
@@ -121,7 +126,7 @@ public class IdentityService : IIdentityService
         {
             if (tenantId.HasValue)
             {
-                await JoinTenantInternalAsync(result.Result.Data, tenantId.Value, validRoles, _contextService.GetCurrentApplicationUserId());
+                await JoinTenantInternalAsync(result.Result.Data, tenantId.Value, validRoles, _currentUserService.GetCurrentApplicationUserId());
             }
 
             return Result<UserToken>.Success(new UserToken() { ApplicationUserId = result.Result.Data.PublicId, Token = result.ConfirmationToken });
@@ -142,7 +147,7 @@ public class IdentityService : IIdentityService
             return Result.Failure(new[] { "user not found" });
         }
 
-        await JoinTenantInternalAsync(existingUser, tenantId, validRoles, _contextService.GetCurrentApplicationUserId());
+        await JoinTenantInternalAsync(existingUser, tenantId, validRoles, _currentUserService.GetCurrentApplicationUserId());
 
         foreach (var role in validRoles)
         {
@@ -356,7 +361,7 @@ public class IdentityService : IIdentityService
         {
             Name = name,
             Settings = "{}",
-            CreatedBy = _contextService.GetCurrentApplicationUserId() ?? adminUser.Id
+            CreatedBy = _currentUserService.GetCurrentApplicationUserId() ?? adminUser.Id
         };
 
         tenant.AddDomainEvent(new TenantCreatedEvent(tenant));
@@ -450,7 +455,7 @@ public class IdentityService : IIdentityService
     {
         var subscription = SubscriptionPlans.GetPlanByName(plan);
         subscription.TenantId = tenant.Id;
-        subscription.CreatedBy = _contextService.GetCurrentApplicationUserId();
+        subscription.CreatedBy = _currentUserService.GetCurrentApplicationUserId();
 
         subscription.AddDomainEvent(new SubscriptionCreatedEvent(subscription));
 

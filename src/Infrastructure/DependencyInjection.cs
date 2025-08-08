@@ -67,8 +67,14 @@ public static class DependencyInjection
         builder.Services.AddScoped<IAuthTokenService, AuthTokenService>();
         builder.Services.AddScoped<IStripeService, StripeService>();
 
-        // Register IContextService last as it might depend on multiple services
-        builder.Services.AddScoped<IContextService, ContextService>();
+        // Register HTTP context accessor for context services
+        builder.Services.AddHttpContextAccessor();
+
+        // Register unified context service with all interfaces
+        builder.Services.AddScoped<UnifiedContextService>();
+        builder.Services.AddScoped<ICurrentUserService>(sp => sp.GetRequiredService<UnifiedContextService>());
+        builder.Services.AddScoped<ICurrentTenantService>(sp => sp.GetRequiredService<UnifiedContextService>());
+        builder.Services.AddScoped<IContextManager>(sp => sp.GetRequiredService<UnifiedContextService>());
 
         // Register IContextValidationService before services that depend on it
         builder.Services.AddScoped<IContextValidationService, ContextValidationService>();

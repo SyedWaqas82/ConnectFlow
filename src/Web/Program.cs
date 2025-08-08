@@ -27,7 +27,7 @@ app.UseExceptionHandler(options => { });
 app.UseCustomHealthChecks();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-app.UseContextSettings();
+app.UseContext();
 app.UseCorrelationIdMapping();
 app.UseRequestLogging(); // Add request/response logging
 app.UseRateLimiter();
