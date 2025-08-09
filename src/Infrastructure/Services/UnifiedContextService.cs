@@ -223,7 +223,7 @@ public class UnifiedContextService : ICurrentUserService, ICurrentTenantService,
 
             // Find default tenant for this user
             var defaultTenant = await _dbContext.TenantUsers
-                .Where(tu => tu.UserId == user.Id && tu.IsActive && tu.Tenant.IsActive)
+                .Where(tu => tu.UserId == user.Id && tu.IsActive)
                 .OrderByDescending(tu => tu.JoinedAt)
                 .FirstOrDefaultAsync();
 

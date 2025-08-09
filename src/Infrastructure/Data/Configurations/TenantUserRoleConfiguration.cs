@@ -12,7 +12,6 @@ public class TenantUserRoleConfiguration : BaseAuditableConfiguration<TenantUser
         base.Configure(builder);
 
         builder.Property(tur => tur.RoleName).IsRequired().HasMaxLength(100);
-        builder.Property(tur => tur.IsActive).IsRequired();
         builder.Property(tur => tur.AssignedAt).IsRequired();
         builder.Property(tur => tur.AssignedBy).IsRequired(false);
         builder.Property(tur => tur.RevokedAt).IsRequired(false);

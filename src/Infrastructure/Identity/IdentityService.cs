@@ -438,7 +438,6 @@ public class IdentityService : IIdentityService
             var tenantUserRole = new TenantUserRole
             {
                 TenantUserId = tenantUser.Id,
-                IsActive = true,
                 RoleName = role,
                 AssignedAt = DateTimeOffset.UtcNow,
                 AssignedBy = invitedBy ?? user.Id,

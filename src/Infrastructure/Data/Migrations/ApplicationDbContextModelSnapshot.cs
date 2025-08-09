@@ -1703,11 +1703,6 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(true);
-
                     b.Property<DateTimeOffset>("LastModified")
                         .HasColumnType("timestamp with time zone");
 
@@ -1844,9 +1839,6 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
 
                     b.Property<int?>("CreatedBy")
                         .HasColumnType("integer");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
 
                     b.Property<DateTimeOffset>("LastModified")
                         .HasColumnType("timestamp with time zone");

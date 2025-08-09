@@ -23,7 +23,6 @@ public class TenantConfiguration : BaseAuditableConfiguration<Tenant>
         builder.Property(t => t.Country).HasMaxLength(100);
         builder.Property(t => t.PostalCode).HasMaxLength(20);
         builder.Property(t => t.Settings).HasColumnType("jsonb"); // Assuming PostgreSQL, adjust for other DBs
-        builder.Property(t => t.IsActive).HasDefaultValue(true);
         builder.Property(t => t.DeactivatedAt).HasDefaultValue(null);
 
         // Configure relationships

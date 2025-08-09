@@ -197,7 +197,6 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                     State = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     Country = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     PostalCode = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
                     Settings = table.Column<string>(type: "jsonb", nullable: true),
                     DeactivatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     PublicId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
@@ -860,7 +859,6 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     RoleName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     AssignedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     RevokedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     AssignedBy = table.Column<int>(type: "integer", nullable: true),

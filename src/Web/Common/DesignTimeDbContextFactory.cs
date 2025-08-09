@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using ConnectFlow.Infrastructure.Data;
+using ConnectFlow.Application.Common.Interfaces;
 
 namespace ConnectFlow.Web.Common
 {
@@ -22,15 +23,28 @@ namespace ConnectFlow.Web.Common
 
             DbContextOptionsBuilder<ApplicationDbContext> optionsBuilder = new();
             _ = optionsBuilder.UseNpgsql(connectionString);
-            return new ApplicationDbContext(new DesignTimeServiceProvider(), optionsBuilder.Options);
-        }
 
-        public class DesignTimeServiceProvider : IServiceProvider
-        {
-            public object? GetService(Type serviceType)
-            {
-                throw new NotImplementedException();
-            }
+            // Register dummy services for design-time
+            var services = new ServiceCollection();
+            services.AddSingleton<ICurrentTenantService, DesignTimeTenantService>();
+            services.AddSingleton<ICurrentUserService, DesignTimeUserService>();
+            var serviceProvider = services.BuildServiceProvider();
+
+            return new ApplicationDbContext(serviceProvider, optionsBuilder.Options);
         }
+    }
+
+    public class DesignTimeTenantService : ICurrentTenantService
+    {
+        public int? GetCurrentTenantId() => null; // or a default tenant id for migrations
+    }
+
+    public class DesignTimeUserService : ICurrentUserService
+    {
+        public Guid? GetCurrentUserId() => null;
+        public int? GetCurrentApplicationUserId() => null;
+        public string? GetCurrentUserName() => null;
+        public List<string> GetCurrentUserRoles() => new();
+        public bool IsSuperAdmin() => false;
     }
 }

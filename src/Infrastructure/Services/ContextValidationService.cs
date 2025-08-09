@@ -71,7 +71,6 @@ public class ContextValidationService : IContextValidationService
                 tur.TenantUser.TenantId == tenantId.Value &&
                 tur.TenantUser.UserId == userId.Value &&
                 tur.TenantUser.IsActive &&
-                tur.IsActive &&
                 tur.RoleName == role);
     }
 

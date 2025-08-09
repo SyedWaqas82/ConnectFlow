@@ -168,7 +168,6 @@ public class ApplicationDbContextInitialiser
             tenantUser.TenantUserRoles.Add(new TenantUserRole
             {
                 RoleName = Roles.TenantAdmin,
-                IsActive = true,
                 AssignedAt = DateTimeOffset.UtcNow,
                 AssignedBy = tenantAdmin.Id,
                 CreatedBy = tenantAdmin.Id

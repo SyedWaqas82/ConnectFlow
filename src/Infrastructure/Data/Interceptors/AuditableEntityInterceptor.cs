@@ -1,5 +1,5 @@
-﻿using ConnectFlow.Domain.Common;
-using ConnectFlow.Infrastructure.Common.Models;
+﻿using ConnectFlow.Application.Common.Interfaces;
+using ConnectFlow.Domain.Common;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -8,12 +8,18 @@ namespace ConnectFlow.Infrastructure.Data.Interceptors;
 
 public class AuditableEntityInterceptor : SaveChangesInterceptor
 {
+    private readonly IServiceProvider _serviceProvider;
+    private ICurrentUserService? _currentUserService;
+
     private readonly TimeProvider _dateTime;
 
-    public AuditableEntityInterceptor(TimeProvider dateTime)
+    public AuditableEntityInterceptor(IServiceProvider serviceProvider, TimeProvider dateTime)
     {
+        _serviceProvider = serviceProvider;
         _dateTime = dateTime;
     }
+
+    private ICurrentUserService CurrentUserService => _currentUserService ??= _serviceProvider.GetRequiredService<ICurrentUserService>();
 
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {
@@ -40,11 +46,11 @@ public class AuditableEntityInterceptor : SaveChangesInterceptor
                 var utcNow = _dateTime.GetUtcNow();
                 if (entry.State == EntityState.Added && !entry.Entity.CreatedBy.HasValue)
                 {
-                    entry.Entity.CreatedBy = UserInfo.ApplicationUserId;
+                    entry.Entity.CreatedBy = CurrentUserService.GetCurrentApplicationUserId();
                     entry.Entity.Created = utcNow;
                 }
 
-                entry.Entity.LastModifiedBy = UserInfo.ApplicationUserId;
+                entry.Entity.LastModifiedBy = CurrentUserService.GetCurrentApplicationUserId();
                 entry.Entity.LastModified = utcNow;
             }
         }

@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ConnectFlow.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250807095101_InitialCreate")]
+    [Migration("20250809091501_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -1706,11 +1706,6 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(true);
-
                     b.Property<DateTimeOffset>("LastModified")
                         .HasColumnType("timestamp with time zone");
 
@@ -1847,9 +1842,6 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
 
                     b.Property<int?>("CreatedBy")
                         .HasColumnType("integer");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
 
                     b.Property<DateTimeOffset>("LastModified")
                         .HasColumnType("timestamp with time zone");
