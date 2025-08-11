@@ -5,6 +5,7 @@ namespace ConnectFlow.Infrastructure.Common.Models;
 /// </summary>
 public class ObservabilitySettings
 {
+    public const string SectionName = "Monitoring";
     public bool UseLoki { get; set; } = false;
     public string LokiUrl { get; set; } = "http://loki:3100";
     public string OtlpEndpoint { get; set; } = "http://tempo:4317";

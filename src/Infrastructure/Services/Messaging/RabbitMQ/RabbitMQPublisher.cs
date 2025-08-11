@@ -5,7 +5,7 @@ using ConnectFlow.Domain.Common;
 using ConnectFlow.Domain.Constants;
 using RabbitMQ.Client;
 
-namespace ConnectFlow.Infrastructure.Common.Messaging.RabbitMQ;
+namespace ConnectFlow.Infrastructure.Services.Messaging.RabbitMQ;
 
 public class RabbitMQPublisher : IMessagePublisher, IDisposable
 {
@@ -25,7 +25,7 @@ public class RabbitMQPublisher : IMessagePublisher, IDisposable
         _exchangeName = MessagingConfiguration.DefaultExchangeName;
     }
 
-    public async Task PublishAsync<T>(T message, string routingKey, CancellationToken cancellationToken = default) where T : MessageBaseEvent
+    public async Task PublishAsync<T>(T message, string routingKey, CancellationToken cancellationToken = default) where T : BaseMessageEvent
     {
         ArgumentNullException.ThrowIfNull(message);
         ArgumentException.ThrowIfNullOrWhiteSpace(routingKey);
@@ -55,7 +55,7 @@ public class RabbitMQPublisher : IMessagePublisher, IDisposable
         }
     }
 
-    public async Task PublishBatchAsync<T>(IEnumerable<T> messages, string routingKey, CancellationToken cancellationToken = default) where T : MessageBaseEvent
+    public async Task PublishBatchAsync<T>(IEnumerable<T> messages, string routingKey, CancellationToken cancellationToken = default) where T : BaseMessageEvent
     {
         ArgumentNullException.ThrowIfNull(messages);
         ArgumentException.ThrowIfNullOrWhiteSpace(routingKey);
@@ -97,7 +97,7 @@ public class RabbitMQPublisher : IMessagePublisher, IDisposable
         }
     }
 
-    private static byte[] SerializeMessage(MessageBaseEvent message)
+    private static byte[] SerializeMessage<T>(T message) where T : BaseMessageEvent
     {
         var json = JsonSerializer.Serialize(message, new JsonSerializerOptions
         {
@@ -106,12 +106,12 @@ public class RabbitMQPublisher : IMessagePublisher, IDisposable
         return Encoding.UTF8.GetBytes(json);
     }
 
-    private static BasicProperties CreateBasicProperties(IChannel channel, MessageBaseEvent message)
+    private static BasicProperties CreateBasicProperties<T>(IChannel channel, T message) where T : BaseMessageEvent
     {
         var properties = new BasicProperties
         {
             MessageId = message.MessageId.ToString(),
-            CorrelationId = message.CorrelationId,
+            CorrelationId = message.CorrelationId.ToString(),
             Timestamp = new AmqpTimestamp(((DateTimeOffset)message.Timestamp).ToUnixTimeSeconds()),
             ContentType = "application/json",
             ContentEncoding = "utf-8",
@@ -121,7 +121,8 @@ public class RabbitMQPublisher : IMessagePublisher, IDisposable
 
         // Add custom headers
         properties.Headers["TenantId"] = message.TenantId;
-        properties.Headers["UserId"] = message.UserId;
+        properties.Headers["ApplicationUserId"] = message.ApplicationUserId;
+        properties.Headers["PublicUserId"] = message.PublicUserId.ToString();
         properties.Headers["MessageType"] = message.MessageType;
         properties.Headers["RetryCount"] = message.RetryCount;
 

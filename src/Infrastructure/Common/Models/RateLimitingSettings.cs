@@ -5,6 +5,7 @@ namespace ConnectFlow.Infrastructure.Common.Models;
 /// </summary>
 public class RateLimitingSettings
 {
+    public const string SectionName = "RateLimiting";
     public bool Enabled { get; set; } = true;
     public FixedWindowSettings FixedWindow { get; set; } = new();
     public TokenBucketSettings TokenBucket { get; set; } = new();

@@ -5,6 +5,7 @@ namespace ConnectFlow.Infrastructure.Common.Models;
 /// </summary>
 public class QuartzSettings
 {
+    public const string SectionName = "QuartzSettings";
     /// <summary>
     /// Name of the connection string to use for Quartz database
     /// </summary>

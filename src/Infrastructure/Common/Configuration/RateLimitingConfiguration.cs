@@ -25,7 +25,7 @@ public static class RateLimitingConfiguration
     public static void AddRateLimiting(this IHostApplicationBuilder builder)
     {
         var rateLimitSettings = builder.Configuration
-            .GetSection("RateLimiting")
+            .GetSection(RateLimitingSettings.SectionName)
             .Get<RateLimitingSettings>() ?? new RateLimitingSettings();
 
         builder.Services.AddRateLimiter(options =>
@@ -43,7 +43,7 @@ public static class RateLimitingConfiguration
         });
 
         // Configure settings in DI container for use elsewhere
-        builder.Services.Configure<RateLimitingSettings>(builder.Configuration.GetSection("RateLimiting"));
+        builder.Services.Configure<RateLimitingSettings>(builder.Configuration.GetSection(RateLimitingSettings.SectionName));
     }
 
     private static void ConfigureGlobalLimiter(RateLimiterOptions options, RateLimitingSettings settings)

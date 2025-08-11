@@ -1,7 +1,7 @@
 using System;
 using Microsoft.Extensions.Hosting;
 
-namespace ConnectFlow.Infrastructure.Common.Messaging.RabbitMQ;
+namespace ConnectFlow.Infrastructure.Services.Messaging.RabbitMQ;
 
 public class RabbitMQSetupHostedService : IHostedService
 {

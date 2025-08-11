@@ -1,6 +1,6 @@
 using RabbitMQ.Client;
 
-namespace ConnectFlow.Infrastructure.Common.Messaging.RabbitMQ;
+namespace ConnectFlow.Infrastructure.Services.Messaging.RabbitMQ;
 
 public interface IRabbitMQConnectionManager : IDisposable
 {

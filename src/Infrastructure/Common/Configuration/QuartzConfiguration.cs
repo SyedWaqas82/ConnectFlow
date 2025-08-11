@@ -69,7 +69,7 @@ public static class QuartzConfiguration
     public static void AddQuartzInfrastructure(this IHostApplicationBuilder builder)
     {
         // Get settings from configuration
-        var quartzSettings = builder.Configuration.GetSection("QuartzSettings").Get<QuartzSettings>() ?? new QuartzSettings();
+        var quartzSettings = builder.Configuration.GetSection(QuartzSettings.SectionName).Get<QuartzSettings>() ?? new QuartzSettings();
         var connectionString = builder.Configuration.GetConnectionString(quartzSettings.ConnectionStringName);
 
         if (string.IsNullOrEmpty(connectionString))
@@ -78,7 +78,7 @@ public static class QuartzConfiguration
         }
 
         // Register Quartz settings with DI container
-        builder.Services.Configure<QuartzSettings>(builder.Configuration.GetSection("QuartzSettings"));
+        builder.Services.Configure<QuartzSettings>(builder.Configuration.GetSection(QuartzSettings.SectionName));
 
         if (quartzSettings.UsePersistentStore)
         {

@@ -1,11 +1,12 @@
 namespace ConnectFlow.Domain.Common;
 
-public abstract class MessageBaseEvent
+public abstract class BaseMessageEvent
 {
     public Guid MessageId { get; init; } = Guid.NewGuid();
-    public string CorrelationId { get; init; } = string.Empty;
+    public Guid CorrelationId { get; init; } = Guid.NewGuid();
+    public int? ApplicationUserId { get; init; }
+    public Guid? PublicUserId { get; init; }
     public int? TenantId { get; init; }
-    public int? UserId { get; init; }
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
     public int RetryCount { get; set; }
     public Dictionary<string, object> Headers { get; init; } = new();

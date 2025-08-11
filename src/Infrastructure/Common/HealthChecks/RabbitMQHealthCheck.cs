@@ -1,4 +1,4 @@
-using ConnectFlow.Infrastructure.Common.Messaging.RabbitMQ;
+using ConnectFlow.Infrastructure.Services.Messaging.RabbitMQ;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace ConnectFlow.Infrastructure.Common.HealthChecks;

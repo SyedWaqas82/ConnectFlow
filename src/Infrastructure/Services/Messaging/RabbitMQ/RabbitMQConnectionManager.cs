@@ -1,10 +1,10 @@
 using System.Collections.Concurrent;
-using ConnectFlow.Infrastructure.Common.Messaging.RabbitMQ.Configurations;
+using ConnectFlow.Infrastructure.Common.Models;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
-namespace ConnectFlow.Infrastructure.Common.Messaging.RabbitMQ;
+namespace ConnectFlow.Infrastructure.Services.Messaging.RabbitMQ;
 
 public class RabbitMQConnectionManager : IRabbitMQConnectionManager
 {

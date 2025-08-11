@@ -17,7 +17,7 @@ public static class ObservabilityConfiguration
     /// </remarks>
     public static void AddOpenTelemetry(this IHostApplicationBuilder builder)
     {
-        var monitoringSettings = builder.Configuration.GetSection("Monitoring").Get<ObservabilitySettings>() ?? new ObservabilitySettings();
+        var monitoringSettings = builder.Configuration.GetSection(ObservabilitySettings.SectionName).Get<ObservabilitySettings>() ?? new ObservabilitySettings();
         var useOtlp = !string.IsNullOrEmpty(monitoringSettings.OtlpEndpoint);
 
         builder.Services.AddOpenTelemetry()
@@ -34,7 +34,7 @@ public static class ObservabilityConfiguration
             });
 
         // Configure settings in DI container for use elsewhere
-        builder.Services.Configure<ObservabilitySettings>(builder.Configuration.GetSection("Monitoring"));
+        builder.Services.Configure<ObservabilitySettings>(builder.Configuration.GetSection(ObservabilitySettings.SectionName));
     }
 
     private static void ConfigureTracing(TracerProviderBuilder tracing, IHostApplicationBuilder builder, ObservabilitySettings monitoringSettings, bool useOtlp)

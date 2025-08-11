@@ -1,4 +1,4 @@
-namespace ConnectFlow.Infrastructure.Common.Messaging.RabbitMQ;
+namespace ConnectFlow.Infrastructure.Services.Messaging.RabbitMQ;
 
 public interface IRabbitMQSetupService
 {

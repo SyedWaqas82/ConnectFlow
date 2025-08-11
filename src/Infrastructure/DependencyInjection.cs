@@ -14,13 +14,13 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using ConnectFlow.Infrastructure.Common.Models;
-using ConnectFlow.Application.Users.EventHandlers.Messaging;
-using ConnectFlow.Infrastructure.Common.Messaging.RabbitMQ.Consumers;
 using ConnectFlow.Application.Common.Messaging;
-using ConnectFlow.Infrastructure.Common.Messaging.RabbitMQ;
-using ConnectFlow.Domain.Events.UserEmailEvents;
-using ConnectFlow.Infrastructure.Common.Messaging.RabbitMQ.Configurations;
 using ConnectFlow.Infrastructure.Metrics;
+using ConnectFlow.Infrastructure.Services.Email;
+using ConnectFlow.Infrastructure.Services.Messaging.RabbitMQ;
+using ConnectFlow.Domain.Events.Messaging;
+using ConnectFlow.Infrastructure.Services.Messaging.RabbitMQ.Consumers;
+using ConnectFlow.Application.Common.Messaging.Handlers;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -34,17 +34,20 @@ public static class DependencyInjection
         var redisConnectionString = builder.Configuration.GetConnectionString("Redis");
         Guard.Against.Null(redisConnectionString, message: "Connection string 'Redis' not found.");
 
-        var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
+        var jwtSettings = builder.Configuration.GetSection(JwtSettings.SectionName).Get<JwtSettings>();
         Guard.Against.Null(jwtSettings, message: "JWT settings not found in configuration.");
-        builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+        builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(JwtSettings.SectionName));
 
-        var tenantSettings = builder.Configuration.GetSection("TenantSettings").Get<TenantSettings>();
+        var tenantSettings = builder.Configuration.GetSection(TenantSettings.SectionName).Get<TenantSettings>();
         Guard.Against.Null(tenantSettings, message: "Tenant settings not found in configuration.");
-        builder.Services.Configure<TenantSettings>(builder.Configuration.GetSection("TenantSettings"));
+        builder.Services.Configure<TenantSettings>(builder.Configuration.GetSection(TenantSettings.SectionName));
 
-        var redisSettings = builder.Configuration.GetSection("RedisSettings").Get<RedisSettings>();
+        var redisSettings = builder.Configuration.GetSection(RedisSettings.SectionName).Get<RedisSettings>();
         Guard.Against.Null(redisSettings, message: "Redis settings not found in configuration.");
-        builder.Services.Configure<RedisSettings>(builder.Configuration.GetSection("RedisSettings"));
+        builder.Services.Configure<RedisSettings>(builder.Configuration.GetSection(RedisSettings.SectionName));
+
+        // Email settings
+        builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection(EmailSettings.SectionName));
 
         // Configure Entity Framework
         builder.ConfigureEntityFramework(dbConnectionString);
@@ -67,14 +70,12 @@ public static class DependencyInjection
         builder.Services.AddScoped<IAuthTokenService, AuthTokenService>();
         builder.Services.AddScoped<IStripeService, StripeService>();
 
-        // Register HTTP context accessor for context services
-        builder.Services.AddHttpContextAccessor();
+        // Configure email services
+        // This should be after RabbitMQ and Identity services to ensure all dependencies are available
+        builder.AddEmailServices();
 
-        // Register unified context service with all interfaces
-        builder.Services.AddScoped<UnifiedContextService>();
-        builder.Services.AddScoped<ICurrentUserService>(sp => sp.GetRequiredService<UnifiedContextService>());
-        builder.Services.AddScoped<ICurrentTenantService>(sp => sp.GetRequiredService<UnifiedContextService>());
-        builder.Services.AddScoped<IContextManager>(sp => sp.GetRequiredService<UnifiedContextService>());
+        // Configure context services
+        builder.AddContextServices();
 
         // Register IContextValidationService before services that depend on it
         builder.Services.AddScoped<IContextValidationService, ContextValidationService>();
@@ -205,7 +206,7 @@ public static class DependencyInjection
         builder.Services.AddSingleton<RabbitMQMetrics>();
 
         // Message handlers
-        builder.Services.AddScoped<IMessageHandler<EmailSendRequestedEvent>, EmailSendRequestedHandler>();
+        builder.Services.AddScoped<IMessageHandler<EmailSendMessageEvent>, EmailSendMessageEventHandler>();
 
         // Consumers as hosted services
         builder.Services.AddHostedService<EmailConsumer>();
@@ -214,7 +215,7 @@ public static class DependencyInjection
         builder.Services.AddHostedService<RabbitMQSetupHostedService>();
 
         // Register all message handlers from the assembly
-        var assembly = typeof(EmailSendRequestedHandler).Assembly;
+        var assembly = typeof(EmailSendMessageEventHandler).Assembly;
 
         var handlerTypes = assembly.GetTypes()
             .Where(t => t.IsClass && !t.IsAbstract)
@@ -230,5 +231,24 @@ public static class DependencyInjection
 
             builder.Services.AddScoped(interfaceType, handlerType);
         }
+    }
+
+    private static void AddEmailServices(this IHostApplicationBuilder builder)
+    {
+        builder.Services.AddSingleton<IEmailTemplateRenderer, RazorEmailTemplateRenderer>();
+        builder.Services.AddTransient<IEmailSender, SmtpEmailSender>();
+        builder.Services.AddTransient<IEmailService, EmailService>();
+    }
+
+    private static void AddContextServices(this IHostApplicationBuilder builder)
+    {
+        // Register HTTP context accessor for context services
+        builder.Services.AddHttpContextAccessor();
+
+        // Register unified context service with all interfaces
+        builder.Services.AddScoped<UnifiedContextService>();
+        builder.Services.AddScoped<ICurrentUserService>(sp => sp.GetRequiredService<UnifiedContextService>());
+        builder.Services.AddScoped<ICurrentTenantService>(sp => sp.GetRequiredService<UnifiedContextService>());
+        builder.Services.AddScoped<IContextManager>(sp => sp.GetRequiredService<UnifiedContextService>());
     }
 }

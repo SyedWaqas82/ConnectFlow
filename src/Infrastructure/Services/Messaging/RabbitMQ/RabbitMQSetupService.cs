@@ -1,7 +1,7 @@
 using ConnectFlow.Domain.Constants;
 using RabbitMQ.Client;
 
-namespace ConnectFlow.Infrastructure.Common.Messaging.RabbitMQ;
+namespace ConnectFlow.Infrastructure.Services.Messaging.RabbitMQ;
 
 public class RabbitMQSetupService : IRabbitMQSetupService
 {

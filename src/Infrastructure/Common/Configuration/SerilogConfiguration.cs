@@ -24,7 +24,7 @@ public static class SerilogConfiguration
     {
         // Load monitoring settings from configuration
         var monitoringSettings = builder.Configuration
-            .GetSection("Monitoring")
+            .GetSection(ObservabilitySettings.SectionName)
             .Get<ObservabilitySettings>() ?? new ObservabilitySettings();
 
         // Create the base logger configuration
@@ -47,7 +47,7 @@ public static class SerilogConfiguration
         builder.Services.AddSerilog(dispose: true);
 
         // Configure settings in DI container for use elsewhere
-        builder.Services.Configure<ObservabilitySettings>(builder.Configuration.GetSection("Monitoring"));
+        builder.Services.Configure<ObservabilitySettings>(builder.Configuration.GetSection(ObservabilitySettings.SectionName));
     }
 
     /// <summary>

@@ -3,15 +3,15 @@ using System.Text.Json;
 using ConnectFlow.Application.Common.Messaging;
 using ConnectFlow.Domain.Common;
 using ConnectFlow.Domain.Constants;
-using ConnectFlow.Infrastructure.Common.Messaging.RabbitMQ.Configurations;
+using ConnectFlow.Infrastructure.Common.Models;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
-namespace ConnectFlow.Infrastructure.Common.Messaging.RabbitMQ;
+namespace ConnectFlow.Infrastructure.Services.Messaging.RabbitMQ;
 
-public abstract class RabbitMQConsumerService<T> : BackgroundService, IMessageConsumer where T : MessageBaseEvent
+public abstract class RabbitMQConsumerService<T> : BackgroundService, IMessageConsumer where T : BaseMessageEvent
 {
     private readonly IRabbitMQConnectionManager _connectionManager;
     private readonly RabbitMQSettings _settings;
@@ -226,7 +226,7 @@ public abstract class RabbitMQConsumerService<T> : BackgroundService, IMessageCo
             var properties = new BasicProperties
             {
                 MessageId = message.MessageId.ToString(),
-                CorrelationId = message.CorrelationId,
+                CorrelationId = message.CorrelationId.ToString(),
                 Timestamp = new AmqpTimestamp(((DateTimeOffset)message.Timestamp).ToUnixTimeSeconds()),
                 ContentType = "application/json",
                 ContentEncoding = "utf-8",
@@ -234,7 +234,8 @@ public abstract class RabbitMQConsumerService<T> : BackgroundService, IMessageCo
                 Headers = new Dictionary<string, object?>
                 {
                     ["TenantId"] = message.TenantId,
-                    ["UserId"] = message.UserId,
+                    ["ApplicationUserId"] = message.ApplicationUserId,
+                    ["PublicUserId"] = message.PublicUserId,
                     ["MessageType"] = message.MessageType,
                     ["RetryCount"] = message.RetryCount,
                     ["OriginalQueue"] = _queue?.Name

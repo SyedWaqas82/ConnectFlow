@@ -406,7 +406,22 @@ public class IdentityService : IIdentityService
                 confirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             }
 
-            await _mediator.Publish(new UserCreatedEvent(user.Id, user.PublicId, user.Email, user.FirstName, user.LastName, user.JobTitle, user.PhoneNumber, user.Mobile, user.TimeZone, user.Locale, user.EmailConfirmed, confirmationToken));
+            await _mediator.Publish(new UserCreatedEvent
+            {
+                ApplicationUserId = user.Id,
+                PublicUserId = user.PublicId,
+                CorrelationId = Guid.NewGuid(),
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                JobTitle = user.JobTitle,
+                PhoneNumber = user.PhoneNumber,
+                Mobile = user.Mobile,
+                TimeZone = user.TimeZone,
+                Locale = user.Locale,
+                EmailConfirmed = user.EmailConfirmed,
+                ConfirmationToken = confirmationToken
+            });
 
             return (Result<ApplicationUser>.Success(user), confirmationToken);
         }

@@ -1,9 +1,9 @@
-using ConnectFlow.Infrastructure.Common.Messaging.RabbitMQ.Configurations;
 using Microsoft.Extensions.Options;
 using System.Diagnostics.Metrics;
-using ConnectFlow.Infrastructure.Common.Messaging.RabbitMQ;
 using System.Collections.Concurrent;
 using RabbitMQ.Client;
+using ConnectFlow.Infrastructure.Services.Messaging.RabbitMQ;
+using ConnectFlow.Infrastructure.Common.Models;
 
 namespace ConnectFlow.Infrastructure.Metrics;
 
@@ -13,7 +13,7 @@ public class RabbitMQMetrics : IDisposable
     private readonly IRabbitMQConnectionManager _connectionManager;
     private readonly RabbitMQSettings _settings;
     private readonly ILogger<RabbitMQMetrics> _logger;
-    
+
     // Track connections, channels and consumers
     private readonly ConcurrentDictionary<string, IConnection> _activeConnections = new();
     private readonly ConcurrentDictionary<string, IChannel> _activeChannels = new();
@@ -47,7 +47,7 @@ public class RabbitMQMetrics : IDisposable
         _meter.CreateObservableGauge("rabbitmq.connections.active", () => _activeConnections.Count, "connections", "Number of active RabbitMQ connections");
         _meter.CreateObservableGauge("rabbitmq.channels.active", () => _activeChannels.Count, "channels", "Number of active RabbitMQ channels");
         _meter.CreateObservableGauge("rabbitmq.consumers.active", () => _activeConsumers.Count, "consumers", "Number of active RabbitMQ consumers");
-        
+
         // Subscribe to connection events from the connection manager
         _connectionManager.Connected += OnConnectionEstablished;
         _connectionManager.Disconnected += OnConnectionClosed;
@@ -121,25 +121,25 @@ public class RabbitMQMetrics : IDisposable
     public void TrackChannel(IChannel channel)
     {
         if (channel == null) return;
-        
+
         string channelId = $"channel_{Guid.NewGuid():N}";
         _activeChannels.TryAdd(channelId, channel);
-        
+
         // Set up removal when channel is closed
-        channel.ChannelShutdownAsync += async (sender, args) => 
+        channel.ChannelShutdownAsync += async (sender, args) =>
         {
             _activeChannels.TryRemove(channelId, out _);
             _logger.LogDebug("RabbitMQ channel untracked: {ChannelId}", channelId);
             await Task.CompletedTask;
         };
-        
+
         _logger.LogDebug("RabbitMQ channel tracked: {ChannelId}", channelId);
     }
 
     public void TrackConsumer(string consumerTag, string queueName)
     {
         if (string.IsNullOrEmpty(consumerTag)) return;
-        
+
         _activeConsumers.TryAdd(consumerTag, queueName);
         _logger.LogDebug("RabbitMQ consumer tracked: {ConsumerTag} for queue {QueueName}", consumerTag, queueName);
     }
@@ -147,7 +147,7 @@ public class RabbitMQMetrics : IDisposable
     public void UntrackConsumer(string consumerTag)
     {
         if (string.IsNullOrEmpty(consumerTag)) return;
-        
+
         _activeConsumers.TryRemove(consumerTag, out _);
         _logger.LogDebug("RabbitMQ consumer untracked: {ConsumerTag}", consumerTag);
     }
@@ -160,7 +160,7 @@ public class RabbitMQMetrics : IDisposable
             _connectionManager.Connected -= OnConnectionEstablished;
             _connectionManager.Disconnected -= OnConnectionClosed;
         }
-        
+
         _activeConnections.Clear();
         _activeChannels.Clear();
         _activeConsumers.Clear();
