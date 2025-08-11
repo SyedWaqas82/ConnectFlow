@@ -26,10 +26,15 @@ public class RedisCacheService : ICacheService
         return value == null ? default : JsonSerializer.Deserialize<T>(value);
     }
 
-    public async Task SetAsync<T>(string key, T value, CancellationToken cancellationToken = default)
+    public async Task SetAsync<T>(string key, T value, TimeSpan? absoluteExpiration = null, TimeSpan? slidingExpiration = null, CancellationToken cancellationToken = default)
     {
         var serializedValue = JsonSerializer.Serialize(value);
-        await _cache.SetStringAsync(key, serializedValue, _options, cancellationToken);
+        var options = new DistributedCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = absoluteExpiration ?? _options.AbsoluteExpirationRelativeToNow,
+            SlidingExpiration = slidingExpiration ?? _options.SlidingExpiration
+        };
+        await _cache.SetStringAsync(key, serializedValue, options, cancellationToken);
     }
 
     public async Task RemoveAsync(string key, CancellationToken cancellationToken = default)

@@ -22,9 +22,7 @@ public class RazorEmailTemplateRenderer : IEmailTemplateRenderer
         var settings = options.Value;
 
         // Determine templates root
-        _templatesRoot = Path.IsPathRooted(settings.TemplatesPath)
-            ? settings.TemplatesPath
-            : Path.Combine(env.ContentRootPath, settings.TemplatesPath);
+        _templatesRoot = Path.IsPathRooted(settings.TemplatesPath) ? settings.TemplatesPath : Path.Combine(env.ContentRootPath, settings.TemplatesPath);
 
         if (!Directory.Exists(_templatesRoot))
         {
@@ -41,11 +39,10 @@ public class RazorEmailTemplateRenderer : IEmailTemplateRenderer
     {
         try
         {
-            var templatePath = templateId.EndsWith(".cshtml", StringComparison.OrdinalIgnoreCase)
-                ? templateId
-                : templateId + ".cshtml";
+            var templatePath = templateId.EndsWith(".cshtml", StringComparison.OrdinalIgnoreCase) ? templateId : templateId + ".cshtml";
 
             var key = templatePath.Replace('\\', '/');
+
             return await _engine.CompileRenderAsync(key, model);
         }
         catch (Exception ex)
