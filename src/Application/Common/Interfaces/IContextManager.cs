@@ -21,12 +21,42 @@ public interface IContextManager
     void SetContext(int? applicationUserId, Guid? publicUserId, string? userName, List<string>? roles, bool isSuperAdmin, int? tenantId);
 
     /// <summary>
-    /// Check if the current user has a specific role
-    /// </summary>
-    bool IsInRole(string role);
-
-    /// <summary>
     /// Clear all context information
     /// </summary>
     void ClearContext();
+
+    /// <summary>
+    /// Gets the current user's application ID (internal integer ID)
+    /// </summary>
+    int? GetCurrentApplicationUserId();
+
+    /// <summary>
+    /// Gets the current user's public ID (Guid)
+    /// </summary>
+    Guid? GetCurrentUserId();
+
+    /// <summary>
+    /// Gets the current user's username
+    /// </summary>
+    string? GetCurrentUserName();
+
+    /// <summary>
+    /// Gets the current user's roles
+    /// </summary>
+    List<string> GetCurrentUserRoles();
+
+    /// <summary>
+    /// Gets the current tenant ID
+    /// </summary>
+    int? GetCurrentTenantId();
+
+    /// <summary>
+    /// Checks if the current user is a super admin
+    /// </summary>
+    bool IsSuperAdmin();
+
+    /// <summary>
+    /// Check if the current user has a specific role
+    /// </summary>
+    bool IsInRole(string role);
 }

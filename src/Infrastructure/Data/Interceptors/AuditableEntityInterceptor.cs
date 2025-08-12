@@ -9,7 +9,7 @@ namespace ConnectFlow.Infrastructure.Data.Interceptors;
 public class AuditableEntityInterceptor : SaveChangesInterceptor
 {
     private readonly IServiceProvider _serviceProvider;
-    private ICurrentUserService? _currentUserService;
+    private IContextManager? _contextManager;
 
     private readonly TimeProvider _dateTime;
 
@@ -19,7 +19,7 @@ public class AuditableEntityInterceptor : SaveChangesInterceptor
         _dateTime = dateTime;
     }
 
-    private ICurrentUserService CurrentUserService => _currentUserService ??= _serviceProvider.GetRequiredService<ICurrentUserService>();
+    private IContextManager ContextManager => _contextManager ??= _serviceProvider.GetRequiredService<IContextManager>();
 
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {
@@ -46,11 +46,11 @@ public class AuditableEntityInterceptor : SaveChangesInterceptor
                 var utcNow = _dateTime.GetUtcNow();
                 if (entry.State == EntityState.Added && !entry.Entity.CreatedBy.HasValue)
                 {
-                    entry.Entity.CreatedBy = CurrentUserService.GetCurrentApplicationUserId();
+                    entry.Entity.CreatedBy = ContextManager.GetCurrentApplicationUserId();
                     entry.Entity.Created = utcNow;
                 }
 
-                entry.Entity.LastModifiedBy = CurrentUserService.GetCurrentApplicationUserId();
+                entry.Entity.LastModifiedBy = ContextManager.GetCurrentApplicationUserId();
                 entry.Entity.LastModified = utcNow;
             }
         }

@@ -7,20 +7,20 @@ namespace ConnectFlow.Application.Common.Behaviours;
 public class LoggingBehaviour<TRequest> : IRequestPreProcessor<TRequest> where TRequest : notnull
 {
     private readonly ILogger _logger;
-    private readonly ICurrentUserService _currentUserService;
+    private readonly IContextManager _contextManager;
 
-    public LoggingBehaviour(ILogger<TRequest> logger, ICurrentUserService currentUserService)
+    public LoggingBehaviour(ILogger<TRequest> logger, IContextManager contextManager)
     {
         _logger = logger;
-        _currentUserService = currentUserService;
+        _contextManager = contextManager;
     }
 
     public async Task Process(TRequest request, CancellationToken cancellationToken)
     {
         var requestName = typeof(TRequest).Name;
-        var userId = await Task.FromResult(_currentUserService.GetCurrentUserId());
+        var userId = await Task.FromResult(_contextManager.GetCurrentUserId());
 
-        string? userName = _currentUserService.GetCurrentUserName();
+        string? userName = _contextManager.GetCurrentUserName();
 
         _logger.LogInformation("ConnectFlow Request: {Name} {@UserId} {@UserName} {@Request}", requestName, userId, userName, request);
     }

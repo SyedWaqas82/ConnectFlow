@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using ConnectFlow.Application.Common.Interfaces;
 using ConnectFlow.Domain.Constants;
-using ConnectFlow.Infrastructure.Common.Models;
 using ConnectFlow.Infrastructure.Identity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -12,12 +11,19 @@ namespace ConnectFlow.Infrastructure.Services;
 /// <summary>
 /// Unified context service that implements all context-related interfaces
 /// </summary>
-public class UnifiedContextService : ICurrentUserService, ICurrentTenantService, IContextManager
+public class UnifiedContextService : IContextManager
 {
     private readonly ILogger<UnifiedContextService> _logger;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IApplicationDbContext _dbContext;
+
+    private int? _currentTenantId { get; set; } = null;
+    private int? _applicationUserId { get; set; } = null;
+    private Guid? _publicUserId { get; set; } = null;
+    private string? _userName { get; set; } = string.Empty;
+    private List<string> _roles { get; set; } = new List<string>();
+    private bool _isSuperAdmin { get; set; } = false;
 
     public UnifiedContextService(ILogger<UnifiedContextService> logger, IHttpContextAccessor httpContextAccessor, UserManager<ApplicationUser> userManager, IApplicationDbContext dbContext)
     {
@@ -27,27 +33,127 @@ public class UnifiedContextService : ICurrentUserService, ICurrentTenantService,
         _dbContext = dbContext;
     }
 
-    #region ICurrentUserService Implementation
-
-    public Guid? GetCurrentUserId()
+    public async Task InitializeContextAsync(int applicationUserId, int? tenantId)
     {
-        // Try HTTP context first
-        var httpContext = _httpContextAccessor.HttpContext;
-        if (httpContext?.User?.Identity?.IsAuthenticated == true)
+        _logger.LogInformation("Initializing context for application user ID {UserId} and tenant ID {TenantId}", applicationUserId, tenantId);
+
+        // Clear existing context
+        ClearContext();
+
+        // Set user context from database
+        var user = await _userManager.FindByIdAsync(applicationUserId.ToString());
+        if (user != null)
         {
-            var userIdString = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (Guid.TryParse(userIdString, out Guid userId))
+            _applicationUserId = user.Id;
+            _publicUserId = user.PublicId;
+            _userName = user.UserName;
+
+            // Get roles
+            var roles = await _userManager.GetRolesAsync(user);
+            _roles = roles.ToList();
+            _isSuperAdmin = roles.Contains(Roles.SuperAdmin);
+
+            _logger.LogDebug("Set user context: AppId={AppId}, PublicId={PublicId}, IsSuperAdmin={IsSuperAdmin}", user.Id, user.PublicId, _isSuperAdmin);
+
+            // Set tenant context
+            if (tenantId.HasValue)
             {
-                _logger.LogTrace("Retrieved user ID {UserId} from HTTP claims", userId);
-                return userId;
+                _currentTenantId = tenantId;
+                _logger.LogDebug("Set tenant context: TenantId={TenantId}", tenantId);
             }
         }
+        else
+        {
+            _logger.LogWarning("Failed to initialize context - user with ID {UserId} not found", applicationUserId);
+        }
+    }
 
-        // Fall back to static context
-        var staticUserId = UserInfo.PublicUserId;
-        _logger.LogTrace("Retrieved user ID {UserId} from static context", staticUserId);
+    public async Task InitializeContextWithDefaultTenantAsync(int applicationUserId)
+    {
+        _logger.LogInformation("Initializing context with default tenant for application user ID {UserId}", applicationUserId);
 
-        return staticUserId;
+        // Clear existing context
+        ClearContext();
+
+        // Set user context from database
+        var user = await _userManager.FindByIdAsync(applicationUserId.ToString());
+        if (user != null)
+        {
+            _applicationUserId = user.Id;
+            _publicUserId = user.PublicId;
+            _userName = user.UserName;
+
+            // Get roles
+            var roles = await _userManager.GetRolesAsync(user);
+            _roles = roles.ToList();
+            _isSuperAdmin = roles.Contains(Roles.SuperAdmin);
+
+            _logger.LogDebug("Set user context: AppId={AppId}, PublicId={PublicId}, IsSuperAdmin={IsSuperAdmin}", user.Id, user.PublicId, _isSuperAdmin);
+
+            // Skip tenant resolution for SuperAdmin users
+            if (_isSuperAdmin)
+            {
+                _logger.LogDebug("Super admin user - skipping tenant context");
+                return;
+            }
+
+            // Find default tenant for this user
+            var defaultTenant = await _dbContext.TenantUsers
+                .Where(tu => tu.UserId == user.Id && tu.IsActive)
+                .OrderByDescending(tu => tu.JoinedAt)
+                .FirstOrDefaultAsync();
+
+            if (defaultTenant != null)
+            {
+                _currentTenantId = defaultTenant.TenantId;
+                _logger.LogDebug("Set default tenant context: TenantId={TenantId}", defaultTenant.TenantId);
+            }
+            else
+            {
+                _logger.LogWarning("No active tenant found for user {UserId}", applicationUserId);
+            }
+        }
+        else
+        {
+            _logger.LogWarning("Failed to initialize context - user with ID {UserId} not found", applicationUserId);
+        }
+    }
+
+    public void SetContext(int? applicationUserId, Guid? publicUserId, string? userName, List<string>? roles, bool isSuperAdmin, int? tenantId)
+    {
+        _logger.LogInformation("Manually setting context: AppUserId={AppUserId}, PublicId={PublicId}, UserName={UserName}, " + "IsSuperAdmin={IsSuperAdmin}, TenantId={TenantId}", applicationUserId, publicUserId, userName, isSuperAdmin, tenantId);
+
+        // Set user info
+        if (applicationUserId.HasValue)
+            _applicationUserId = applicationUserId;
+
+        if (publicUserId.HasValue)
+            _publicUserId = publicUserId;
+
+        if (userName != null)
+            _userName = userName;
+
+        if (roles != null)
+            _roles = roles;
+
+        _isSuperAdmin = isSuperAdmin;
+
+        // Set tenant info
+        if (tenantId.HasValue)
+            _currentTenantId = tenantId;
+    }
+
+    public void ClearContext()
+    {
+        _logger.LogInformation("Clearing user and tenant context");
+
+        _applicationUserId = null;
+        _publicUserId = null;
+        _userName = null;
+        _roles = new List<string>();
+        _isSuperAdmin = false;
+
+        _currentTenantId = null;
     }
 
     public int? GetCurrentApplicationUserId()
@@ -65,10 +171,31 @@ public class UnifiedContextService : ICurrentUserService, ICurrentTenantService,
         }
 
         // Fall back to static context
-        var staticAppId = UserInfo.ApplicationUserId;
+        var staticAppId = _applicationUserId;
         _logger.LogTrace("Retrieved application user ID {AppId} from static context", staticAppId);
 
         return staticAppId;
+    }
+
+    public Guid? GetCurrentUserId()
+    {
+        // Try HTTP context first
+        var httpContext = _httpContextAccessor.HttpContext;
+        if (httpContext?.User?.Identity?.IsAuthenticated == true)
+        {
+            var userIdString = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (Guid.TryParse(userIdString, out Guid userId))
+            {
+                _logger.LogTrace("Retrieved user ID {UserId} from HTTP claims", userId);
+                return userId;
+            }
+        }
+
+        // Fall back to static context
+        var staticUserId = _publicUserId;
+        _logger.LogTrace("Retrieved user ID {UserId} from static context", staticUserId);
+
+        return staticUserId;
     }
 
     public string? GetCurrentUserName()
@@ -86,7 +213,7 @@ public class UnifiedContextService : ICurrentUserService, ICurrentTenantService,
         }
 
         // Fall back to static context
-        var staticUserName = UserInfo.UserName;
+        var staticUserName = _userName;
         _logger.LogTrace("Retrieved username {Username} from static context", staticUserName);
 
         return staticUserName;
@@ -108,23 +235,11 @@ public class UnifiedContextService : ICurrentUserService, ICurrentTenantService,
         }
 
         // Fall back to static context
-        var staticRoles = UserInfo.Roles;
-        _logger.LogTrace("Retrieved roles {Roles} from static context", string.Join(", ", staticRoles));
+        var staticRoles = _roles;
+        _logger.LogTrace("Retrieved roles {Roles} from static context", string.Join(", ", staticRoles ?? new List<string>()));
 
-        return staticRoles;
+        return staticRoles ?? new List<string>();
     }
-
-    public bool IsSuperAdmin()
-    {
-        var roles = GetCurrentUserRoles();
-        var isSuperAdmin = roles.Contains(Roles.SuperAdmin) || UserInfo.IsSuperAdmin;
-        _logger.LogTrace("Current user is super admin: {IsSuperAdmin}", isSuperAdmin);
-        return isSuperAdmin;
-    }
-
-    #endregion
-
-    #region ICurrentTenantService Implementation
 
     public int? GetCurrentTenantId()
     {
@@ -147,137 +262,23 @@ public class UnifiedContextService : ICurrentUserService, ICurrentTenantService,
         }
 
         // Fall back to static context
-        var staticTenantId = TenantInfo.CurrentTenantId;
+        var staticTenantId = _currentTenantId;
         _logger.LogTrace("Retrieved tenant ID {TenantId} from static context", staticTenantId);
 
         return staticTenantId;
     }
 
-    #endregion
-
-    #region IContextManager Implementation
-
-    public async Task InitializeContextAsync(int applicationUserId, int? tenantId)
+    public bool IsSuperAdmin()
     {
-        _logger.LogInformation("Initializing context for application user ID {UserId} and tenant ID {TenantId}", applicationUserId, tenantId);
+        var roles = GetCurrentUserRoles();
+        var isSuperAdmin = roles.Contains(Roles.SuperAdmin) || _isSuperAdmin;
+        _logger.LogTrace("Current user is super admin: {IsSuperAdmin}", isSuperAdmin);
 
-        // Clear existing context
-        ClearContext();
-
-        // Set user context from database
-        var user = await _userManager.FindByIdAsync(applicationUserId.ToString());
-        if (user != null)
-        {
-            UserInfo.ApplicationUserId = user.Id;
-            UserInfo.PublicUserId = user.PublicId;
-            UserInfo.UserName = user.UserName;
-
-            // Get roles
-            var roles = await _userManager.GetRolesAsync(user);
-            UserInfo.Roles = roles.ToList();
-            UserInfo.IsSuperAdmin = roles.Contains(Roles.SuperAdmin);
-
-            _logger.LogDebug("Set user context: AppId={AppId}, PublicId={PublicId}, IsSuperAdmin={IsSuperAdmin}", user.Id, user.PublicId, UserInfo.IsSuperAdmin);
-
-            // Set tenant context
-            if (tenantId.HasValue)
-            {
-                TenantInfo.CurrentTenantId = tenantId;
-                _logger.LogDebug("Set tenant context: TenantId={TenantId}", tenantId);
-            }
-        }
-        else
-        {
-            _logger.LogWarning("Failed to initialize context - user with ID {UserId} not found", applicationUserId);
-        }
-    }
-
-    public async Task InitializeContextWithDefaultTenantAsync(int applicationUserId)
-    {
-        _logger.LogInformation("Initializing context with default tenant for application user ID {UserId}", applicationUserId);
-
-        // Clear existing context
-        ClearContext();
-
-        // Set user context from database
-        var user = await _userManager.FindByIdAsync(applicationUserId.ToString());
-        if (user != null)
-        {
-            UserInfo.ApplicationUserId = user.Id;
-            UserInfo.PublicUserId = user.PublicId;
-            UserInfo.UserName = user.UserName;
-
-            // Get roles
-            var roles = await _userManager.GetRolesAsync(user);
-            UserInfo.Roles = roles.ToList();
-            UserInfo.IsSuperAdmin = roles.Contains(Roles.SuperAdmin);
-
-            _logger.LogDebug("Set user context: AppId={AppId}, PublicId={PublicId}, IsSuperAdmin={IsSuperAdmin}", user.Id, user.PublicId, UserInfo.IsSuperAdmin);
-
-            // Skip tenant resolution for SuperAdmin users
-            if (UserInfo.IsSuperAdmin)
-            {
-                _logger.LogDebug("Super admin user - skipping tenant context");
-                return;
-            }
-
-            // Find default tenant for this user
-            var defaultTenant = await _dbContext.TenantUsers
-                .Where(tu => tu.UserId == user.Id && tu.IsActive)
-                .OrderByDescending(tu => tu.JoinedAt)
-                .FirstOrDefaultAsync();
-
-            if (defaultTenant != null)
-            {
-                TenantInfo.CurrentTenantId = defaultTenant.TenantId;
-                _logger.LogDebug("Set default tenant context: TenantId={TenantId}", defaultTenant.TenantId);
-            }
-            else
-            {
-                _logger.LogWarning("No active tenant found for user {UserId}", applicationUserId);
-            }
-        }
-        else
-        {
-            _logger.LogWarning("Failed to initialize context - user with ID {UserId} not found", applicationUserId);
-        }
-    }
-
-    public void SetContext(int? applicationUserId, Guid? publicUserId, string? userName, List<string>? roles, bool isSuperAdmin, int? tenantId)
-    {
-        _logger.LogInformation("Manually setting context: AppUserId={AppUserId}, PublicId={PublicId}, UserName={UserName}, " + "IsSuperAdmin={IsSuperAdmin}, TenantId={TenantId}", applicationUserId, publicUserId, userName, isSuperAdmin, tenantId);
-
-        // Set user info
-        if (applicationUserId.HasValue)
-            UserInfo.ApplicationUserId = applicationUserId;
-
-        if (publicUserId.HasValue)
-            UserInfo.PublicUserId = publicUserId;
-
-        if (userName != null)
-            UserInfo.UserName = userName;
-
-        if (roles != null)
-            UserInfo.Roles = roles;
-
-        UserInfo.IsSuperAdmin = isSuperAdmin;
-
-        // Set tenant info
-        if (tenantId.HasValue)
-            TenantInfo.CurrentTenantId = tenantId;
-    }
-
-    public void ClearContext()
-    {
-        _logger.LogInformation("Clearing user and tenant context");
-        UserInfo.Clear();
-        TenantInfo.Clear();
+        return isSuperAdmin;
     }
 
     public bool IsInRole(string role)
     {
         return GetCurrentUserRoles().Contains(role);
     }
-
-    #endregion
 }

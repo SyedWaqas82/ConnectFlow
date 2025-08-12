@@ -26,25 +26,45 @@ namespace ConnectFlow.Web.Common
 
             // Register dummy services for design-time
             var services = new ServiceCollection();
-            services.AddSingleton<ICurrentTenantService, DesignTimeTenantService>();
-            services.AddSingleton<ICurrentUserService, DesignTimeUserService>();
+            services.AddSingleton<IContextManager, DesignTimeContextService>();
             var serviceProvider = services.BuildServiceProvider();
 
             return new ApplicationDbContext(serviceProvider, optionsBuilder.Options);
         }
     }
 
-    public class DesignTimeTenantService : ICurrentTenantService
+    public class DesignTimeContextService : IContextManager
     {
         public int? GetCurrentTenantId() => null; // or a default tenant id for migrations
-    }
-
-    public class DesignTimeUserService : ICurrentUserService
-    {
         public Guid? GetCurrentUserId() => null;
         public int? GetCurrentApplicationUserId() => null;
         public string? GetCurrentUserName() => null;
         public List<string> GetCurrentUserRoles() => new();
         public bool IsSuperAdmin() => false;
+
+        public Task InitializeContextAsync(int applicationUserId, int? tenantId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task InitializeContextWithDefaultTenantAsync(int applicationUserId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SetContext(int? applicationUserId, Guid? publicUserId, string? userName, List<string>? roles, bool isSuperAdmin, int? tenantId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ClearContext()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsInRole(string role)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

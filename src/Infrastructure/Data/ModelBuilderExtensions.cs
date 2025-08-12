@@ -8,7 +8,7 @@ namespace ConnectFlow.Infrastructure.Data;
 
 public static class ModelBuilderExtensions
 {
-    public static void ApplyTenantFilters(this ModelBuilder modelBuilder, ICurrentTenantService currentTenantService, ICurrentUserService currentUserService)
+    public static void ApplyTenantFilters(this ModelBuilder modelBuilder, IContextManager contextManager)
     {
         var tenantEntityTypes = modelBuilder.Model.GetEntityTypes().Where(e => typeof(ITenantEntity).IsAssignableFrom(e.ClrType)).ToList();
 
@@ -17,7 +17,7 @@ public static class ModelBuilderExtensions
             var entityClrType = entityType.ClrType;
             var method = typeof(ModelBuilderExtensions).GetMethod(nameof(SetTenantFilter), BindingFlags.NonPublic | BindingFlags.Static)?.MakeGenericMethod(entityClrType);
 
-            method?.Invoke(null, new object[] { modelBuilder, currentTenantService, currentUserService });
+            method?.Invoke(null, new object[] { modelBuilder, contextManager });
         }
     }
 
@@ -34,10 +34,10 @@ public static class ModelBuilderExtensions
         }
     }
 
-    private static void SetTenantFilter<T>(ModelBuilder modelBuilder, ICurrentTenantService currentTenantService, ICurrentUserService currentUserService) where T : class, ITenantEntity
+    private static void SetTenantFilter<T>(ModelBuilder modelBuilder, IContextManager contextManager) where T : class, ITenantEntity
     {
-        var tenantId = currentTenantService.GetCurrentTenantId();
-        modelBuilder.Entity<T>().HasQueryFilter(e => currentUserService.IsSuperAdmin() || (tenantId.HasValue && e.TenantId == tenantId.Value));
+        var tenantId = contextManager.GetCurrentTenantId();
+        modelBuilder.Entity<T>().HasQueryFilter(e => contextManager.IsSuperAdmin() || (tenantId.HasValue && e.TenantId == tenantId.Value));
     }
 
     private static void SetSoftDeleteFilter<T>(ModelBuilder modelBuilder) where T : class, ISoftDelete

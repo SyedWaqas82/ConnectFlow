@@ -8,22 +8,19 @@ namespace ConnectFlow.Infrastructure.Services;
 public class ContextValidationService : IContextValidationService
 {
     private readonly IApplicationDbContext _dbContext;
-    private readonly ICurrentTenantService _tenantService;
-    private readonly ICurrentUserService _currentUserService;
+    private readonly IContextManager _contextManager;
 
     public ContextValidationService(
         IApplicationDbContext dbContext,
-        ICurrentTenantService tenantService,
-        ICurrentUserService currentUserService)
+        IContextManager contextManager)
     {
         _dbContext = dbContext;
-        _tenantService = tenantService;
-        _currentUserService = currentUserService;
+        _contextManager = contextManager;
     }
 
-    private (int? tenantId, int? userId) GetTenantAndUserId() => (_tenantService.GetCurrentTenantId(), _currentUserService.GetCurrentApplicationUserId());
+    private (int? tenantId, int? userId) GetTenantAndUserId() => (_contextManager.GetCurrentTenantId(), _contextManager.GetCurrentApplicationUserId());
 
-    private bool IsSuperAdminAllowed(bool allowSuperAdmin) => allowSuperAdmin && _currentUserService.IsSuperAdmin();
+    private bool IsSuperAdminAllowed(bool allowSuperAdmin) => allowSuperAdmin && _contextManager.IsSuperAdmin();
 
     /// <inheritdoc />
     public async Task<bool> IsCurrentUserFromCurrentTenantAsync(bool allowSuperAdmin = true)

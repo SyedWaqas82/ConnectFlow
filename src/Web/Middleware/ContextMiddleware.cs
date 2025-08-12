@@ -13,14 +13,14 @@ public class ContextMiddleware
         _logger = logger;
     }
 
-    public async Task InvokeAsync(HttpContext context, ICurrentUserService currentUserService, ICurrentTenantService currentTenantService)
+    public async Task InvokeAsync(HttpContext context, IContextManager contextManager)
     {
         try
         {
             // Initialize context from HTTP claims first
-            var userId = currentUserService.GetCurrentUserId();
-            var applicationUserId = currentUserService.GetCurrentApplicationUserId();
-            var tenantId = currentTenantService.GetCurrentTenantId();
+            var userId = contextManager.GetCurrentUserId();
+            var applicationUserId = contextManager.GetCurrentApplicationUserId();
+            var tenantId = contextManager.GetCurrentTenantId();
 
             _logger.LogDebug("Context from HTTP request: UserId={UserId}, ApplicationUserId={ApplicationUserId}, TenantId={TenantId}", userId, applicationUserId, tenantId);
 

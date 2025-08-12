@@ -247,8 +247,6 @@ public static class DependencyInjection
 
         // Register unified context service with all interfaces
         builder.Services.AddScoped<UnifiedContextService>();
-        builder.Services.AddScoped<ICurrentUserService>(sp => sp.GetRequiredService<UnifiedContextService>());
-        builder.Services.AddScoped<ICurrentTenantService>(sp => sp.GetRequiredService<UnifiedContextService>());
         builder.Services.AddScoped<IContextManager>(sp => sp.GetRequiredService<UnifiedContextService>());
     }
 }

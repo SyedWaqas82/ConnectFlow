@@ -8,15 +8,15 @@ public class GetCurrentUserInformationQuery : IRequest<UserInformationDto>;
 public class GetCurrentUserInformationQueryHandler : IRequestHandler<GetCurrentUserInformationQuery, UserInformationDto>
 {
     private readonly IIdentityService _identityService;
-    private readonly ICurrentUserService _currentUserService;
+    private readonly IContextManager _contextManager;
     private readonly IApplicationDbContext _dbContext;
     private readonly IMapper _mapper;
     private readonly ILogger<GetCurrentUserInformationQueryHandler> _logger;
 
-    public GetCurrentUserInformationQueryHandler(IIdentityService identityService, ICurrentUserService currentUserService, IApplicationDbContext dbContext, IMapper mapper, ILogger<GetCurrentUserInformationQueryHandler> logger)
+    public GetCurrentUserInformationQueryHandler(IIdentityService identityService, IContextManager contextManager, IApplicationDbContext dbContext, IMapper mapper, ILogger<GetCurrentUserInformationQueryHandler> logger)
     {
         _identityService = identityService;
-        _currentUserService = currentUserService;
+        _contextManager = contextManager;
         _dbContext = dbContext;
         _mapper = mapper;
         _logger = logger;
@@ -26,8 +26,8 @@ public class GetCurrentUserInformationQueryHandler : IRequestHandler<GetCurrentU
     {
         _logger.LogInformation("Getting current user information");
 
-        var userId = _currentUserService.GetCurrentUserId();
-        var applicationUserId = _currentUserService.GetCurrentApplicationUserId();
+        var userId = _contextManager.GetCurrentUserId();
+        var applicationUserId = _contextManager.GetCurrentApplicationUserId();
         Guard.Against.Null(userId, message: "unknown user");
 
         var userResult = await _identityService.GetUserAsync(userId.Value);

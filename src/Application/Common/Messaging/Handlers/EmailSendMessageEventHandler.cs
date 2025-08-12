@@ -7,13 +7,12 @@ namespace ConnectFlow.Application.Common.Messaging.Handlers;
 
 public class EmailSendMessageEventHandler : IMessageHandler<EmailSendMessageEvent>
 {
-    private readonly ILogger<EmailSendMessageEventHandler> _logger;
     private readonly IEmailService _emailService;
-
-    public EmailSendMessageEventHandler(ILogger<EmailSendMessageEventHandler> logger, IEmailService emailService)
+    private readonly ILogger<EmailSendMessageEventHandler> _logger;
+    public EmailSendMessageEventHandler(IEmailService emailService, ILogger<EmailSendMessageEventHandler> logger)
     {
-        _logger = logger;
         _emailService = emailService;
+        _logger = logger;
     }
 
     public async Task HandleAsync(EmailSendMessageEvent message, CancellationToken cancellationToken = default)

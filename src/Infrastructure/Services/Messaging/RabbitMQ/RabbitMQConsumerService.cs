@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using ConnectFlow.Application.Common.Interfaces;
 using ConnectFlow.Application.Common.Messaging;
 using ConnectFlow.Domain.Common;
 using ConnectFlow.Domain.Constants;
@@ -131,6 +132,11 @@ public abstract class RabbitMQConsumerService<T> : BackgroundService, IMessageCo
 
             try
             {
+                //set current context
+                var contextManager = scope.ServiceProvider.GetRequiredService<IContextManager>();
+
+                await contextManager.InitializeContextAsync(message.ApplicationUserId.GetValueOrDefault(), message.TenantId);
+
                 await handler.HandleAsync(message, CancellationToken.None);
 
                 if (message.IsAcknowledged)
@@ -235,7 +241,7 @@ public abstract class RabbitMQConsumerService<T> : BackgroundService, IMessageCo
                 {
                     ["TenantId"] = message.TenantId,
                     ["ApplicationUserId"] = message.ApplicationUserId,
-                    ["PublicUserId"] = message.PublicUserId,
+                    ["PublicUserId"] = message.PublicUserId.ToString(),
                     ["MessageType"] = message.MessageType,
                     ["RetryCount"] = message.RetryCount,
                     ["OriginalQueue"] = _queue?.Name
