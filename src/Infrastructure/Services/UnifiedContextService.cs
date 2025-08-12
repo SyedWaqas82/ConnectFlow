@@ -24,6 +24,7 @@ public class UnifiedContextService : IContextManager
     private string? _userName { get; set; } = string.Empty;
     private List<string> _roles { get; set; } = new List<string>();
     private bool _isSuperAdmin { get; set; } = false;
+    private Guid? _correlationId { get; set; } = null;
 
     public UnifiedContextService(ILogger<UnifiedContextService> logger, IHttpContextAccessor httpContextAccessor, UserManager<ApplicationUser> userManager, IApplicationDbContext dbContext)
     {
@@ -152,8 +153,8 @@ public class UnifiedContextService : IContextManager
         _userName = null;
         _roles = new List<string>();
         _isSuperAdmin = false;
-
         _currentTenantId = null;
+        _correlationId = null;
     }
 
     public int? GetCurrentApplicationUserId()
@@ -275,6 +276,27 @@ public class UnifiedContextService : IContextManager
         _logger.LogTrace("Current user is super admin: {IsSuperAdmin}", isSuperAdmin);
 
         return isSuperAdmin;
+    }
+
+    public Guid? GetCorrelationId()
+    {
+        var httpContext = _httpContextAccessor.HttpContext;
+        if (httpContext != null)
+        {
+            // Try to get from HttpContext.Items (set by CorrelationMiddleware)
+            if (httpContext.Items.TryGetValue("CorrelationId", out var correlationObj) && correlationObj is string correlationStr && Guid.TryParse(correlationStr, out var correlationId))
+            {
+                _logger.LogTrace("Retrieved correlation ID {CorrelationId} from HttpContext.Items", correlationId);
+                return correlationId;
+            }
+        }
+
+        // Fall back to instance field
+        _correlationId ??= Guid.NewGuid();
+        var staticCorrelationId = _correlationId;
+        _logger.LogTrace("Retrieved correlation ID {CorrelationId} from static context", staticCorrelationId);
+
+        return staticCorrelationId;
     }
 
     public bool IsInRole(string role)

@@ -410,7 +410,7 @@ public class IdentityService : IIdentityService
             {
                 ApplicationUserId = user.Id,
                 PublicUserId = user.PublicId,
-                CorrelationId = Guid.NewGuid(),
+                CorrelationId = _contextManager.GetCorrelationId(),
                 Email = user.Email,
                 FirstName = user.FirstName,
                 LastName = user.LastName,

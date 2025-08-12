@@ -3,7 +3,7 @@ namespace ConnectFlow.Domain.Common;
 public abstract class BaseMessageEvent
 {
     public Guid MessageId { get; init; } = Guid.NewGuid();
-    public Guid CorrelationId { get; init; } = Guid.NewGuid();
+    public Guid? CorrelationId { get; init; } = Guid.NewGuid();
     public int? ApplicationUserId { get; init; }
     public Guid? PublicUserId { get; init; }
     public int? TenantId { get; init; }

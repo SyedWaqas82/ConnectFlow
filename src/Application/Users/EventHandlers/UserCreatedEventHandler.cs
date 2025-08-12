@@ -49,7 +49,7 @@ public class UserCreatedEventHandler : INotificationHandler<UserCreatedEvent>
                 { "applicationUserId", notification.ApplicationUserId.GetValueOrDefault() },
                 { "publicUserId", notification.PublicUserId.GetValueOrDefault() },
                 { "tenantId", notification.TenantId.GetValueOrDefault() },
-                { "correlationId", notification.CorrelationId }
+                { "correlationId", notification.CorrelationId.GetValueOrDefault() }
             },
         };
 

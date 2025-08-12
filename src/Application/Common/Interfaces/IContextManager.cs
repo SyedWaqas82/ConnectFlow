@@ -59,4 +59,9 @@ public interface IContextManager
     /// Check if the current user has a specific role
     /// </summary>
     bool IsInRole(string role);
+
+    /// <summary>
+    /// Gets the current correlation ID
+    /// </summary>
+    Guid? GetCorrelationId();
 }

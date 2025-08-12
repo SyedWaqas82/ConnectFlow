@@ -4,12 +4,13 @@ This document explains how to use the context management system in ConnectFlow, 
 
 ## Overview
 
-ConnectFlow uses a unified context management system that works seamlessly in both HTTP contexts (API requests) and non-HTTP contexts (background jobs, console applications). The system consists of:
+ConnectFlow uses a unified context management system that works seamlessly in both HTTP contexts (API requests) and non-HTTP contexts (background jobs, message consumers). The system consists of:
 
-- **Static Context Classes**: Thread-safe storage using `AsyncLocal<T>`
+- **Scoped Context Service**: DI-scoped context storage for all environments
 - **Context Interfaces**: Clean separation of concerns with interface segregation
 - **Middleware**: Automatic context setup for HTTP requests
 - **Context Initialization Methods**: Explicit context setup for non-HTTP scenarios
+- **Context Validation**: Utilities to ensure context is properly set
 
 ## Key Components
 
@@ -77,12 +78,64 @@ Or use the async version:
 await _contextManager.ClearContextAsync();
 ```
 
+### In Message Handlers and RabbitMQ Consumers
+
+When working with message handlers (like RabbitMQ consumers), the context should be initialized in the consumer scope and verified in the handler:
+
+```csharp
+// In RabbitMQConsumerService.HandleMessageAsync:
+using var scope = _serviceProvider.CreateScope();
+var contextManager = scope.ServiceProvider.GetRequiredService<IContextManager>();
+var handler = scope.ServiceProvider.GetService<IMessageHandler<T>>();
+
+// Initialize context from message
+await contextManager.InitializeContextAsync(message.ApplicationUserId.GetValueOrDefault(), message.TenantId);
+
+// Log to verify context was set correctly
+_logger.LogDebug("Context initialized: UserId={UserId}, TenantId={TenantId}", 
+    message.ApplicationUserId, message.TenantId);
+
+// Call handler (which should use the same scope)
+await handler.HandleAsync(message, cancellationToken);
+```
+
+Then, in your handler, verify the context is available and restore it if necessary:
+
+```csharp
+public async Task HandleAsync(TMessage message, CancellationToken cancellationToken)
+{
+    // Check if context is available
+    var userId = _currentUserService.GetCurrentApplicationUserId();
+    var tenantId = _currentTenantService.GetCurrentTenantId();
+    
+    // If context is missing, restore it from the message
+    if (userId == null || tenantId == null)
+    {
+        _logger.LogWarning("Context not flowing to handler, restoring from message values");
+        
+        if (_currentUserService is IContextManager contextManager)
+        {
+            await contextManager.InitializeContextAsync(
+                message.ApplicationUserId ?? 0,
+                message.TenantId);
+                
+            // Verify context was restored
+            _logger.LogInformation("Context restored: UserId={UserId}, TenantId={TenantId}",
+                _currentUserService.GetCurrentApplicationUserId(),
+                _currentTenantService.GetCurrentTenantId());
+        }
+    }
+    
+    // Continue processing with context available
+}
+```
+
 ## Accessing Context
 
 ### User Information
 
 ```csharp
-// Through dependency injection (recommended)
+// Through dependency injection
 public class MyService 
 {
     private readonly ICurrentUserService _currentUserService;
@@ -101,19 +154,12 @@ public class MyService
         var isSuperAdmin = _currentUserService.IsSuperAdmin();
     }
 }
-
-// Directly via static class (use cautiously)
-var userId = UserInfo.PublicUserId;
-var appUserId = UserInfo.ApplicationUserId;
-var username = UserInfo.UserName;
-var roles = UserInfo.Roles;
-var isSuperAdmin = UserInfo.IsSuperAdmin;
 ```
 
 ### Tenant Information
 
 ```csharp
-// Through dependency injection (recommended)
+// Through dependency injection
 public class MyService 
 {
     private readonly ICurrentTenantService _tenantService;
@@ -128,16 +174,13 @@ public class MyService
         var tenantId = _tenantService.GetCurrentTenantId();
     }
 }
-
-// Directly via static class (use cautiously)
-var tenantId = TenantInfo.CurrentTenantId;
 ```
 
 ## Best Practices
 
 ### Always Use Dependency Injection
 
-Prefer accessing context through injected interfaces rather than static classes:
+Always access context through injected interfaces:
 
 ```csharp
 // Good
@@ -145,15 +188,32 @@ public class MyService(ICurrentUserService currentUserService, ICurrentTenantSer
 {
     // Use currentUserService and tenantService
 }
+```
 
-// Avoid when possible
-public class MyService
+### Verify Context in Message Handlers
+
+Always check if context is available in message handlers and restore it if necessary:
+
+```csharp
+// In message handler
+public async Task HandleAsync(TMessage message, CancellationToken cancellationToken)
 {
-    public void DoSomething()
+    // Check if context is available
+    var userId = _currentUserService.GetCurrentApplicationUserId();
+    var tenantId = _currentTenantService.GetCurrentTenantId();
+    
+    if (userId == null || tenantId == null)
     {
-        var userId = UserInfo.PublicUserId;
-        var tenantId = TenantInfo.CurrentTenantId;
+        _logger.LogWarning("Context not flowing to handler, restoring from message values");
+        if (_currentUserService is IContextManager contextManager)
+        {
+            await contextManager.InitializeContextAsync(
+                message.ApplicationUserId ?? 0,
+                message.TenantId);
+        }
     }
+    
+    // Now proceed with guaranteed context
 }
 ```
 
@@ -192,16 +252,45 @@ public async Task<Result> DoSomethingWithData()
 
 ## Implementation Details
 
-### Thread Safety
+### Scoped Context Management
 
-All context information is stored using `AsyncLocal<T>` to ensure thread safety across asynchronous operations:
+Context information is stored as instance fields in the `UnifiedContextService` class:
 
 ```csharp
-private static readonly AsyncLocal<int?> _applicationUserId = new AsyncLocal<int?>();
-private static readonly AsyncLocal<int?> _currentTenantId = new AsyncLocal<int?>();
+public class UnifiedContextService : IContextManager
+{
+    private int? _currentTenantId { get; set; } = null;
+    private int? _applicationUserId { get; set; } = null;
+    private Guid? _publicUserId { get; set; } = null;
+    private string? _userName { get; set; } = string.Empty;
+    private List<string> _roles { get; set; } = new List<string>();
+    private bool _isSuperAdmin { get; set; } = false;
+    
+    // ... methods and other members
+}
 ```
 
-This approach ensures that context follows the logical execution flow rather than being tied to a specific thread.
+This approach ensures that:
+
+1. Context is properly scoped to the current DI scope/request
+2. Multiple concurrent requests get their own context instance
+3. Context is consistent within a single scope
+
+### Context in Message Processing
+
+When working with message handlers (such as RabbitMQ consumers), keep these considerations in mind:
+
+1. Each consumer creates its own DI scope for processing a message
+2. Context must be initialized within that scope using `InitializeContextAsync`
+3. Services within that scope (handlers, repositories, etc.) will see the correct context
+4. Different messages/consumers get their own context instances
+
+To ensure reliable context flow:
+
+- Always use scoped lifetime for context-related services
+- Create proper DI scopes for background operations
+- Verify context is available in handlers and restore if needed
+- For critical operations, consider passing context explicitly in method parameters
 
 ### Context Validation
 
@@ -236,6 +325,23 @@ If you encounter context-related issues:
 3. Ensure context is cleared after background operations
 4. Review logs with the `ConnectFlow.Infrastructure.Services` category
 
+### Common Context Issues and Solutions
+
+#### Context Not Available in Handler
+
+**Problem**: Context is set in the consumer but not accessible in the handler.  
+**Solution**: Ensure both consumer and handler use the same DI scope, and that context is initialized before calling the handler.
+
+#### Context Inconsistency Between Services
+
+**Problem**: Different services in the same operation see different context values.  
+**Solution**: Ensure all services are resolved from the same scope, and that all context interfaces resolve to the same instance of `UnifiedContextService`.
+
+#### Context Missing After Scope Creation
+
+**Problem**: Context is lost when creating a new scope.  
+**Solution**: Explicitly initialize context in any new scope, either by passing values from parent scope or from message data.
+
 ## Example Scenarios
 
 ### Background Job
@@ -266,6 +372,73 @@ public class EmailJob
         {
             // Always clear context when done
             await _contextManager.ClearContextAsync();
+        }
+    }
+}
+```
+
+### Message Handler with Context Verification
+
+```csharp
+public class EmailSendMessageEventHandler : IMessageHandler<EmailSendMessageEvent>
+{
+    private readonly IEmailService _emailService;
+    private readonly ICurrentTenantService _currentTenantService;
+    private readonly ICurrentUserService _currentUserService;
+    private readonly ILogger<EmailSendMessageEventHandler> _logger;
+    
+    public EmailSendMessageEventHandler(
+        IEmailService emailService, 
+        ICurrentTenantService currentTenantService, 
+        ICurrentUserService currentUserService, 
+        ILogger<EmailSendMessageEventHandler> logger)
+    {
+        _emailService = emailService;
+        _currentTenantService = currentTenantService;
+        _currentUserService = currentUserService;
+        _logger = logger;
+    }
+
+    public async Task HandleAsync(EmailSendMessageEvent message, CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Log and verify context values
+            var userId = _currentUserService.GetCurrentApplicationUserId();
+            var tenantId = _currentTenantService.GetCurrentTenantId();
+            _logger.LogDebug("Context values - Service: [UserId: {ServiceUserId}, TenantId: {ServiceTenantId}], Message: [UserId: {MessageUserId}, TenantId: {MessageTenantId}]", 
+                userId, tenantId, message.ApplicationUserId, message.TenantId);
+            
+            // If context is missing, restore it from message
+            if (userId == null || tenantId == null)
+            {
+                _logger.LogWarning("Context not flowing to handler, manually setting from message values");
+                
+                if (_currentUserService is IContextManager contextManager)
+                {
+                    _logger.LogInformation("Setting context directly: UserId={UserId}, TenantId={TenantId}", 
+                        message.ApplicationUserId, message.TenantId);
+                        
+                    await contextManager.InitializeContextAsync(
+                        message.ApplicationUserId ?? 0,
+                        message.TenantId);
+                }
+            }
+
+            // Now proceed with context available
+            var email = new EmailMessage
+            {
+                To = message.To,
+                Subject = message.Subject,
+                // ...other properties
+            };
+            
+            await _emailService.SendAsync(email, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to process email message");
+            throw;
         }
     }
 }

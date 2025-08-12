@@ -66,5 +66,10 @@ namespace ConnectFlow.Web.Common
         {
             throw new NotImplementedException();
         }
+
+        public Guid? GetCorrelationId()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
