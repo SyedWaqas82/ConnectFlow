@@ -8,8 +8,8 @@ namespace ConnectFlow.Application.Users.EventHandlers;
 
 public class UserCreatedEventHandler : INotificationHandler<UserCreatedEvent>
 {
-    private readonly ILogger<UserCreatedEventHandler> _logger;
     private readonly IMessagePublisher _messagePublisher;
+    private readonly ILogger<UserCreatedEventHandler> _logger;
 
     public UserCreatedEventHandler(IMessagePublisher messagePublisher, ILogger<UserCreatedEventHandler> logger)
     {
@@ -29,16 +29,15 @@ public class UserCreatedEventHandler : INotificationHandler<UserCreatedEvent>
             PublicUserId = notification.PublicUserId,
             To = notification.Email,
             Subject = "Welcome to ConnectFlow!",
-            Cc = notification.Cc,
-            Bcc = notification.Bcc,
             IsHtml = true,
             TemplateId = EmailTemplates.Welcome,
             TemplateData = new Dictionary<string, object>
             {
+                { "userPublicId", notification.PublicUserId.GetValueOrDefault() },
+                { "name", $"{notification.FirstName} {notification.LastName}" },
                 { "firstName", notification.FirstName },
                 { "lastName", notification.LastName },
                 { "email", notification.Email },
-                { "name", $"{notification.FirstName} {notification.LastName}" },
                 { "jobTitle", notification.JobTitle ?? string.Empty },
                 { "phoneNumber", notification.PhoneNumber ?? string.Empty },
                 { "mobile", notification.Mobile ?? string.Empty },

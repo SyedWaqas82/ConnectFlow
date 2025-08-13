@@ -1,0 +1,26 @@
+@{
+    var userPublicId = Model["userPublicId"].ToString();
+    var name = Model["name"].ToString();
+    var firstName = Model["firstName"].ToString();
+    var lastName = Model["lastName"].ToString();
+    var confirmationToken = Model["confirmationToken"].ToString();
+    var confirmationUrl = $"http://localhost:5001/api/v1/users/confirm-email?userid={userPublicId}&token={confirmationToken}";
+}
+
+<!DOCTYPE html>
+
+<html>
+<head
+    <title>Welcome</title>
+</head>
+<body>
+    <h2>Welcome, @name!</h2>
+    <p>Hi @firstName @lastName,</p>
+    <p>Thank you for creating an account with us. To complete your registration, please confirm your email address by clicking the link below:</p>
+    <p>
+        <a href="@confirmationUrl" style="background:#007bff;color:#fff;padding:10px 20px;text-decoration:none;border-radius:4px;">Confirm Email</a>
+    </p>
+    <p>If you did not create this account, please ignore this email.</p>
+    <p>Best regards,<br/>The ConnectFlow Team</p>
+</body>
+</html>

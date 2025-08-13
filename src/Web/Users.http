@@ -1,0 +1,100 @@
+﻿# For more info on HTTP files go to https://aka.ms/vs/httpfile
+@Web_HostAddress = https://localhost:5001/api/v1
+
+# Super Admin Credentials
+# @Email=superadmin@connectflow.local
+# @Password=SuperAdmin123!
+
+# Tenant Admin Credentials
+# @Email=tenantadmin@connectflow.local
+# @Password=TenantAdmin123!
+
+@Email=waqas_sayed@hotmail.com
+@Password=SyedWaqas123!
+
+@UserId=7a92ac09-81c1-46fa-812c-ae0085d5e920
+@EmailConfirmationToken=CfDJ8I9Tjk8vOcdNsFAAFQwFrUC09UQc9s7iDvRB7khLIWbZEiIr7k/07JiE36LgWi9om04qKbQKtxdQ71U6j4Um4ufSYdrUPiBE3dCtBlvqI1DYxzf0QqivlCQlE2GMUZVLjPUU+tvRM6MBU0wv+JxzFpnI9D4LUJDcWrmFb8eW2OpYGs5JBYIwRW6+Rwddi4zRvg==
+@BearerToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3YTkyYWMwOS04MWMxLTQ2ZmEtODEyYy1hZTAwODVkNWU5MjAiLCJqdGkiOiJjZGM0M2NjZi0xYTJiLTQ1ZDctOGNhZC1mNTg1NzU0OTFkNDkiLCJpYXQiOjE3NTUwNzUwMzUsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWVpZGVudGlmaWVyIjoiN2E5MmFjMDktODFjMS00NmZhLTgxMmMtYWUwMDg1ZDVlOTIwIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6IndhcWFzX3NheWVkQGhvdG1haWwuY29tIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvZW1haWxhZGRyZXNzIjoid2FxYXNfc2F5ZWRAaG90bWFpbC5jb20iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9zaWQiOiIxMzEiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJUZW5hbnRBZG1pbiIsIm5iZiI6MTc1NTA3NTAzNSwiZXhwIjoxNzU1MDc4NjM1LCJpc3MiOiJDb25uZWN0Rmxvdy5EZXYiLCJhdWQiOiJDb25uZWN0Rmxvdy5EZXYifQ.0PZFNorLZyvolhXqr9vTCOMeHa5Qrz9e2gC7bXSJJkY
+@RefreshToken=pok53btWBuJ+dQYRk/Zjdv76StYiv2Ldkxk9e9ZQUuIBJCjKZYim4LZ4qFLnjlkesENhWFVfC892XnEIVTbGSQ==
+@PasswordToken=CfDJ8I9Tjk8vOcdNsFAAFQwFrUCeS4+V8JTHKQDL8qJUWGoHWjdnOaPPIcPBWfmO9Iaf26Dp37kHdmNGYtuB1Hy0ZaDza4vMQ+WJxVy5EYxa8LIDklvd9I1WWIo3rV94ZM8Fbhxf6T5FQuYlkvreL03IPRKs3J182HmdF+EtJUMTcx9wlfzCJ/KkV8XYkeD7jqx6wQ==
+
+# POST Users Register
+POST {{Web_HostAddress}}/Users/Register
+Content-Type: application/json
+
+{
+  "email": "{{Email}}",
+  "password": "{{Password}}",
+  "firstName": "Syed",
+  "lastName": "Waqas"
+}
+
+###
+
+# POST Users Login
+POST {{Web_HostAddress}}/Users/Login
+Content-Type: application/json
+
+{
+  "email": "{{Email}}",
+  "password": "{{Password}}"
+}
+
+###
+
+# POST Users ConfirmEmail
+POST {{Web_HostAddress}}/Users/ConfirmEmail
+Content-Type: application/json
+
+{
+  "userId": "{{UserId}}",
+  "confirmationToken": "{{EmailConfirmationToken}}"
+}
+
+###
+
+# POST Users Refresh
+POST {{Web_HostAddress}}/Users/Refresh
+Content-Type: application/json
+
+{
+  "accessToken": "{{BearerToken}}",
+  "refreshToken": "{{RefreshToken}}"
+}
+
+###
+
+# POST Users ResetPassword
+POST {{Web_HostAddress}}/Users/ResetPassword
+Content-Type: application/json
+
+{
+  "email": "{{Email}}"
+}
+
+###
+
+# POST Users UpdatePassword
+POST {{Web_HostAddress}}/Users/UpdatePassword
+content-Type: application/json
+
+{
+  "userId": "{{UserId}}",
+  "passwordToken": "{{PasswordToken}}",
+  "newPassword": "NewPassword123!"
+}
+
+###
+
+# GET Users GetCurrentUserInformation
+GET {{Web_HostAddress}}/Users/GetCurrentUserInformation
+Authorization: Bearer {{BearerToken}}
+Content-Type: application/json
+
+###
+
+# GET WeatherForecast
+GET {{Web_HostAddress}}/WeatherForecasts
+Authorization: Bearer {{BearerToken}}
+
+###

@@ -3,8 +3,6 @@ namespace ConnectFlow.Domain.Events.Mediator.Users;
 public class UserCreatedEvent : BaseEvent
 {
     public required string Email { get; init; }
-    public string[]? Cc { get; init; }
-    public string[]? Bcc { get; init; }
     public required string FirstName { get; init; }
     public required string LastName { get; init; }
     public string? JobTitle { get; init; }

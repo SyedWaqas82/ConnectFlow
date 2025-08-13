@@ -1,5 +1,6 @@
 using ConnectFlow.Application.Common.Interfaces;
 using ConnectFlow.Application.Common.Models;
+using ConnectFlow.Domain.Constants;
 using ConnectFlow.Domain.Events.Messaging;
 using Microsoft.Extensions.Logging;
 
@@ -8,11 +9,15 @@ namespace ConnectFlow.Application.Common.Messaging.Handlers;
 public class EmailSendMessageEventHandler : IMessageHandler<EmailSendMessageEvent>
 {
     private readonly IEmailService _emailService;
+    private readonly MessagingConfiguration.Queue _queue;
     private readonly ILogger<EmailSendMessageEventHandler> _logger;
+
     public EmailSendMessageEventHandler(IEmailService emailService, ILogger<EmailSendMessageEventHandler> logger)
     {
         _emailService = emailService;
         _logger = logger;
+
+        _queue = MessagingConfiguration.GetQueueByTypeAndDomain(MessagingConfiguration.QueueType.Default, MessagingConfiguration.QueueDomain.Email);
     }
 
     public async Task HandleAsync(EmailSendMessageEvent message, CancellationToken cancellationToken = default)
@@ -42,7 +47,7 @@ public class EmailSendMessageEventHandler : IMessageHandler<EmailSendMessageEven
             else
             {
                 // Implement basic retry strategy based on RetryCount in message
-                var shouldRetry = message.RetryCount < 3;
+                var shouldRetry = message.RetryCount < _queue.MaxRetries;
                 message.Reject(requeue: shouldRetry);
                 _logger.LogWarning("Email sending failed for {To}. Error: {Error}. WillRetry: {Retry}", message.To, result.Errors.FirstOrDefault(), shouldRetry);
             }
@@ -51,7 +56,7 @@ public class EmailSendMessageEventHandler : IMessageHandler<EmailSendMessageEven
         {
             _logger.LogError(ex, "Unexpected error processing email send request for {To}", message.To);
             // Let the infrastructure retry
-            message.Reject(requeue: message.RetryCount < 3);
+            message.Reject(requeue: message.RetryCount < _queue.MaxRetries);
         }
     }
 }

@@ -4,7 +4,8 @@ using ConnectFlow.Domain.Entities;
 
 public static class SubscriptionPlans
 {
-    public static readonly Subscription Free = new Subscription
+    // Private templates - not for direct use outside this class
+    private static readonly Subscription _freePlan = new Subscription
     {
         UserLimit = 1,
         LeadLimit = 10,
@@ -21,7 +22,7 @@ public static class SubscriptionPlans
         CurrentPeriodEndsAt = DateTimeOffset.UtcNow.AddMonths(1),
     };
 
-    public static readonly Subscription Starter = new Subscription
+    private static readonly Subscription _starterPlan = new Subscription
     {
         UserLimit = 5,
         LeadLimit = 100,
@@ -38,7 +39,7 @@ public static class SubscriptionPlans
         CurrentPeriodEndsAt = DateTimeOffset.UtcNow.AddMonths(1),
     };
 
-    public static readonly Subscription Professional = new Subscription
+    private static readonly Subscription _professionalPlan = new Subscription
     {
         UserLimit = 25,
         LeadLimit = 1000,
@@ -55,7 +56,7 @@ public static class SubscriptionPlans
         CurrentPeriodEndsAt = DateTimeOffset.UtcNow.AddMonths(1),
     };
 
-    public static readonly Subscription Enterprise = new Subscription
+    private static readonly Subscription _enterprisePlan = new Subscription
     {
         UserLimit = int.MaxValue,
         LeadLimit = int.MaxValue,
@@ -72,7 +73,7 @@ public static class SubscriptionPlans
         CurrentPeriodEndsAt = DateTimeOffset.UtcNow.AddMonths(1),
     };
 
-    public static readonly Subscription EnterpriseUnlimited = new Subscription
+    private static readonly Subscription _enterpriseUnlimitedPlan = new Subscription
     {
         UserLimit = int.MaxValue,
         LeadLimit = int.MaxValue,
@@ -88,15 +89,42 @@ public static class SubscriptionPlans
         CurrentPeriodStartsAt = DateTimeOffset.UtcNow,
     };
 
+    // Public properties that return a new instance each time they are accessed
+    public static Subscription Free => GetPlanByName(SubscriptionPlan.Free);
+    public static Subscription Starter => GetPlanByName(SubscriptionPlan.Starter);
+    public static Subscription Professional => GetPlanByName(SubscriptionPlan.Professional);
+    public static Subscription Enterprise => GetPlanByName(SubscriptionPlan.Enterprise);
+    public static Subscription EnterpriseUnlimited => GetPlanByName(SubscriptionPlan.Enterprise);
+
     public static Subscription GetPlanByName(SubscriptionPlan plan)
     {
-        return plan switch
+        // Get the template subscription based on plan
+        Subscription template = plan switch
         {
-            SubscriptionPlan.Free => Free,
-            SubscriptionPlan.Starter => Starter,
-            SubscriptionPlan.Professional => Professional,
-            SubscriptionPlan.Enterprise => Enterprise,
+            SubscriptionPlan.Free => _freePlan,
+            SubscriptionPlan.Starter => _starterPlan,
+            SubscriptionPlan.Professional => _professionalPlan,
+            SubscriptionPlan.Enterprise => _enterprisePlan,
             _ => throw new ArgumentException($"Unknown subscription plan: {plan}")
+        };
+
+        // Return a new instance with the template's properties, but without ID
+        return new Subscription
+        {
+            // Do NOT copy Id - let the database generate it
+            UserLimit = template.UserLimit,
+            LeadLimit = template.LeadLimit,
+            ContactLimit = template.ContactLimit,
+            CompanyLimit = template.CompanyLimit,
+            CustomFieldLimit = template.CustomFieldLimit,
+            MonthlyAITokenLimit = template.MonthlyAITokenLimit,
+            Amount = template.Amount,
+            Currency = template.Currency,
+            Plan = template.Plan,
+            BillingCycle = template.BillingCycle,
+            Status = template.Status,
+            CurrentPeriodStartsAt = template.CurrentPeriodStartsAt,
+            CurrentPeriodEndsAt = template.CurrentPeriodEndsAt
         };
     }
 }

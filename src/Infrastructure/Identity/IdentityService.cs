@@ -178,7 +178,15 @@ public class IdentityService : IIdentityService
 
         if (result.Succeeded)
         {
-            await _mediator.Publish(new UserEmailConfirmedEvent(user.Id, user.PublicId, user.Email!, user.FirstName, user.LastName, user.JobTitle, user.PhoneNumber, user.Mobile, user.TimeZone, user.Locale, user.EmailConfirmed, confirmationToken));
+            await _mediator.Publish(new UserEmailConfirmedEvent
+            {
+                ApplicationUserId = user.Id,
+                PublicUserId = user.PublicId,
+                CorrelationId = _contextManager.GetCorrelationId(),
+                Email = user.Email!,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+            });
         }
 
         return result.ToApplicationResult();
@@ -195,7 +203,16 @@ public class IdentityService : IIdentityService
 
         string resetPasswordToken = await _userManager.GeneratePasswordResetTokenAsync(user);
 
-        await _mediator.Publish(new UserPasswordResetEvent(user.Id, user.PublicId, user.Email!, user.FirstName, user.LastName, user.JobTitle, user.PhoneNumber, user.Mobile, user.TimeZone, user.Locale, user.EmailConfirmed, resetPasswordToken));
+        await _mediator.Publish(new UserPasswordResetEvent
+        {
+            ApplicationUserId = user.Id,
+            PublicUserId = user.PublicId,
+            CorrelationId = _contextManager.GetCorrelationId(),
+            Email = user.Email!,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            ResetPasswordToken = resetPasswordToken
+        });
 
         return Result<UserToken>.Success(new UserToken() { ApplicationUserId = user.PublicId, Token = resetPasswordToken });
     }
@@ -213,7 +230,15 @@ public class IdentityService : IIdentityService
 
         if (result.Succeeded)
         {
-            await _mediator.Publish(new UserPasswordUpdateEvent(user.Id, user.PublicId, user.Email!, user.FirstName, user.LastName, user.JobTitle, user.PhoneNumber, user.Mobile, user.TimeZone, user.Locale, user.EmailConfirmed));
+            await _mediator.Publish(new UserPasswordUpdateEvent
+            {
+                ApplicationUserId = user.Id,
+                PublicUserId = user.PublicId,
+                CorrelationId = _contextManager.GetCorrelationId(),
+                Email = user.Email!,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+            });
         }
 
         return result.ToApplicationResult();
@@ -232,7 +257,15 @@ public class IdentityService : IIdentityService
 
         if (result.Succeeded)
         {
-            await _mediator.Publish(new UserPasswordUpdateEvent(user.Id, user.PublicId, user.Email!, user.FirstName, user.LastName, user.JobTitle, user.PhoneNumber, user.Mobile, user.TimeZone, user.Locale, user.EmailConfirmed));
+            await _mediator.Publish(new UserPasswordUpdateEvent
+            {
+                ApplicationUserId = user.Id,
+                PublicUserId = user.PublicId,
+                CorrelationId = _contextManager.GetCorrelationId(),
+                Email = user.Email!,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+            });
         }
 
         return result.ToApplicationResult();
