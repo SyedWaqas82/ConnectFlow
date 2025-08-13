@@ -235,6 +235,8 @@ public static class DependencyInjection
 
     private static void AddEmailServices(this IHostApplicationBuilder builder)
     {
+        builder.Services.AddSingleton<EmailMetrics>();
+
         builder.Services.AddSingleton<IEmailTemplateRenderer, RazorEmailTemplateRenderer>();
         builder.Services.AddTransient<IEmailSender, SmtpEmailSender>();
         builder.Services.AddTransient<IEmailService, EmailService>();

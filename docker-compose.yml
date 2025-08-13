@@ -15,7 +15,7 @@ services:
   #     - ASPNETCORE_URLS=http://+:80
   #     - ConnectionStrings__ConnectFlowDb=Host=postgres;Database=connectflow;Username=postgres;Password=postgres
   #     - ConnectionStrings__Redis=redis:6379
-  #     - RedisSettings__InstanceName="ConnectFlow_Dev:"
+  #     - "RedisSettings__InstanceName=ConnectFlow_Dev:"
   #     - JwtSettings__Key=development_key_min_256_bits_please_change_in_production_87654321
   #     - JwtSettings__Issuer=ConnectFlow.Dev
   #     - JwtSettings__Audience=ConnectFlow.Dev
@@ -54,11 +54,23 @@ services:
   #     - RabbitMQ__UseSSL=false
   #     - RabbitMQ__PrefetchCount=10
   #     - RabbitMQ__MaxConcurrentConsumers=5
+  #     - EmailSettings__FromName=ConnectFlow (Dev)
+  #     - EmailSettings__FromAddress=no-reply@connectflow.local
+  #     - EmailSettings__Host=mailhog
+  #     - EmailSettings__Port=1025
+  #     - EmailSettings__UseSsl=false
+  #     - EmailSettings__Username=
+  #     - EmailSettings__Password=
+  #     - EmailSettings__TemplatesPath=../Infrastructure/Services/Email/Templates
   #   depends_on:
   #     postgres:
   #       condition: service_healthy
   #     redis:
   #       condition: service_started
+  #     mailhog:
+  #       condition: service_started
+  #     rabbitmq:
+  #       condition: service_healthy
   #   networks:
   #     - default
   #   healthcheck:
@@ -119,6 +131,17 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+    networks:
+      - default
+
+  # Email testing
+  mailhog:
+    container_name: mailhog
+    image: mailhog/mailhog:v1.0.1
+    restart: unless-stopped
+    ports:
+      - "1025:1025" # SMTP server port
+      - "8025:8025" # Web UI port
     networks:
       - default
 

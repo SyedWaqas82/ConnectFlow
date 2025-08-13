@@ -87,6 +87,7 @@ public static class ObservabilityConfiguration
                 options.ScrapeResponseCacheDurationMilliseconds = 5000; // 5 seconds cache
             })
             .AddMeter("ConnectFlow.Metrics") // Collects application metrics including Quartz
+            .AddMeter("ConnectFlow.Email") // Collects email metrics
             .AddMeter("Quartz"); // Collects built-in Quartz metrics if available
     }
 }
