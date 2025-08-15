@@ -8,14 +8,14 @@ public interface IApplicationDbContext
     DbSet<TenantUser> TenantUsers { get; }
     DbSet<TenantUserRole> TenantUserRoles { get; }
     DbSet<Subscription> Subscriptions { get; }
-    DbSet<Lead> Leads { get; }
-    DbSet<Contact> Contacts { get; }
-    DbSet<Company> Companies { get; }
-    DbSet<CustomField> CustomFields { get; }
-    DbSet<AIUsage> AIUsages { get; }
-    DbSet<Stage> Stages { get; }
-    DbSet<Pipeline> Pipelines { get; }
-    DbSet<ContactScore> ContactScores { get; }
+    // DbSet<Lead> Leads { get; }
+    // DbSet<Contact> Contacts { get; }
+    // DbSet<Company> Companies { get; }
+    // DbSet<CustomField> CustomFields { get; }
+    // DbSet<AIUsage> AIUsages { get; }
+    // DbSet<Stage> Stages { get; }
+    // DbSet<Pipeline> Pipelines { get; }
+    // DbSet<ContactScore> ContactScores { get; }
 
     // DbSet<Appointment> Appointments { get; }
     // DbSet<Attachment> Attachments { get; }

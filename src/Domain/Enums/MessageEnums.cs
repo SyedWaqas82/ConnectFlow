@@ -1,28 +1,28 @@
-namespace ConnectFlow.Domain.Enums;
+// namespace ConnectFlow.Domain.Enums;
 
-public enum MessageChannel
-{
-    InApp = 0,
-    Email = 1,
-    SMS = 2,
-    WhatsApp = 3,
-    Custom = 4
-}
+// public enum MessageChannel
+// {
+//     InApp = 1,
+//     Email = 2,
+//     SMS = 3,
+//     WhatsApp = 4,
+//     Custom = 5
+// }
 
-public enum MessageDirection
-{
-    Inbound = 0,
-    Outbound = 1
-}
+// public enum MessageDirection
+// {
+//     Inbound = 1,
+//     Outbound = 2
+// }
 
-public enum MessageStatus
-{
-    Created = 0,
-    Queued = 1,
-    Sent = 2,
-    Delivered = 3,
-    Read = 4,
-    Failed = 5,
-    Spam = 6,
-    Bounced = 7
-}
+// public enum MessageStatus
+// {
+//     Created = 1,
+//     Queued = 2,
+//     Sent = 3,
+//     Delivered = 4,
+//     Read = 5,
+//     Failed = 6,
+//     Spam = 7,
+//     Bounced = 8
+// }

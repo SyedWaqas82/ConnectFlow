@@ -23,14 +23,14 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<TenantUser> TenantUsers => Set<TenantUser>();
     public DbSet<TenantUserRole> TenantUserRoles => Set<TenantUserRole>();
     public DbSet<Subscription> Subscriptions => Set<Subscription>();
-    public DbSet<Lead> Leads => Set<Lead>();
-    public DbSet<Contact> Contacts => Set<Contact>();
-    public DbSet<Company> Companies => Set<Company>();
-    public DbSet<CustomField> CustomFields => Set<CustomField>();
-    public DbSet<AIUsage> AIUsages => Set<AIUsage>();
-    public DbSet<Stage> Stages => Set<Stage>();
-    public DbSet<ContactScore> ContactScores => Set<ContactScore>();
-    public DbSet<Pipeline> Pipelines => Set<Pipeline>();
+    // public DbSet<Lead> Leads => Set<Lead>();
+    // public DbSet<Contact> Contacts => Set<Contact>();
+    // public DbSet<Company> Companies => Set<Company>();
+    // public DbSet<CustomField> CustomFields => Set<CustomField>();
+    // public DbSet<AIUsage> AIUsages => Set<AIUsage>();
+    // public DbSet<Stage> Stages => Set<Stage>();
+    // public DbSet<ContactScore> ContactScores => Set<ContactScore>();
+    // public DbSet<Pipeline> Pipelines => Set<Pipeline>();
 
     // public DbSet<Appointment> Appointments => Set<Appointment>();
 

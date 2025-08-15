@@ -1,10 +1,10 @@
-namespace ConnectFlow.Domain.Enums;
+// namespace ConnectFlow.Domain.Enums;
 
-public enum ConversationStatus
-{
-    Open = 0,
-    Closed = 1,
-    Pending = 2,
-    Spam = 3,
-    Archived = 4
-}
+// public enum ConversationStatus
+// {
+//     Open = 1,
+//     Closed = 2,
+//     Pending = 3,
+//     Spam = 4,
+//     Archived = 5
+// }

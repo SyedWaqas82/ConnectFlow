@@ -2,20 +2,20 @@ namespace ConnectFlow.Domain.Enums;
 
 public enum ChannelType
 {
-    WhatsApp = 0,
-    Facebook = 1,
-    Instagram = 2,
-    Twitter = 3,
-    Email = 4,
-    SMS = 5,
-    Custom = 6
+    WhatsApp = 1,
+    Facebook = 2,
+    Instagram = 3,
+    Twitter = 4,
+    Email = 5,
+    SMS = 6,
+    Custom = 7
 }
 
 public enum ChannelStatus
 {
-    Active = 0,
-    Inactive = 1,
-    Suspended = 2,
-    Pending = 3,
-    Failed = 4
+    Active = 1,
+    Inactive = 2,
+    Suspended = 3,
+    Pending = 4,
+    Failed = 5
 }

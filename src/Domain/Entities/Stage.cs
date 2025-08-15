@@ -1,26 +1,26 @@
-namespace ConnectFlow.Domain.Entities;
+// namespace ConnectFlow.Domain.Entities;
 
-public class Stage : BaseAuditableEntity, ITenantEntity, ISoftDelete
-{
-    public string Name { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
-    public int Order { get; set; }
-    public Colour Color { get; set; } = Colour.Green;
-    public decimal WinProbability { get; set; }
-    public bool IsDefault { get; set; }
-    public bool IsActive { get; set; } = true;
+// public class Stage : BaseAuditableEntity, ITenantEntity, ISoftDelete
+// {
+//     public string Name { get; set; } = string.Empty;
+//     public string Description { get; set; } = string.Empty;
+//     public int Order { get; set; }
+//     public Colour Color { get; set; } = Colour.Green;
+//     public decimal WinProbability { get; set; }
+//     public bool IsDefault { get; set; }
+//     public bool IsActive { get; set; } = true;
 
-    public int PipelineId { get; set; } = default!;
-    public Pipeline Pipeline { get; set; } = null!;
+//     public int PipelineId { get; set; } = default!;
+//     public Pipeline Pipeline { get; set; } = null!;
 
-    public IList<Lead> Leads { get; private set; } = new List<Lead>();
+//     public IList<Lead> Leads { get; private set; } = new List<Lead>();
 
-    // Tenant
-    public int TenantId { get; set; } = default!;
-    public Tenant Tenant { get; set; } = null!;
+//     // Tenant
+//     public int TenantId { get; set; } = default!;
+//     public Tenant Tenant { get; set; } = null!;
 
-    // Soft delete properties
-    public bool IsDeleted { get; set; } = false;
-    public DateTimeOffset? DeletedAt { get; set; }
-    public int? DeletedBy { get; set; }
-}
+//     // Soft delete properties
+//     public bool IsDeleted { get; set; } = false;
+//     public DateTimeOffset? DeletedAt { get; set; }
+//     public int? DeletedBy { get; set; }
+// }

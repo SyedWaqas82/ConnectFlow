@@ -1,10 +1,10 @@
-namespace ConnectFlow.Domain.Enums;
+// namespace ConnectFlow.Domain.Enums;
 
-public enum AppointmentStatus
-{
-    Scheduled = 1,
-    Confirmed = 2,
-    Cancelled = 3,
-    Completed = 4,
-    NoShow = 5
-}
+// public enum AppointmentStatus
+// {
+//     Scheduled = 1,
+//     Confirmed = 2,
+//     Cancelled = 3,
+//     Completed = 4,
+//     NoShow = 5
+// }
