@@ -7,10 +7,11 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MediatR" Version="12.5.0" /> <!-- Last OpenSource MediatR version -->
+    <PackageReference Include="MediatR" /> <!-- Last OpenSource MediatR version -->
   </ItemGroup>
 
 </Project>

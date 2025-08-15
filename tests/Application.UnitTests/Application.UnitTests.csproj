@@ -3,6 +3,7 @@
     <PropertyGroup>
         <RootNamespace>ConnectFlow.Application.UnitTests</RootNamespace>
         <AssemblyName>ConnectFlow.Application.UnitTests</AssemblyName>
+        <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     </PropertyGroup>
 
     <ItemGroup>

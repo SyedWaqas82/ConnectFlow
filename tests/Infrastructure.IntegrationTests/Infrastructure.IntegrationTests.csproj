@@ -3,6 +3,7 @@
     <PropertyGroup>
         <RootNamespace>ConnectFlow.Infrastructure.IntegrationTests</RootNamespace>
         <AssemblyName>ConnectFlow.Infrastructure.IntegrationTests</AssemblyName>
+        <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     </PropertyGroup>
 
     <ItemGroup>
