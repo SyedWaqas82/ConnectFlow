@@ -8,11 +8,8 @@ public static class SubscriptionPlans
     private static readonly Subscription _freePlan = new Subscription
     {
         UserLimit = 1,
-        LeadLimit = 10,
-        ContactLimit = 50,
-        CompanyLimit = 25,
-        CustomFieldLimit = 5,
-        MonthlyAITokenLimit = 1000,
+        WhatsAppAccountLimit = 1,
+        TotalAccountLimit = 1,
         Amount = 0,
         Currency = "USD",
         Plan = SubscriptionPlan.Free,
@@ -24,12 +21,9 @@ public static class SubscriptionPlans
 
     private static readonly Subscription _starterPlan = new Subscription
     {
-        UserLimit = 5,
-        LeadLimit = 100,
-        ContactLimit = 500,
-        CompanyLimit = 25,
-        CustomFieldLimit = 25,
-        MonthlyAITokenLimit = 10000,
+        UserLimit = 3,
+        WhatsAppAccountLimit = 3,
+        TotalAccountLimit = 3,
         Amount = 29,
         Currency = "USD",
         Plan = SubscriptionPlan.Starter,
@@ -41,12 +35,9 @@ public static class SubscriptionPlans
 
     private static readonly Subscription _professionalPlan = new Subscription
     {
-        UserLimit = 25,
-        LeadLimit = 1000,
-        ContactLimit = 25000,
-        CompanyLimit = 100,
-        CustomFieldLimit = 100,
-        MonthlyAITokenLimit = 100000,
+        UserLimit = 5,
+        WhatsAppAccountLimit = 5,
+        TotalAccountLimit = 5,
         Amount = 99,
         Currency = "USD",
         Plan = SubscriptionPlan.Professional,
@@ -59,11 +50,8 @@ public static class SubscriptionPlans
     private static readonly Subscription _enterprisePlan = new Subscription
     {
         UserLimit = int.MaxValue,
-        LeadLimit = int.MaxValue,
-        ContactLimit = int.MaxValue,
-        CompanyLimit = int.MaxValue,
-        CustomFieldLimit = int.MaxValue,
-        MonthlyAITokenLimit = int.MaxValue,
+        WhatsAppAccountLimit = int.MaxValue,
+        TotalAccountLimit = int.MaxValue,
         Amount = 499,
         Currency = "USD",
         Plan = SubscriptionPlan.Enterprise,
@@ -76,11 +64,8 @@ public static class SubscriptionPlans
     private static readonly Subscription _enterpriseUnlimitedPlan = new Subscription
     {
         UserLimit = int.MaxValue,
-        LeadLimit = int.MaxValue,
-        ContactLimit = int.MaxValue,
-        CompanyLimit = int.MaxValue,
-        CustomFieldLimit = int.MaxValue,
-        MonthlyAITokenLimit = int.MaxValue,
+        WhatsAppAccountLimit = int.MaxValue,
+        TotalAccountLimit = int.MaxValue,
         Amount = 0,
         Currency = "USD",
         Plan = SubscriptionPlan.Enterprise,
@@ -113,11 +98,8 @@ public static class SubscriptionPlans
         {
             // Do NOT copy Id - let the database generate it
             UserLimit = template.UserLimit,
-            LeadLimit = template.LeadLimit,
-            ContactLimit = template.ContactLimit,
-            CompanyLimit = template.CompanyLimit,
-            CustomFieldLimit = template.CustomFieldLimit,
-            MonthlyAITokenLimit = template.MonthlyAITokenLimit,
+            WhatsAppAccountLimit = template.WhatsAppAccountLimit,
+            TotalAccountLimit = template.TotalAccountLimit,
             Amount = template.Amount,
             Currency = template.Currency,
             Plan = template.Plan,

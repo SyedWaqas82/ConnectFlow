@@ -2,8 +2,11 @@ namespace ConnectFlow.Domain.Enums;
 
 public enum EntityType
 {
-    Contact = 1,
-    Company = 2,
-    Lead = 3,
-    CustomField = 4,
+    User = 1,
+    Contact = 2,
+    Company = 3,
+    Lead = 4,
+    CustomField = 5,
+    WhatsAppAccount = 6,
+    Account = 7
 }

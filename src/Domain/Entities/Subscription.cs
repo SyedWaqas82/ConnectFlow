@@ -23,13 +23,8 @@ public class Subscription : BaseAuditableEntity
 
     // Usage Limits (copied from plan at time of subscription, can be overridden)
     public int UserLimit { get; set; }
-    public int LeadLimit { get; set; }
-    public int ContactLimit { get; set; }
-    public int CompanyLimit { get; set; }
-    public int CustomFieldLimit { get; set; }
-    public int MonthlyAITokenLimit { get; set; }
-    public int AdditionalAITokens { get; set; } // Purchased extra tokens
-    public int StorageLimitGB { get; set; } // Storage limit in GB
+    public int WhatsAppAccountLimit { get; set; }
+    public int TotalAccountLimit { get; set; }
 
     // Tenant
     public int TenantId { get; set; }

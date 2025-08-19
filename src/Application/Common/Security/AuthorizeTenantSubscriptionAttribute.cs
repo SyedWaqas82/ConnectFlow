@@ -1,12 +1,12 @@
 namespace ConnectFlow.Application.Common.Security;
 
+/// <summary>
+/// Specifies that the request requires an active subscription for the current tenant.
+/// </summary>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
-public class TenantRoleAttribute : Attribute
+public class AuthorizeTenantSubscriptionAttribute : Attribute
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="TenantRoleAttribute"/> class with the specified roles.
-    /// </summary>
-    public TenantRoleAttribute() { }
+    public AuthorizeTenantSubscriptionAttribute() { }
 
     /// <summary>
     /// Gets the comma-delimited list of roles that are allowed to access the resource.

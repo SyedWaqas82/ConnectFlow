@@ -20,9 +20,8 @@ public static class DependencyInjection
             cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));
             cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(PerformanceBehaviour<,>));
             // Add subscription and entity limit behaviors
-            cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(SubscriptionBehaviour<,>));
+            cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(AuthorizeTenantSubscriptionBehaviour<,>));
             cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidateLimitsBehaviour<,>));
-            cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(TenantRoleAuthorizationBehaviour<,>));
         });
     }
 }

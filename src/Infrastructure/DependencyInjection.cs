@@ -80,9 +80,6 @@ public static class DependencyInjection
         // Register IContextValidationService before services that depend on it
         builder.Services.AddScoped<IContextValidationService, ContextValidationService>();
 
-        // Register ITenantLimitsService after IContextValidationService
-        builder.Services.AddScoped<ITenantLimitsService, TenantLimitsService>();
-
         // Register IIdentityService after all dependencies are registered
         builder.Services.AddTransient<IIdentityService, IdentityService>();
     }

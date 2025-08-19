@@ -10,12 +10,12 @@ namespace ConnectFlow.Application.Common.Behaviours;
 /// </summary>
 public class ValidateLimitsBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : notnull
 {
-    private readonly ITenantLimitsService _tenantLimitsService;
+    private readonly IContextValidationService _contextValidationService;
     private readonly IContextManager _contextManager;
 
-    public ValidateLimitsBehaviour(ITenantLimitsService tenantLimitsService, IContextManager contextManager)
+    public ValidateLimitsBehaviour(IContextValidationService contextValidationService, IContextManager contextManager)
     {
-        _tenantLimitsService = tenantLimitsService;
+        _contextValidationService = contextValidationService;
         _contextManager = contextManager;
     }
 
@@ -34,7 +34,7 @@ public class ValidateLimitsBehaviour<TRequest, TResponse> : IPipelineBehavior<TR
 
         foreach (var entityType in attribute.EntityTypes.Distinct())
         {
-            if (!await _tenantLimitsService.CanAddEntityAsync(tenantId.Value, entityType))
+            if (!await _contextValidationService.CanAddEntityAsync(entityType))
             {
                 throw new EntityLimitExceededException(
                     $"You have reached the limit for {entityType} entities in your current subscription plan.");
