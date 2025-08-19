@@ -84,25 +84,9 @@ public class ApplicationDbContextInitialiser
 
     public async Task TrySeedAsync()
     {
-        // if not production then reset
-        var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-        if (!string.Equals(env, "Production", StringComparison.OrdinalIgnoreCase))
-        {
-            // Remove all data from tables (order matters due to FK constraints)
-            _context.TenantUserRoles.RemoveRange(_context.TenantUserRoles);
-            _context.TenantUsers.RemoveRange(_context.TenantUsers);
-            _context.Subscriptions.RemoveRange(_context.Subscriptions);
-            _context.Tenants.RemoveRange(_context.Tenants);
-            _context.Users.RemoveRange(_context.Users);
-            //_context.Roles.RemoveRange(_context.Roles);
-            _context.UserRoles.RemoveRange(_context.UserRoles);
-
-            await _context.SaveChangesAsync();
-        }
-
         // 1. Ensure roles exist
-        var superAdminRole = "SuperAdmin";
-        var tenantAdminRole = "TenantAdmin";
+        var superAdminRole = Roles.SuperAdmin;
+        var tenantAdminRole = Roles.TenantAdmin;
 
         if (!await _roleManager.RoleExistsAsync(superAdminRole))
             await _roleManager.CreateAsync(new ApplicationRole(superAdminRole));

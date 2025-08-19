@@ -7,9 +7,12 @@ public static class SubscriptionPlans
     // Private templates - not for direct use outside this class
     private static readonly Subscription _freePlan = new Subscription
     {
-        UserLimit = 1,
-        WhatsAppAccountLimit = 1,
-        TotalAccountLimit = 1,
+        UsersLimit = 1,
+        WhatsAppAccountsLimit = 1,
+        FacebookAccountsLimit = 1,
+        InstagramAccountsLimit = 1,
+        TelegramAccountsLimit = 1,
+        TotalAccountsLimit = 1,
         Amount = 0,
         Currency = "USD",
         Plan = SubscriptionPlan.Free,
@@ -21,9 +24,12 @@ public static class SubscriptionPlans
 
     private static readonly Subscription _starterPlan = new Subscription
     {
-        UserLimit = 3,
-        WhatsAppAccountLimit = 3,
-        TotalAccountLimit = 3,
+        UsersLimit = 3,
+        WhatsAppAccountsLimit = 3,
+        FacebookAccountsLimit = 3,
+        InstagramAccountsLimit = 3,
+        TelegramAccountsLimit = 3,
+        TotalAccountsLimit = 3,
         Amount = 29,
         Currency = "USD",
         Plan = SubscriptionPlan.Starter,
@@ -35,9 +41,12 @@ public static class SubscriptionPlans
 
     private static readonly Subscription _professionalPlan = new Subscription
     {
-        UserLimit = 5,
-        WhatsAppAccountLimit = 5,
-        TotalAccountLimit = 5,
+        UsersLimit = 5,
+        WhatsAppAccountsLimit = 5,
+        FacebookAccountsLimit = 5,
+        InstagramAccountsLimit = 5,
+        TelegramAccountsLimit = 5,
+        TotalAccountsLimit = 5,
         Amount = 99,
         Currency = "USD",
         Plan = SubscriptionPlan.Professional,
@@ -49,9 +58,12 @@ public static class SubscriptionPlans
 
     private static readonly Subscription _enterprisePlan = new Subscription
     {
-        UserLimit = int.MaxValue,
-        WhatsAppAccountLimit = int.MaxValue,
-        TotalAccountLimit = int.MaxValue,
+        UsersLimit = int.MaxValue,
+        WhatsAppAccountsLimit = int.MaxValue,
+        FacebookAccountsLimit = int.MaxValue,
+        InstagramAccountsLimit = int.MaxValue,
+        TelegramAccountsLimit = int.MaxValue,
+        TotalAccountsLimit = int.MaxValue,
         Amount = 499,
         Currency = "USD",
         Plan = SubscriptionPlan.Enterprise,
@@ -63,9 +75,12 @@ public static class SubscriptionPlans
 
     private static readonly Subscription _enterpriseUnlimitedPlan = new Subscription
     {
-        UserLimit = int.MaxValue,
-        WhatsAppAccountLimit = int.MaxValue,
-        TotalAccountLimit = int.MaxValue,
+        UsersLimit = int.MaxValue,
+        WhatsAppAccountsLimit = int.MaxValue,
+        FacebookAccountsLimit = int.MaxValue,
+        InstagramAccountsLimit = int.MaxValue,
+        TelegramAccountsLimit = int.MaxValue,
+        TotalAccountsLimit = int.MaxValue,
         Amount = 0,
         Currency = "USD",
         Plan = SubscriptionPlan.Enterprise,
@@ -97,9 +112,12 @@ public static class SubscriptionPlans
         return new Subscription
         {
             // Do NOT copy Id - let the database generate it
-            UserLimit = template.UserLimit,
-            WhatsAppAccountLimit = template.WhatsAppAccountLimit,
-            TotalAccountLimit = template.TotalAccountLimit,
+            UsersLimit = template.UsersLimit,
+            WhatsAppAccountsLimit = template.WhatsAppAccountsLimit,
+            FacebookAccountsLimit = template.FacebookAccountsLimit,
+            InstagramAccountsLimit = template.InstagramAccountsLimit,
+            TelegramAccountsLimit = template.TelegramAccountsLimit,
+            TotalAccountsLimit = template.TotalAccountsLimit,
             Amount = template.Amount,
             Currency = template.Currency,
             Plan = template.Plan,

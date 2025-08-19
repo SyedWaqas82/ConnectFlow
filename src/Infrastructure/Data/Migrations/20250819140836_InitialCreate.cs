@@ -223,6 +223,57 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ChannelAccounts",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Type = table.Column<int>(type: "integer", nullable: false),
+                    ProviderAccountId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    DisplayName = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
+                    Contact = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    SettingsJson = table.Column<string>(type: "jsonb", nullable: true),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    TenantId = table.Column<int>(type: "integer", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                    DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    DeletedBy = table.Column<int>(type: "integer", nullable: true),
+                    PublicId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    Created = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    CreatedBy = table.Column<int>(type: "integer", nullable: true),
+                    LastModified = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    LastModifiedBy = table.Column<int>(type: "integer", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ChannelAccounts", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ChannelAccounts_AspNetUsers_CreatedBy",
+                        column: x => x.CreatedBy,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_ChannelAccounts_AspNetUsers_DeletedBy",
+                        column: x => x.DeletedBy,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_ChannelAccounts_AspNetUsers_LastModifiedBy",
+                        column: x => x.LastModifiedBy,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_ChannelAccounts_Tenants_TenantId",
+                        column: x => x.TenantId,
+                        principalTable: "Tenants",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Subscriptions",
                 columns: table => new
                 {
@@ -241,9 +292,12 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                     TrialEndsAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     CancelAtPeriodEnd = table.Column<bool>(type: "boolean", nullable: false),
                     CancellationReason = table.Column<string>(type: "text", nullable: true),
-                    UserLimit = table.Column<int>(type: "integer", nullable: false),
-                    WhatsAppAccountLimit = table.Column<int>(type: "integer", nullable: false),
-                    TotalAccountLimit = table.Column<int>(type: "integer", nullable: false),
+                    UsersLimit = table.Column<int>(type: "integer", nullable: false),
+                    WhatsAppAccountsLimit = table.Column<int>(type: "integer", nullable: false),
+                    FacebookAccountsLimit = table.Column<int>(type: "integer", nullable: false),
+                    InstagramAccountsLimit = table.Column<int>(type: "integer", nullable: false),
+                    TelegramAccountsLimit = table.Column<int>(type: "integer", nullable: false),
+                    TotalAccountsLimit = table.Column<int>(type: "integer", nullable: false),
                     TenantId = table.Column<int>(type: "integer", nullable: false),
                     PublicId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
                     Created = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
@@ -428,6 +482,38 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_ChannelAccount_TenantId_ProviderAccountId",
+                table: "ChannelAccounts",
+                columns: new[] { "TenantId", "ProviderAccountId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ChannelAccounts_CreatedBy",
+                table: "ChannelAccounts",
+                column: "CreatedBy");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ChannelAccounts_DeletedBy",
+                table: "ChannelAccounts",
+                column: "DeletedBy");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ChannelAccounts_LastModifiedBy",
+                table: "ChannelAccounts",
+                column: "LastModifiedBy");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ChannelAccounts_PublicId",
+                table: "ChannelAccounts",
+                column: "PublicId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ChannelAccounts_TenantId",
+                table: "ChannelAccounts",
+                column: "TenantId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Subscriptions_CreatedBy",
                 table: "Subscriptions",
                 column: "CreatedBy");
@@ -541,6 +627,9 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUserTokens");
+
+            migrationBuilder.DropTable(
+                name: "ChannelAccounts");
 
             migrationBuilder.DropTable(
                 name: "Subscriptions");

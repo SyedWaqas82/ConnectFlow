@@ -8,6 +8,8 @@ public interface IApplicationDbContext
     DbSet<TenantUser> TenantUsers { get; }
     DbSet<TenantUserRole> TenantUserRoles { get; }
     DbSet<Subscription> Subscriptions { get; }
+    DbSet<ChannelAccount> ChannelAccounts { get; }
+
     // DbSet<Lead> Leads { get; }
     // DbSet<Contact> Contacts { get; }
     // DbSet<Company> Companies { get; }
@@ -20,7 +22,6 @@ public interface IApplicationDbContext
     // DbSet<Appointment> Appointments { get; }
     // DbSet<Attachment> Attachments { get; }
     // DbSet<Channel> Channels { get; }
-    // DbSet<ChannelAccount> ChannelAccounts { get; }
     // DbSet<ChannelUser> ChannelUsers { get; }
 
 

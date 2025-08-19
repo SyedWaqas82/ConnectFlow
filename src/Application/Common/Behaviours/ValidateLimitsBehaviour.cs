@@ -32,12 +32,12 @@ public class ValidateLimitsBehaviour<TRequest, TResponse> : IPipelineBehavior<TR
         if (!tenantId.HasValue || _contextManager.IsSuperAdmin())
             return await next();
 
-        foreach (var entityType in attribute.EntityTypes.Distinct())
+        foreach (var limitValidationType in attribute.LimitValidationTypes.Distinct())
         {
-            if (!await _contextValidationService.CanAddEntityAsync(entityType))
+            if (!await _contextValidationService.CanAddEntityAsync(limitValidationType))
             {
                 throw new EntityLimitExceededException(
-                    $"You have reached the limit for {entityType} entities in your current subscription plan.");
+                    $"You have reached the limit for {limitValidationType} entities in your current subscription plan.");
             }
         }
 

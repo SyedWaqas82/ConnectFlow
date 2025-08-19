@@ -23,6 +23,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<TenantUser> TenantUsers => Set<TenantUser>();
     public DbSet<TenantUserRole> TenantUserRoles => Set<TenantUserRole>();
     public DbSet<Subscription> Subscriptions => Set<Subscription>();
+    public DbSet<ChannelAccount> ChannelAccounts => Set<ChannelAccount>();
+
     // public DbSet<Lead> Leads => Set<Lead>();
     // public DbSet<Contact> Contacts => Set<Contact>();
     // public DbSet<Company> Companies => Set<Company>();
@@ -37,8 +39,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     // public DbSet<Attachment> Attachments => Set<Attachment>();
 
     // public DbSet<Channel> Channels => Set<Channel>();
-
-    // public DbSet<ChannelAccount> ChannelAccounts => Set<ChannelAccount>();
 
     // public DbSet<ChannelUser> ChannelUsers => Set<ChannelUser>();
 

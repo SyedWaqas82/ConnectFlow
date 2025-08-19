@@ -8,10 +8,10 @@ namespace ConnectFlow.Application.Common.Security;
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
 public class ValidateLimitsAttribute : Attribute
 {
-    public IReadOnlyList<EntityType> EntityTypes { get; }
+    public IReadOnlyList<LimitValidationType> LimitValidationTypes { get; }
 
-    public ValidateLimitsAttribute(params EntityType[] entityTypes)
+    public ValidateLimitsAttribute(params LimitValidationType[] limitValidationTypes)
     {
-        EntityTypes = entityTypes ?? Array.Empty<EntityType>();
+        LimitValidationTypes = limitValidationTypes ?? Array.Empty<LimitValidationType>();
     }
 }

@@ -39,7 +39,6 @@ public abstract class BaseAuditableConfiguration<TEntity> : IEntityTypeConfigura
                 // Configure the relationship only if the navigation exists
                 builder.HasOne(typeof(Tenant), "Tenant").WithMany().HasForeignKey("TenantId").OnDelete(DeleteBehavior.Cascade);
             }
-            // If no navigation property, just configure the FK and index
         }
     }
 

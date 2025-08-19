@@ -22,9 +22,12 @@ public class Subscription : BaseAuditableEntity
     public string? CancellationReason { get; set; }
 
     // Usage Limits (copied from plan at time of subscription, can be overridden)
-    public int UserLimit { get; set; }
-    public int WhatsAppAccountLimit { get; set; }
-    public int TotalAccountLimit { get; set; }
+    public int UsersLimit { get; set; }
+    public int WhatsAppAccountsLimit { get; set; }
+    public int FacebookAccountsLimit { get; set; }
+    public int InstagramAccountsLimit { get; set; }
+    public int TelegramAccountsLimit { get; set; }
+    public int TotalAccountsLimit { get; set; }
 
     // Tenant
     public int TenantId { get; set; }

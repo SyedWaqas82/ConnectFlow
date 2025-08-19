@@ -87,17 +87,17 @@ public class ContextValidationService : IContextValidationService
     }
 
     /// <inheritdoc />
-    public Task<bool> CanAddEntityAsync(EntityType entityType)
+    public Task<bool> CanAddEntityAsync(LimitValidationType limitValidationType)
     {
-        return entityType switch
+        return limitValidationType switch
         {
-            EntityType.User => CanAddUserAsync(),
-            EntityType.WhatsAppAccount => CanAddWhatsAppAccountAsync(),
-            EntityType.Account => CanAddAccountAsync(),
-            EntityType.Contact => CanAddContactAsync(),
-            EntityType.Company => CanAddCompanyAsync(),
-            EntityType.Lead => CanAddLeadAsync(),
-            EntityType.CustomField => CanAddCustomFieldAsync(),
+            LimitValidationType.User => CanAddUserAsync(),
+            LimitValidationType.WhatsAppAccount => CanAddSocialAccountAsync(limitValidationType),
+            LimitValidationType.FacebookAccount => CanAddSocialAccountAsync(limitValidationType),
+            LimitValidationType.InstagramAccount => CanAddSocialAccountAsync(limitValidationType),
+            LimitValidationType.Contact => CanAddContactAsync(),
+            LimitValidationType.Company => CanAddCompanyAsync(),
+            LimitValidationType.Lead => CanAddLeadAsync(),
             _ => Task.FromResult(false)
         };
     }
@@ -109,33 +109,51 @@ public class ContextValidationService : IContextValidationService
             return false;
 
         int userCount = await _dbContext.TenantUsers.CountAsync(tu => tu.IsActive);
-        return userCount < subscription.UserLimit;
+        return userCount < subscription.UsersLimit;
     }
 
-    private async Task<bool> CanAddWhatsAppAccountAsync()
+    private async Task<bool> CanAddSocialAccountAsync(LimitValidationType limitValidationType)
     {
         var subscription = await GetActiveSubscriptionAsync();
         if (subscription == null)
             return false;
 
-        // Count WhatsApp channel accounts - assuming you have a ChannelAccount entity with Type WhatsApp
-        // Replace this with actual entity counting when ChannelAccount entity is available
-        int whatsAppCount = 0; // await _dbContext.ChannelAccounts.CountAsync(ca => ca.Type == ChannelType.WhatsApp);
+        // Validate that active channel accounts do not exceed subscription limits per type and in total
+        var channelType = GetChannelType(limitValidationType);
+        var channelLimit = GetChannelAccountLimit(limitValidationType, subscription);
+        var totalAccountsLimit = subscription.TotalAccountsLimit;
 
-        return whatsAppCount < subscription.WhatsAppAccountLimit;
+        // total accounts should not exceed than total count and also per channel type count
+        var counts = await _dbContext.ChannelAccounts.GroupBy(ca => 1).Select(g => new
+        {
+            ChannelTypeCount = g.Count(ca => ca.Type == channelType),
+            TotalCount = g.Count()
+        }).FirstOrDefaultAsync();
+
+        return counts != null && counts.ChannelTypeCount < channelLimit && counts.TotalCount < totalAccountsLimit;
     }
 
-    private async Task<bool> CanAddAccountAsync()
+    private ChannelType GetChannelType(LimitValidationType limitValidationType)
     {
-        var subscription = await GetActiveSubscriptionAsync();
-        if (subscription == null)
-            return false;
+        return limitValidationType switch
+        {
+            LimitValidationType.WhatsAppAccount => ChannelType.WhatsApp,
+            LimitValidationType.FacebookAccount => ChannelType.Facebook,
+            LimitValidationType.InstagramAccount => ChannelType.Instagram,
+            LimitValidationType.TelegramAccount => ChannelType.Telegram,
+            _ => throw new ArgumentOutOfRangeException(nameof(limitValidationType), limitValidationType, null)
+        };
+    }
 
-        // Count total accounts - assuming you have account entities
-        // Replace this with actual entity counting when account entities are available
-        int accountCount = 0; // await _dbContext.ChannelAccounts.CountAsync();
-
-        return accountCount < subscription.TotalAccountLimit;
+    private int GetChannelAccountLimit(LimitValidationType limitValidationType, Subscription subscription)
+    {
+        return limitValidationType switch
+        {
+            LimitValidationType.WhatsAppAccount => subscription.WhatsAppAccountsLimit,
+            LimitValidationType.FacebookAccount => subscription.FacebookAccountsLimit,
+            LimitValidationType.InstagramAccount => subscription.InstagramAccountsLimit,
+            _ => throw new ArgumentOutOfRangeException(nameof(limitValidationType), limitValidationType, null)
+        };
     }
 
     private async Task<bool> CanAddContactAsync()

@@ -93,6 +93,12 @@ Content-Type: application/json
 
 ###
 
+# POST Reset Database
+POST {{Web_HostAddress}}/WeatherForecasts/ResetDatabase
+Content-Type: application/json
+
+###
+
 # GET WeatherForecast
 GET {{Web_HostAddress}}/WeatherForecasts
 Authorization: Bearer {{BearerToken}}

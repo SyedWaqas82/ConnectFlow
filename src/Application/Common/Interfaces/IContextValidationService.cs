@@ -53,7 +53,7 @@ public interface IContextValidationService
     /// <summary>
     /// Checks if the current tenant has reached its limit for the specified entity
     /// </summary>
-    /// <param name="entityType">The type of entity to check limits for</param>
+    /// <param name="limitValidationType">The type of entity to check limits for</param>
     /// <returns>True if the tenant has not reached its limit, false otherwise</returns>
-    Task<bool> CanAddEntityAsync(EntityType entityType);
+    Task<bool> CanAddEntityAsync(LimitValidationType limitValidationType);
 }
