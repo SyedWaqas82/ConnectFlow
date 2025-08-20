@@ -10,11 +10,11 @@ namespace ConnectFlow.Application.Common.Behaviours;
 /// </summary>
 public class AuthorizeTenantSubscriptionBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : notnull
 {
-    private readonly IContextValidationService _contextValidationService;
+    private readonly ISubscriptionManagementService _subscriptionManagementService;
 
-    public AuthorizeTenantSubscriptionBehaviour(IContextValidationService contextValidationService)
+    public AuthorizeTenantSubscriptionBehaviour(ISubscriptionManagementService subscriptionManagementService)
     {
-        _contextValidationService = contextValidationService;
+        _subscriptionManagementService = subscriptionManagementService;
     }
 
     public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
@@ -23,7 +23,7 @@ public class AuthorizeTenantSubscriptionBehaviour<TRequest, TResponse> : IPipeli
 
         if (attribute != null)
         {
-            var hasActiveSubscription = await _contextValidationService.IsCurrentUserFromCurrentTenantHasActiveSubscriptionAsync(attribute.AllowSuperAdmin);
+            var hasActiveSubscription = await _subscriptionManagementService.IsCurrentUserFromCurrentTenantHasActiveSubscriptionAsync(attribute.AllowSuperAdmin);
 
             if (!hasActiveSubscription)
                 throw new SubscriptionRequiredException("This operation requires an active subscription.");
@@ -46,7 +46,7 @@ public class AuthorizeTenantSubscriptionBehaviour<TRequest, TResponse> : IPipeli
     {
         foreach (var role in roles)
         {
-            if (await _contextValidationService.IsCurrentUserFromCurrentTenantHasRoleAsync(role, allowSuperAdmin))
+            if (await _subscriptionManagementService.IsCurrentUserFromCurrentTenantHasRoleAsync(role, allowSuperAdmin))
                 return true;
         }
 

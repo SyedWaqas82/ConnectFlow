@@ -51,6 +51,9 @@
     <!-- Email + templating -->
     <PackageReference Include="MailKit" />
     <PackageReference Include="RazorLight" />
+    
+    <!-- Stripe -->
+    <PackageReference Include="Stripe.net" />
   </ItemGroup>
 
   <ItemGroup>

@@ -2,6 +2,16 @@
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.Logging;
+global using Microsoft.Extensions.Options;
+global using Microsoft.EntityFrameworkCore;
 global using System.Diagnostics;
 global using Serilog;
 global using Serilog.Context;
+global using ConnectFlow.Domain.Common;
+global using ConnectFlow.Domain.Entities;
+global using ConnectFlow.Domain.Enums;
+global using ConnectFlow.Domain.Events;
+global using ConnectFlow.Domain.Events.Mediator.Subscriptions;
+global using ConnectFlow.Domain.Exceptions;
+global using ConnectFlow.Domain.ValueObjects;
+global using ConnectFlow.Application.Common.Interfaces;

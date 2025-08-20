@@ -2,20 +2,21 @@ using System.Reflection;
 using ConnectFlow.Application.Common.Exceptions;
 using ConnectFlow.Application.Common.Interfaces;
 using ConnectFlow.Application.Common.Security;
+using ConnectFlow.Domain.Enums;
 
 namespace ConnectFlow.Application.Common.Behaviours;
 
 /// <summary>
-/// Pipeline behavior that validates tenant limits for entities.
+/// Pipeline behavior that validates tenant limits for entities with detailed error information.
 /// </summary>
 public class ValidateLimitsBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : notnull
 {
-    private readonly IContextValidationService _contextValidationService;
+    private readonly ISubscriptionManagementService _subscriptionManagementService;
     private readonly IContextManager _contextManager;
 
-    public ValidateLimitsBehaviour(IContextValidationService contextValidationService, IContextManager contextManager)
+    public ValidateLimitsBehaviour(ISubscriptionManagementService subscriptionManagementService, IContextManager contextManager)
     {
-        _contextValidationService = contextValidationService;
+        _subscriptionManagementService = subscriptionManagementService;
         _contextManager = contextManager;
     }
 
@@ -34,10 +35,17 @@ public class ValidateLimitsBehaviour<TRequest, TResponse> : IPipelineBehavior<TR
 
         foreach (var limitValidationType in attribute.LimitValidationTypes.Distinct())
         {
-            if (!await _contextValidationService.CanAddEntityAsync(limitValidationType))
+            var validationResult = await _subscriptionManagementService.ValidateOperationAsync(limitValidationType, 1, cancellationToken);
+
+            if (!validationResult.IsValid)
             {
                 throw new EntityLimitExceededException(
-                    $"You have reached the limit for {limitValidationType} entities in your current subscription plan.");
+                    limitValidationType,
+                    validationResult.CurrentUsage ?? 0,
+                    validationResult.AllowedLimit ?? 0,
+                    validationResult.UpgradeRecommendation,
+                    validationResult.RecommendedPlan,
+                    validationResult.RecommendedPlanPrice);
             }
         }
 

@@ -57,6 +57,9 @@
     <!-- Email and templating packages -->
     <PackageVersion Include="MailKit" Version="4.7.1" />
     <PackageVersion Include="RazorLight" Version="2.3.1" />
+    
+    <!-- Payment processing packages -->
+    <PackageVersion Include="Stripe.net" Version="48.4.0" />
 
     <!-- Web packages -->
     <PackageVersion Include="Asp.Versioning.Http" Version="8.1.0" />

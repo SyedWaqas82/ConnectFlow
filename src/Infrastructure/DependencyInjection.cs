@@ -21,6 +21,7 @@ using ConnectFlow.Infrastructure.Services.Messaging.RabbitMQ;
 using ConnectFlow.Domain.Events.Messaging;
 using ConnectFlow.Infrastructure.Services.Messaging.RabbitMQ.Consumers;
 using ConnectFlow.Application.Common.Messaging.Handlers;
+using ConnectFlow.Infrastructure.Services.Payment.Configuration;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -49,6 +50,11 @@ public static class DependencyInjection
         // Email settings
         builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection(EmailSettings.SectionName));
 
+        // Stripe settings
+        var stripeSettings = builder.Configuration.GetSection(StripeSettings.SectionName).Get<StripeSettings>();
+        Guard.Against.Null(stripeSettings, message: "Stripe settings not found in configuration.");
+        builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection(StripeSettings.SectionName));
+
         // Configure Entity Framework
         builder.ConfigureEntityFramework(dbConnectionString);
 
@@ -70,15 +76,16 @@ public static class DependencyInjection
         builder.Services.AddScoped<IAuthTokenService, AuthTokenService>();
         builder.Services.AddScoped<IStripeService, StripeService>();
 
+        // Add subscription management services
+        builder.Services.AddScoped<ISubscriptionManagementService, SubscriptionManagementService>();
+        builder.Services.AddScoped<StripeWebhookHandler>();
+
         // Configure email services
         // This should be after RabbitMQ and Identity services to ensure all dependencies are available
         builder.AddEmailServices();
 
         // Configure context services
         builder.AddContextServices();
-
-        // Register IContextValidationService before services that depend on it
-        builder.Services.AddScoped<IContextValidationService, ContextValidationService>();
 
         // Register IIdentityService after all dependencies are registered
         builder.Services.AddTransient<IIdentityService, IdentityService>();
