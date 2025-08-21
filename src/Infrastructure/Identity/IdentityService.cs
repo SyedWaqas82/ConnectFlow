@@ -1,10 +1,6 @@
 using System.Security.Claims;
-using ConnectFlow.Application.Common.Interfaces;
 using ConnectFlow.Application.Common.Models;
 using ConnectFlow.Domain.Constants;
-using ConnectFlow.Domain.Entities;
-using ConnectFlow.Domain.Enums;
-using ConnectFlow.Domain.Events.Mediator.Subscriptions;
 using ConnectFlow.Domain.Events.Mediator.Tenants;
 using ConnectFlow.Domain.Events.Mediator.TenantUsers;
 using ConnectFlow.Domain.Events.Mediator.Users;
@@ -12,7 +8,6 @@ using ConnectFlow.Infrastructure.Common.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 namespace ConnectFlow.Infrastructure.Identity;
 
@@ -71,9 +66,6 @@ public class IdentityService : IIdentityService
         // Join the tenant as the admin user
         await JoinTenantInternalAsync(newUser, tenant.Id, validRoles, _contextManager.GetCurrentApplicationUserId());
 
-        // Create subscription
-        await CreateSubscriptionForTenantAsync(tenant, plan);
-
         return Result<UserToken>.Success(new UserToken() { ApplicationUserId = newUser.PublicId, Token = userCreationResult.ConfirmationToken });
     }
 
@@ -108,9 +100,6 @@ public class IdentityService : IIdentityService
                 await _userManager.AddToRoleAsync(existingUser, role);
             }
         }
-
-        // Create subscription
-        await CreateSubscriptionForTenantAsync(tenant, plan);
 
         return Result.Success();
     }
@@ -497,33 +486,6 @@ public class IdentityService : IIdentityService
 
         await _context.SaveChangesAsync();
     }
-
-    private async Task<Result<Subscription>> CreateSubscriptionForTenantAsync(Tenant tenant, SubscriptionPlan plan)
-    {
-        var subscription = SubscriptionPlans.GetPlanByName(plan);
-        subscription.TenantId = tenant.Id;
-        subscription.CreatedBy = _contextManager.GetCurrentApplicationUserId();
-
-        subscription.AddDomainEvent(new SubscriptionCreatedEvent(subscription));
-
-        _context.Subscriptions.Add(subscription);
-        await _context.SaveChangesAsync();
-
-        return Result<Subscription>.Success(subscription);
-    }
-
-    // private async Task<Result> IsValidTenantAsync(string code, string domain)
-    // {
-    //     // Check if tenant code or domain already exists
-    //     var existingTenant = await _context.Tenants.FirstOrDefaultAsync(t => t.Code == code || t.Domain == domain);
-
-    //     if (existingTenant != null)
-    //     {
-    //         return Result.Failure(new[] { existingTenant.Code == code ? "Tenant with this code already exists" : "Tenant with this domain already exists" });
-    //     }
-
-    //     return Result.Success();
-    // }
 
     private async Task<Result<AuthToken>> ManageTokensAsync(ApplicationUser user, bool generateNewRefreshToken)
     {
