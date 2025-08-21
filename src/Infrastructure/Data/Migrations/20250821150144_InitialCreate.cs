@@ -186,7 +186,7 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    StripePriceId = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    PaymentProviderPriceId = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     Price = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
                     Type = table.Column<int>(type: "integer", nullable: false),
                     BillingCycle = table.Column<int>(type: "integer", nullable: false),
@@ -229,7 +229,7 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                     Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     Domain = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
-                    StripeCustomerId = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    PaymentProviderCustomerId = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     Avatar = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     Phone = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
                     Email = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
@@ -324,7 +324,7 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    StripeSubscriptionId = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    PaymentProviderSubscriptionId = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     Status = table.Column<int>(type: "integer", nullable: false),
                     CurrentPeriodStart = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     CurrentPeriodEnd = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
@@ -423,7 +423,7 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    StripeInvoiceId = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    PaymentProviderInvoiceId = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     Status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     Amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
                     Currency = table.Column<string>(type: "character varying(3)", maxLength: 3, nullable: false),
@@ -606,15 +606,15 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                 column: "LastModifiedBy");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Invoices_PublicId",
+                name: "IX_Invoices_PaymentProviderInvoiceId",
                 table: "Invoices",
-                column: "PublicId",
+                column: "PaymentProviderInvoiceId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Invoices_StripeInvoiceId",
+                name: "IX_Invoices_PublicId",
                 table: "Invoices",
-                column: "StripeInvoiceId",
+                column: "PublicId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -649,6 +649,12 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                 column: "LastModifiedBy");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Subscriptions_PaymentProviderSubscriptionId",
+                table: "Subscriptions",
+                column: "PaymentProviderSubscriptionId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Subscriptions_PlanId",
                 table: "Subscriptions",
                 column: "PlanId");
@@ -657,12 +663,6 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                 name: "IX_Subscriptions_PublicId",
                 table: "Subscriptions",
                 column: "PublicId",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Subscriptions_StripeSubscriptionId",
-                table: "Subscriptions",
-                column: "StripeSubscriptionId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -686,15 +686,15 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                 column: "LastModifiedBy");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Tenants_PublicId",
+                name: "IX_Tenants_PaymentProviderCustomerId",
                 table: "Tenants",
-                column: "PublicId",
+                column: "PaymentProviderCustomerId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Tenants_StripeCustomerId",
+                name: "IX_Tenants_PublicId",
                 table: "Tenants",
-                column: "StripeCustomerId",
+                column: "PublicId",
                 unique: true);
 
             migrationBuilder.CreateIndex(

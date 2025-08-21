@@ -11,7 +11,7 @@ public class TenantConfiguration : BaseAuditableConfiguration<Tenant>
         builder.Property(t => t.Name).IsRequired().HasMaxLength(100);
         builder.Property(t => t.Domain).HasMaxLength(100);
         builder.Property(t => t.Description).HasMaxLength(500);
-        builder.Property(t => t.StripeCustomerId).IsRequired().HasMaxLength(50);
+        builder.Property(t => t.PaymentProviderCustomerId).IsRequired().HasMaxLength(50);
         builder.Property(t => t.Avatar).HasMaxLength(200);
         builder.Property(t => t.Phone).HasMaxLength(20);
         builder.Property(t => t.Email).HasMaxLength(100);
@@ -24,7 +24,7 @@ public class TenantConfiguration : BaseAuditableConfiguration<Tenant>
         builder.Property(t => t.Settings).HasColumnType("jsonb"); // Assuming PostgreSQL, adjust for other DBs
         builder.Property(t => t.DeactivatedAt).HasDefaultValue(null);
 
-        builder.HasIndex(t => t.StripeCustomerId).IsUnique();
+        builder.HasIndex(t => t.PaymentProviderCustomerId).IsUnique();
 
         // Configure relationships
         builder.HasMany(t => t.TenantUsers).WithOne(tu => tu.Tenant).HasForeignKey(tu => tu.TenantId).OnDelete(DeleteBehavior.Cascade);

@@ -142,6 +142,11 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                     b.Property<DateTimeOffset?>("PaidAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("PaymentProviderInvoiceId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<Guid>("PublicId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
@@ -152,11 +157,6 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
-                    b.Property<string>("StripeInvoiceId")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
                     b.Property<int>("SubscriptionId")
                         .HasColumnType("integer");
 
@@ -166,10 +166,10 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
 
                     b.HasIndex("LastModifiedBy");
 
-                    b.HasIndex("PublicId")
+                    b.HasIndex("PaymentProviderInvoiceId")
                         .IsUnique();
 
-                    b.HasIndex("StripeInvoiceId")
+                    b.HasIndex("PublicId")
                         .IsUnique();
 
                     b.HasIndex("SubscriptionId");
@@ -226,6 +226,11 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<string>("PaymentProviderPriceId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
@@ -233,11 +238,6 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasDefaultValueSql("gen_random_uuid()");
-
-                    b.Property<string>("StripePriceId")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
 
                     b.Property<int>("Type")
                         .HasColumnType("integer");
@@ -286,6 +286,11 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                     b.Property<int?>("LastModifiedBy")
                         .HasColumnType("integer");
 
+                    b.Property<string>("PaymentProviderSubscriptionId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<int>("PlanId")
                         .HasColumnType("integer");
 
@@ -297,11 +302,6 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
-                    b.Property<string>("StripeSubscriptionId")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
                     b.Property<int>("TenantId")
                         .HasColumnType("integer");
 
@@ -311,12 +311,12 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
 
                     b.HasIndex("LastModifiedBy");
 
+                    b.HasIndex("PaymentProviderSubscriptionId")
+                        .IsUnique();
+
                     b.HasIndex("PlanId");
 
                     b.HasIndex("PublicId")
-                        .IsUnique();
-
-                    b.HasIndex("StripeSubscriptionId")
                         .IsUnique();
 
                     b.HasIndex("TenantId");
@@ -382,6 +382,11 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<string>("PaymentProviderCustomerId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<string>("Phone")
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
@@ -402,11 +407,6 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<string>("StripeCustomerId")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
                     b.Property<string>("Website")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
@@ -417,10 +417,10 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
 
                     b.HasIndex("LastModifiedBy");
 
-                    b.HasIndex("PublicId")
+                    b.HasIndex("PaymentProviderCustomerId")
                         .IsUnique();
 
-                    b.HasIndex("StripeCustomerId")
+                    b.HasIndex("PublicId")
                         .IsUnique();
 
                     b.ToTable("Tenants");

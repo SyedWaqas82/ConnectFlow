@@ -8,12 +8,12 @@ public class SubscriptionConfiguration : BaseAuditableConfiguration<Subscription
     {
         base.Configure(builder);
 
-        builder.Property(s => s.StripeSubscriptionId).IsRequired().HasMaxLength(50);
+        builder.Property(s => s.PaymentProviderSubscriptionId).IsRequired().HasMaxLength(50);
         builder.Property(s => s.Status).IsRequired();
         builder.Property(s => s.TenantId).IsRequired();
         builder.HasIndex(s => s.TenantId);
 
-        builder.HasIndex(s => s.StripeSubscriptionId).IsUnique();
+        builder.HasIndex(s => s.PaymentProviderSubscriptionId).IsUnique();
         builder.HasIndex(s => new { s.TenantId, s.Status });
 
         // Configure relationships

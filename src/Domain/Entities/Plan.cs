@@ -3,7 +3,7 @@ namespace ConnectFlow.Domain.Entities;
 public class Plan : BaseAuditableEntity
 {
     public string Name { get; set; } = string.Empty;
-    public string StripePriceId { get; set; } = string.Empty;
+    public string PaymentProviderPriceId { get; set; } = string.Empty;
     public decimal Price { get; set; }
     public PlanType Type { get; set; }
     public BillingCycle BillingCycle { get; set; }

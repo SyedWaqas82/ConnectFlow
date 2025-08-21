@@ -2,7 +2,7 @@ namespace ConnectFlow.Domain.Entities;
 
 public class Subscription : BaseAuditableEntity
 {
-    public string StripeSubscriptionId { get; set; } = string.Empty;
+    public string PaymentProviderSubscriptionId { get; set; } = string.Empty;
     public SubscriptionStatus Status { get; set; }
     public DateTimeOffset CurrentPeriodStart { get; set; }
     public DateTimeOffset CurrentPeriodEnd { get; set; }

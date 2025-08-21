@@ -9,6 +9,6 @@ public class SubscriptionCancelledEvent : BaseEvent
     {
         TenantId = tenantId;
         SubscriptionId = subscriptionId;
-
+        ImmediateCancellation = immediateCancellation;
     }
 }
