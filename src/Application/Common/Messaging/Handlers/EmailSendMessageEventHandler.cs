@@ -1,8 +1,5 @@
-using ConnectFlow.Application.Common.Interfaces;
 using ConnectFlow.Application.Common.Models;
 using ConnectFlow.Domain.Constants;
-using ConnectFlow.Domain.Events.Messaging;
-using Microsoft.Extensions.Logging;
 
 namespace ConnectFlow.Application.Common.Messaging.Handlers;
 

@@ -1,5 +1,4 @@
 using ConnectFlow.Infrastructure.Common.Models;
-using Microsoft.Extensions.Options;
 using Npgsql;
 
 namespace ConnectFlow.Infrastructure.Common.Providers;

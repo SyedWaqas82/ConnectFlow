@@ -1,5 +1,4 @@
 using ConnectFlow.Infrastructure.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ConnectFlow.Infrastructure.Data.Configurations;

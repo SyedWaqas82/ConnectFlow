@@ -7,7 +7,7 @@ public class Subscription : BaseAuditableEntity
     public DateTimeOffset CurrentPeriodStart { get; set; }
     public DateTimeOffset CurrentPeriodEnd { get; set; }
     public DateTimeOffset? CanceledAt { get; set; }
-    public DateTimeOffset? CancelAtPeriodEnd { get; set; }
+    public bool CancelAtPeriodEnd { get; set; }
 
     // Plan
     public int PlanId { get; set; }
@@ -16,4 +16,6 @@ public class Subscription : BaseAuditableEntity
     // Tenant
     public int TenantId { get; set; }
     public Tenant Tenant { get; set; } = null!;
+
+    public IList<Invoice> Invoices { get; private set; } = new List<Invoice>();
 }

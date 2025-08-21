@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Logging;
-
 namespace ConnectFlow.Application.Users.Queries.GetCurrentUserInformation;
 
 public class GetCurrentUserInformationQuery : IRequest<UserInformationDto>;

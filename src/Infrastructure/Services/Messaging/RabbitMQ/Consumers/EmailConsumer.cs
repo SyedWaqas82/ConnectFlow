@@ -1,7 +1,6 @@
 using ConnectFlow.Domain.Constants;
 using ConnectFlow.Domain.Events.Messaging;
 using ConnectFlow.Infrastructure.Common.Models;
-using Microsoft.Extensions.Options;
 
 namespace ConnectFlow.Infrastructure.Services.Messaging.RabbitMQ.Consumers;
 

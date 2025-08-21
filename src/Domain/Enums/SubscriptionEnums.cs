@@ -19,3 +19,9 @@ public enum PlanType
     Pro = 4,
     Enterprise = 5
 }
+
+public enum BillingCycle
+{
+    Monthly = 1,
+    Yearly = 2
+}

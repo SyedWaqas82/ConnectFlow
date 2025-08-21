@@ -1,5 +1,3 @@
-using ConnectFlow.Domain.Common;
-
 namespace ConnectFlow.Application.Common.Messaging;
 
 public interface IMessagePublisher

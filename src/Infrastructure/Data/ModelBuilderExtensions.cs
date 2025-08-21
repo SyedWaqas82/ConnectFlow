@@ -1,6 +1,3 @@
-using ConnectFlow.Application.Common.Interfaces;
-using ConnectFlow.Domain.Common;
-using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 
 
@@ -23,12 +20,25 @@ public static class ModelBuilderExtensions
 
     public static void ApplySoftDeleteFilters(this ModelBuilder modelBuilder)
     {
-        var softDeleteEntityTypes = modelBuilder.Model.GetEntityTypes().Where(e => typeof(ISoftDelete).IsAssignableFrom(e.ClrType)).ToList();
+        var softDeleteEntityTypes = modelBuilder.Model.GetEntityTypes().Where(e => typeof(ISoftDeleteEntity).IsAssignableFrom(e.ClrType)).ToList();
 
         foreach (var entityType in softDeleteEntityTypes)
         {
             var entityClrType = entityType.ClrType;
             var method = typeof(ModelBuilderExtensions).GetMethod(nameof(SetSoftDeleteFilter), BindingFlags.NonPublic | BindingFlags.Static)?.MakeGenericMethod(entityClrType);
+
+            method?.Invoke(null, new object[] { modelBuilder });
+        }
+    }
+
+    public static void ApplySuspendibleFilters(this ModelBuilder modelBuilder)
+    {
+        var suspendibleEntityTypes = modelBuilder.Model.GetEntityTypes().Where(e => typeof(ISuspendibleEntity).IsAssignableFrom(e.ClrType)).ToList();
+
+        foreach (var entityType in suspendibleEntityTypes)
+        {
+            var entityClrType = entityType.ClrType;
+            var method = typeof(ModelBuilderExtensions).GetMethod(nameof(SetSuspendibleFilter), BindingFlags.NonPublic | BindingFlags.Static)?.MakeGenericMethod(entityClrType);
 
             method?.Invoke(null, new object[] { modelBuilder });
         }
@@ -40,8 +50,13 @@ public static class ModelBuilderExtensions
         modelBuilder.Entity<T>().HasQueryFilter(e => contextManager.IsSuperAdmin() || (tenantId.HasValue && e.TenantId == tenantId.Value));
     }
 
-    private static void SetSoftDeleteFilter<T>(ModelBuilder modelBuilder) where T : class, ISoftDelete
+    private static void SetSoftDeleteFilter<T>(ModelBuilder modelBuilder) where T : class, ISoftDeleteEntity
     {
         modelBuilder.Entity<T>().HasQueryFilter(e => !e.IsDeleted);
+    }
+
+    private static void SetSuspendibleFilter<T>(ModelBuilder modelBuilder) where T : class, ISuspendibleEntity
+    {
+        modelBuilder.Entity<T>().HasQueryFilter(e => e.EntityStatus == EntityStatus.Active);
     }
 }

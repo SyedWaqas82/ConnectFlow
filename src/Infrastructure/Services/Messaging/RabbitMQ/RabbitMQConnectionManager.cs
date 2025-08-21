@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using ConnectFlow.Infrastructure.Common.Models;
-using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 

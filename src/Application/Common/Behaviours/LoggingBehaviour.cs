@@ -1,6 +1,4 @@
-﻿using ConnectFlow.Application.Common.Interfaces;
-using MediatR.Pipeline;
-using Microsoft.Extensions.Logging;
+﻿using MediatR.Pipeline;
 
 namespace ConnectFlow.Application.Common.Behaviours;
 

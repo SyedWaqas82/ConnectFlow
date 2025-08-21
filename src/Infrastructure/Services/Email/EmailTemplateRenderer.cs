@@ -1,6 +1,5 @@
 using ConnectFlow.Infrastructure.Common.Models;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Options;
 using RazorLight;
 
 namespace ConnectFlow.Infrastructure.Services.Email;

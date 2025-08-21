@@ -1,7 +1,6 @@
 using System.Text;
 using System.Text.Json;
 using ConnectFlow.Application.Common.Messaging;
-using ConnectFlow.Domain.Common;
 using ConnectFlow.Domain.Constants;
 using RabbitMQ.Client;
 

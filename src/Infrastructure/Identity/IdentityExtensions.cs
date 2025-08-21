@@ -1,6 +1,5 @@
 ﻿using ConnectFlow.Application.Common.Models;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 namespace ConnectFlow.Infrastructure.Identity;
 

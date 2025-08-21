@@ -1,10 +1,7 @@
-using ConnectFlow.Application.Common.Interfaces;
 using ConnectFlow.Application.Common.Models;
 using ConnectFlow.Infrastructure.Common.Models;
 using MailKit.Net.Smtp;
 using MailKit.Security;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using MimeKit;
 
 namespace ConnectFlow.Infrastructure.Services.Email;

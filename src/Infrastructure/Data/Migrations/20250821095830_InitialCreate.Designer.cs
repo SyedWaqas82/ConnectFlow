@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ConnectFlow.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250819140836_InitialCreate")]
+    [Migration("20250821095830_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -53,6 +53,9 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<int>("EntityStatus")
+                        .HasColumnType("integer");
+
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -73,11 +76,17 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         .HasColumnType("uuid")
                         .HasDefaultValueSql("gen_random_uuid()");
 
+                    b.Property<DateTimeOffset?>("ResumedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("SettingsJson")
                         .HasColumnType("jsonb");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset?>("SuspendedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("TenantId")
                         .HasColumnType("integer");
@@ -105,7 +114,7 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                     b.ToTable("ChannelAccounts");
                 });
 
-            modelBuilder.Entity("ConnectFlow.Domain.Entities.Subscription", b =>
+            modelBuilder.Entity("ConnectFlow.Domain.Entities.Invoice", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -114,20 +123,7 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("Amount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
-
-                    b.Property<int>("BillingCycle")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("CancelAtPeriodEnd")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTimeOffset?>("CanceledAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CancellationReason")
-                        .HasColumnType("text");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTimeOffset>("Created")
                         .HasColumnType("timestamp with time zone");
@@ -140,59 +136,31 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         .HasMaxLength(3)
                         .HasColumnType("character varying(3)");
 
-                    b.Property<DateTimeOffset?>("CurrentPeriodEndsAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset?>("CurrentPeriodStartsAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("FacebookAccountsLimit")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("InstagramAccountsLimit")
-                        .HasColumnType("integer");
-
                     b.Property<DateTimeOffset>("LastModified")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int?>("LastModifiedBy")
                         .HasColumnType("integer");
 
-                    b.Property<int>("Plan")
-                        .HasColumnType("integer");
+                    b.Property<DateTimeOffset?>("PaidAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("PublicId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasDefaultValueSql("gen_random_uuid()");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("StripeCustomerId")
+                    b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
 
-                    b.Property<string>("StripeSubscriptionId")
+                    b.Property<string>("StripeInvoiceId")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
-                    b.Property<int>("TelegramAccountsLimit")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("TenantId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("TotalAccountsLimit")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTimeOffset?>("TrialEndsAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("UsersLimit")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("WhatsAppAccountsLimit")
+                    b.Property<int>("SubscriptionId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
@@ -204,7 +172,159 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                     b.HasIndex("PublicId")
                         .IsUnique();
 
+                    b.HasIndex("StripeInvoiceId")
+                        .IsUnique();
+
+                    b.HasIndex("SubscriptionId");
+
+                    b.ToTable("Invoices");
+                });
+
+            modelBuilder.Entity("ConnectFlow.Domain.Entities.Plan", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BillingCycle")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("CreatedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("LastModifiedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("MaxChannels")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("MaxFacebookChannels")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("MaxInstagramChannels")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("MaxTelegramChannels")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("MaxUsers")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("MaxWhatsAppChannels")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("PublicId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<string>("StripePriceId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedBy");
+
+                    b.HasIndex("LastModifiedBy");
+
+                    b.HasIndex("PublicId")
+                        .IsUnique();
+
+                    b.ToTable("Plans");
+                });
+
+            modelBuilder.Entity("ConnectFlow.Domain.Entities.Subscription", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("CancelAtPeriodEnd")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset?>("CanceledAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("CreatedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("CurrentPeriodEnd")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("CurrentPeriodStart")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("LastModifiedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PlanId")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("PublicId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("StripeSubscriptionId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedBy");
+
+                    b.HasIndex("LastModifiedBy");
+
+                    b.HasIndex("PlanId");
+
+                    b.HasIndex("PublicId")
+                        .IsUnique();
+
+                    b.HasIndex("StripeSubscriptionId")
+                        .IsUnique();
+
                     b.HasIndex("TenantId");
+
+                    b.HasIndex("TenantId", "Status");
 
                     b.ToTable("Subscriptions");
                 });
@@ -285,6 +405,11 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<string>("StripeCustomerId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<string>("Website")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
@@ -296,6 +421,9 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                     b.HasIndex("LastModifiedBy");
 
                     b.HasIndex("PublicId")
+                        .IsUnique();
+
+                    b.HasIndex("StripeCustomerId")
                         .IsUnique();
 
                     b.ToTable("Tenants");
@@ -315,11 +443,11 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                     b.Property<int?>("CreatedBy")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("InvitedBy")
+                    b.Property<int>("EntityStatus")
                         .HasColumnType("integer");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                    b.Property<int?>("InvitedBy")
+                        .HasColumnType("integer");
 
                     b.Property<DateTimeOffset>("JoinedAt")
                         .HasColumnType("timestamp with time zone");
@@ -338,8 +466,14 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         .HasColumnType("uuid")
                         .HasDefaultValueSql("gen_random_uuid()");
 
+                    b.Property<DateTimeOffset?>("ResumedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("Status")
                         .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset?>("SuspendedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("TenantId")
                         .HasColumnType("integer");
@@ -762,6 +896,40 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                     b.Navigation("Tenant");
                 });
 
+            modelBuilder.Entity("ConnectFlow.Domain.Entities.Invoice", b =>
+                {
+                    b.HasOne("ConnectFlow.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("ConnectFlow.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("LastModifiedBy")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("ConnectFlow.Domain.Entities.Subscription", "Subscription")
+                        .WithMany("Invoices")
+                        .HasForeignKey("SubscriptionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Subscription");
+                });
+
+            modelBuilder.Entity("ConnectFlow.Domain.Entities.Plan", b =>
+                {
+                    b.HasOne("ConnectFlow.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("ConnectFlow.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("LastModifiedBy")
+                        .OnDelete(DeleteBehavior.SetNull);
+                });
+
             modelBuilder.Entity("ConnectFlow.Domain.Entities.Subscription", b =>
                 {
                     b.HasOne("ConnectFlow.Infrastructure.Identity.ApplicationUser", null)
@@ -774,11 +942,19 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         .HasForeignKey("LastModifiedBy")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("ConnectFlow.Domain.Entities.Plan", "Plan")
+                        .WithMany("Subscriptions")
+                        .HasForeignKey("PlanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("ConnectFlow.Domain.Entities.Tenant", "Tenant")
                         .WithMany("Subscriptions")
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Plan");
 
                     b.Navigation("Tenant");
                 });
@@ -898,6 +1074,16 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("ConnectFlow.Domain.Entities.Plan", b =>
+                {
+                    b.Navigation("Subscriptions");
+                });
+
+            modelBuilder.Entity("ConnectFlow.Domain.Entities.Subscription", b =>
+                {
+                    b.Navigation("Invoices");
                 });
 
             modelBuilder.Entity("ConnectFlow.Domain.Entities.Tenant", b =>

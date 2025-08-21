@@ -1,12 +1,9 @@
 using System.Text;
 using System.Text.Json;
-using ConnectFlow.Application.Common.Interfaces;
 using ConnectFlow.Application.Common.Messaging;
-using ConnectFlow.Domain.Common;
 using ConnectFlow.Domain.Constants;
 using ConnectFlow.Infrastructure.Common.Models;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 

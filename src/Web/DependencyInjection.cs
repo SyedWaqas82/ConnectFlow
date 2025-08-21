@@ -4,7 +4,6 @@ using ConnectFlow.Web.Common;
 using Microsoft.AspNetCore.Mvc;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using System.Text;
 

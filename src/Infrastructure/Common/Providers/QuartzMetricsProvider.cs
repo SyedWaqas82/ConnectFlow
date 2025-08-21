@@ -1,5 +1,4 @@
 using System.Diagnostics.Metrics;
-using Microsoft.Extensions.Options;
 using Quartz;
 using Quartz.Impl.Matchers;
 using System.Collections.Concurrent;

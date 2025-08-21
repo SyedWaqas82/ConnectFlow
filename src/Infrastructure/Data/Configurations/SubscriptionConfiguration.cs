@@ -1,5 +1,3 @@
-using ConnectFlow.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ConnectFlow.Infrastructure.Data.Configurations;
@@ -10,14 +8,16 @@ public class SubscriptionConfiguration : BaseAuditableConfiguration<Subscription
     {
         base.Configure(builder);
 
-        builder.Property(s => s.Amount).HasPrecision(18, 2).IsRequired();
-        builder.Property(s => s.Currency).HasMaxLength(3).IsRequired();
-        builder.Property(s => s.Plan).IsRequired();
+        builder.Property(s => s.StripeSubscriptionId).IsRequired().HasMaxLength(50);
         builder.Property(s => s.Status).IsRequired();
         builder.Property(s => s.TenantId).IsRequired();
         builder.HasIndex(s => s.TenantId);
 
+        builder.HasIndex(s => s.StripeSubscriptionId).IsUnique();
+        builder.HasIndex(s => new { s.TenantId, s.Status });
+
         // Configure relationships
+        builder.HasOne(s => s.Plan).WithMany(p => p.Subscriptions).HasForeignKey(s => s.PlanId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(s => s.Tenant).WithMany(t => t.Subscriptions).HasForeignKey(s => s.TenantId).OnDelete(DeleteBehavior.Cascade);
     }
 }

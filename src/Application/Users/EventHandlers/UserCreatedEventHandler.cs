@@ -1,8 +1,6 @@
 using ConnectFlow.Application.Common.Messaging;
 using ConnectFlow.Domain.Constants;
 using ConnectFlow.Domain.Events.Mediator.Users;
-using ConnectFlow.Domain.Events.Messaging;
-using Microsoft.Extensions.Logging;
 
 namespace ConnectFlow.Application.Users.EventHandlers;
 

@@ -1,8 +1,4 @@
-﻿using System.Diagnostics;
-using ConnectFlow.Application.Common.Interfaces;
-using Microsoft.Extensions.Logging;
-
-namespace ConnectFlow.Application.Common.Behaviours;
+﻿namespace ConnectFlow.Application.Common.Behaviours;
 
 public class PerformanceBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : notnull
 {

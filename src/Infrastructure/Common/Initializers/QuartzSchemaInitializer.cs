@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using ConnectFlow.Infrastructure.Common.Providers;
 using ConnectFlow.Infrastructure.Common.Models;
 

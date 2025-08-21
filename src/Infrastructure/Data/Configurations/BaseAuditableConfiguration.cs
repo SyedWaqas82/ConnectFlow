@@ -1,7 +1,4 @@
-using ConnectFlow.Domain.Common;
-using ConnectFlow.Domain.Entities;
 using ConnectFlow.Infrastructure.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ConnectFlow.Infrastructure.Data.Configurations;
@@ -23,6 +20,7 @@ public abstract class BaseAuditableConfiguration<TEntity> : IEntityTypeConfigura
         // Generic tenant and soft delete relationships
         ConfigureTenantRelationship(builder);
         ConfigureSoftDelete(builder);
+        ConfigureEntitySuspension(builder);
     }
 
     protected virtual void ConfigureTenantRelationship(EntityTypeBuilder<TEntity> builder)
@@ -44,11 +42,19 @@ public abstract class BaseAuditableConfiguration<TEntity> : IEntityTypeConfigura
 
     protected virtual void ConfigureSoftDelete(EntityTypeBuilder<TEntity> builder)
     {
-        if (typeof(ISoftDelete).IsAssignableFrom(typeof(TEntity)))
+        if (typeof(ISoftDeleteEntity).IsAssignableFrom(typeof(TEntity)))
         {
             builder.Property<bool>("IsDeleted").HasDefaultValue(false);
 
             builder.HasOne<ApplicationUser>().WithMany().HasForeignKey("DeletedBy").OnDelete(DeleteBehavior.SetNull);
+        }
+    }
+
+    protected virtual void ConfigureEntitySuspension(EntityTypeBuilder<TEntity> builder)
+    {
+        if (typeof(ISuspendibleEntity).IsAssignableFrom(typeof(TEntity)))
+        {
+            builder.Property<EntityStatus>("EntityStatus").IsRequired();
         }
     }
 }

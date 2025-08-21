@@ -1,6 +1,3 @@
-using ConnectFlow.Domain.Entities;
-using ConnectFlow.Domain.Enums;
-
 namespace ConnectFlow.Application.Users.Queries.GetCurrentUserInformation;
 
 public class UserInformationDto
@@ -43,7 +40,6 @@ public class SubscriptionDto
     public int Id { get; init; }
     public Guid PublicId { get; init; }
     public SubscriptionStatus Status { get; init; }
-    public BillingCycle BillingCycle { get; init; }
     public DateTimeOffset CurrentPeriodStartsAt { get; init; }
     public DateTimeOffset CurrentPeriodEndsAt { get; init; }
 

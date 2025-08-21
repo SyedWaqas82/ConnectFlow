@@ -3,7 +3,6 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.Extensions.Options;
 using ConnectFlow.Infrastructure.Identity;
 using ConnectFlow.Infrastructure.Common.Interfaces;
 using System.Security.Cryptography;

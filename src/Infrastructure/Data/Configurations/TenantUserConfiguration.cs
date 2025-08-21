@@ -1,5 +1,3 @@
-using ConnectFlow.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ConnectFlow.Infrastructure.Data.Configurations;
@@ -11,9 +9,8 @@ public class TenantUserConfiguration : BaseAuditableConfiguration<TenantUser>
         base.Configure(builder);
 
         builder.Property(tu => tu.UserId).IsRequired();
-        builder.Property(tu => tu.IsActive).IsRequired();
-        builder.Property(tu => tu.JoinedAt).IsRequired();
         builder.Property(tu => tu.Status).IsRequired();
+        builder.Property(tu => tu.JoinedAt).IsRequired();
         builder.Property(tu => tu.InvitedBy).IsRequired(false);
         builder.Property(tu => tu.LeftAt).IsRequired(false);
         builder.Property(tu => tu.TenantId).IsRequired();

@@ -1,9 +1,7 @@
 ﻿using Asp.Versioning;
-using ConnectFlow.Application.Common.Interfaces;
 using ConnectFlow.Application.WeatherForecasts.Queries.GetWeatherForecasts;
 using ConnectFlow.Infrastructure.Data;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.EntityFrameworkCore;
 
 namespace ConnectFlow.Web.Endpoints;
 
