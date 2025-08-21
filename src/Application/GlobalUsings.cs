@@ -13,3 +13,7 @@ global using ConnectFlow.Domain.Events.Mediator.Subscriptions;
 global using ConnectFlow.Domain.Events.Messaging;
 global using ConnectFlow.Domain.Exceptions;
 global using ConnectFlow.Domain.ValueObjects;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Logging;
+global using Microsoft.Extensions.Options;
+global using System.Diagnostics;

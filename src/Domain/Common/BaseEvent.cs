@@ -8,4 +8,6 @@ public abstract class BaseEvent : INotification
     public Guid? PublicUserId { get; init; }
     public int? TenantId { get; init; }
     public Guid? CorrelationId { get; init; }
+    public Guid Id { get; } = Guid.NewGuid();
+    public DateTimeOffset OccurredOn { get; } = DateTimeOffset.UtcNow;
 }

@@ -1,12 +1,11 @@
 ﻿using ConnectFlow.Application.Common.Models;
-using ConnectFlow.Domain.Enums;
 
 namespace ConnectFlow.Application.Common.Interfaces;
 
 public interface IIdentityService
 {
-    Task<Result<UserToken>> CreateTenantForNewUserAsync(string email, string password, string firstName, string lastName, string? jobTitle = null, string? phoneNumber = null, string? mobile = null, string? timeZone = null, string? locale = null, SubscriptionPlan plan = SubscriptionPlan.Free);
-    Task<Result> CreateTenantForExistingUserAsync(string email, SubscriptionPlan plan = SubscriptionPlan.Free);
+    Task<Result<UserToken>> CreateTenantForNewUserAsync(string email, string password, string firstName, string lastName, string? jobTitle = null, string? phoneNumber = null, string? mobile = null, string? timeZone = null, string? locale = null);
+    Task<Result> CreateTenantForExistingUserAsync(string email);
     Task<Result<UserToken>> JoinTenantAsNewUserAsync(string email, string password, string firstName, string lastName, string[] roles, string? jobTitle = null, string? phoneNumber = null, string? mobile = null, string? timeZone = null, string? locale = null, int? tenantId = null);
     Task<Result> JoinTenantAsExistingUserAsync(string email, string[] roles, int tenantId);
     Task<Result> ConfirmEmailAsync(Guid userId, string confirmationToken);

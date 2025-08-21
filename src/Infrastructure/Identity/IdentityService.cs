@@ -41,7 +41,7 @@ public class IdentityService : IIdentityService
 
     #region User and Tenant Management
 
-    public async Task<Result<UserToken>> CreateTenantForNewUserAsync(string email, string password, string firstName, string lastName, string? jobTitle, string? phoneNumber, string? mobile, string? timeZone, string? locale, SubscriptionPlan plan = SubscriptionPlan.Free)
+    public async Task<Result<UserToken>> CreateTenantForNewUserAsync(string email, string password, string firstName, string lastName, string? jobTitle, string? phoneNumber, string? mobile, string? timeZone, string? locale)
     {
         var validRoles = new[] { Roles.TenantAdmin };
 
@@ -69,7 +69,7 @@ public class IdentityService : IIdentityService
         return Result<UserToken>.Success(new UserToken() { ApplicationUserId = newUser.PublicId, Token = userCreationResult.ConfirmationToken });
     }
 
-    public async Task<Result> CreateTenantForExistingUserAsync(string email, SubscriptionPlan plan = SubscriptionPlan.Free)
+    public async Task<Result> CreateTenantForExistingUserAsync(string email)
     {
         var validRoles = new[] { Roles.TenantAdmin };
 
@@ -458,10 +458,10 @@ public class IdentityService : IIdentityService
             UserId = user.Id,
             TenantId = tenantId,
             InvitedBy = invitedBy,
-            Status = TenantUserStatus.Active,
+            EntityStatus = EntityStatus.Active,
             CreatedBy = invitedBy ?? user.Id,
             JoinedAt = DateTimeOffset.UtcNow,
-            IsActive = true
+            Status = TenantUserStatus.Active
         };
 
         tenantUser.AddDomainEvent(new TenantUserJoinedEvent(tenantUser));

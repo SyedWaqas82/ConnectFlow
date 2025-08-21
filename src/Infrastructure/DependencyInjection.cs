@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using ConnectFlow.Application.Common.Interfaces;
 using ConnectFlow.Domain.Constants;
 using ConnectFlow.Infrastructure.Common.Interfaces;
 using ConnectFlow.Infrastructure.Common.Configuration;
@@ -9,7 +8,6 @@ using ConnectFlow.Infrastructure.Identity;
 using ConnectFlow.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
@@ -74,11 +72,6 @@ public static class DependencyInjection
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddScoped<ICacheService, RedisCacheService>();
         builder.Services.AddScoped<IAuthTokenService, AuthTokenService>();
-        builder.Services.AddScoped<IStripeService, StripeService>();
-
-        // Add subscription management services
-        builder.Services.AddScoped<ISubscriptionManagementService, SubscriptionManagementService>();
-        builder.Services.AddScoped<StripeWebhookHandler>();
 
         // Configure email services
         // This should be after RabbitMQ and Identity services to ensure all dependencies are available

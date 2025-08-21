@@ -1,4 +1,3 @@
-using ConnectFlow.Application.Common.Interfaces;
 using Microsoft.Extensions.Logging;
 
 namespace ConnectFlow.Application.Users.Queries.GetCurrentUserInformation;
@@ -46,7 +45,7 @@ public class GetCurrentUserInformationQueryHandler : IRequestHandler<GetCurrentU
             LastName = user.LastName,
             Email = user.Email,
             Tenants = await _dbContext.Tenants.AsNoTracking()
-                .Where(t => t.TenantUsers.Any(u => u.UserId == applicationUserId && u.IsActive)).ProjectTo<TenantDto>(_mapper.ConfigurationProvider)
+                .Where(t => t.TenantUsers.Any(u => u.UserId == applicationUserId && u.Status == TenantUserStatus.Active)).ProjectTo<TenantDto>(_mapper.ConfigurationProvider)
                 .ToListAsync(cancellationToken)
         };
     }

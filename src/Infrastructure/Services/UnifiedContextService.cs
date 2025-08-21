@@ -1,10 +1,8 @@
 using System.Security.Claims;
-using ConnectFlow.Application.Common.Interfaces;
 using ConnectFlow.Domain.Constants;
 using ConnectFlow.Infrastructure.Identity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 namespace ConnectFlow.Infrastructure.Services;
 
@@ -100,7 +98,7 @@ public class UnifiedContextService : IContextManager
 
             // Find default tenant for this user
             var defaultTenant = await _dbContext.TenantUsers
-                .Where(tu => tu.UserId == user.Id && tu.IsActive)
+                .Where(tu => tu.UserId == user.Id && tu.Status == TenantUserStatus.Active)
                 .OrderByDescending(tu => tu.JoinedAt)
                 .FirstOrDefaultAsync();
 
