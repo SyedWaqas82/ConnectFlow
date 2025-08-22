@@ -17,7 +17,7 @@ public class PlanConfiguration : BaseAuditableConfiguration<Plan>
         // Configure relationships
         builder.HasMany(p => p.Subscriptions).WithOne(s => s.Plan).HasForeignKey(s => s.PlanId).OnDelete(DeleteBehavior.Restrict);
 
-        //SeedPlans(builder);
+        SeedPlans(builder);
     }
 
     private static void SeedPlans(EntityTypeBuilder<Plan> builder)

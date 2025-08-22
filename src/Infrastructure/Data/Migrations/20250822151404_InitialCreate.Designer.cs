@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ConnectFlow.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250821150144_InitialCreate")]
+    [Migration("20250822151404_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -38,7 +38,9 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         .HasColumnType("character varying(100)");
 
                     b.Property<DateTimeOffset>("Created")
-                        .HasColumnType("timestamp with time zone");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<int?>("CreatedBy")
                         .HasColumnType("integer");
@@ -62,7 +64,9 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         .HasDefaultValue(false);
 
                     b.Property<DateTimeOffset>("LastModified")
-                        .HasColumnType("timestamp with time zone");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<int?>("LastModifiedBy")
                         .HasColumnType("integer");
@@ -126,7 +130,9 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTimeOffset>("Created")
-                        .HasColumnType("timestamp with time zone");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<int?>("CreatedBy")
                         .HasColumnType("integer");
@@ -137,7 +143,9 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         .HasColumnType("character varying(3)");
 
                     b.Property<DateTimeOffset>("LastModified")
-                        .HasColumnType("timestamp with time zone");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<int?>("LastModifiedBy")
                         .HasColumnType("integer");
@@ -192,7 +200,9 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         .HasColumnType("integer");
 
                     b.Property<DateTimeOffset>("Created")
-                        .HasColumnType("timestamp with time zone");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<int?>("CreatedBy")
                         .HasColumnType("integer");
@@ -201,7 +211,9 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<DateTimeOffset>("LastModified")
-                        .HasColumnType("timestamp with time zone");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<int?>("LastModifiedBy")
                         .HasColumnType("integer");
@@ -255,6 +267,84 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("Plans");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            BillingCycle = 1,
+                            Created = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            IsActive = true,
+                            LastModified = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            MaxChannels = 1,
+                            MaxFacebookChannels = 0,
+                            MaxInstagramChannels = 0,
+                            MaxTelegramChannels = 0,
+                            MaxUsers = 2,
+                            MaxWhatsAppChannels = 1,
+                            Name = "Free",
+                            PaymentProviderPriceId = "price_free",
+                            Price = 0m,
+                            PublicId = new Guid("00000000-0000-0000-0000-000000000000"),
+                            Type = 1
+                        },
+                        new
+                        {
+                            Id = 2,
+                            BillingCycle = 1,
+                            Created = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            IsActive = true,
+                            LastModified = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            MaxChannels = 3,
+                            MaxFacebookChannels = 1,
+                            MaxInstagramChannels = 1,
+                            MaxTelegramChannels = 1,
+                            MaxUsers = 5,
+                            MaxWhatsAppChannels = 2,
+                            Name = "Starter",
+                            PaymentProviderPriceId = "price_starter_monthly",
+                            Price = 29.99m,
+                            PublicId = new Guid("00000000-0000-0000-0000-000000000000"),
+                            Type = 2
+                        },
+                        new
+                        {
+                            Id = 3,
+                            BillingCycle = 1,
+                            Created = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            IsActive = true,
+                            LastModified = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            MaxChannels = 10,
+                            MaxFacebookChannels = 3,
+                            MaxInstagramChannels = 3,
+                            MaxTelegramChannels = 3,
+                            MaxUsers = 25,
+                            MaxWhatsAppChannels = 5,
+                            Name = "Professional",
+                            PaymentProviderPriceId = "price_pro_monthly",
+                            Price = 99.99m,
+                            PublicId = new Guid("00000000-0000-0000-0000-000000000000"),
+                            Type = 4
+                        },
+                        new
+                        {
+                            Id = 4,
+                            BillingCycle = 1,
+                            Created = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            IsActive = true,
+                            LastModified = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            MaxChannels = 50,
+                            MaxFacebookChannels = 15,
+                            MaxInstagramChannels = 15,
+                            MaxTelegramChannels = 15,
+                            MaxUsers = 100,
+                            MaxWhatsAppChannels = 20,
+                            Name = "Enterprise",
+                            PaymentProviderPriceId = "price_enterprise_monthly",
+                            Price = 299.99m,
+                            PublicId = new Guid("00000000-0000-0000-0000-000000000000"),
+                            Type = 5
+                        });
                 });
 
             modelBuilder.Entity("ConnectFlow.Domain.Entities.Subscription", b =>
@@ -272,7 +362,9 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTimeOffset>("Created")
-                        .HasColumnType("timestamp with time zone");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<int?>("CreatedBy")
                         .HasColumnType("integer");
@@ -284,7 +376,9 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTimeOffset>("LastModified")
-                        .HasColumnType("timestamp with time zone");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<int?>("LastModifiedBy")
                         .HasColumnType("integer");
@@ -354,7 +448,9 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         .HasColumnType("character varying(100)");
 
                     b.Property<DateTimeOffset>("Created")
-                        .HasColumnType("timestamp with time zone");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<int?>("CreatedBy")
                         .HasColumnType("integer");
@@ -375,7 +471,9 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         .HasColumnType("character varying(100)");
 
                     b.Property<DateTimeOffset>("LastModified")
-                        .HasColumnType("timestamp with time zone");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<int?>("LastModifiedBy")
                         .HasColumnType("integer");
@@ -438,7 +536,9 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTimeOffset>("Created")
-                        .HasColumnType("timestamp with time zone");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<int?>("CreatedBy")
                         .HasColumnType("integer");
@@ -453,7 +553,9 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTimeOffset>("LastModified")
-                        .HasColumnType("timestamp with time zone");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<int?>("LastModifiedBy")
                         .HasColumnType("integer");
@@ -515,13 +617,17 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         .HasColumnType("integer");
 
                     b.Property<DateTimeOffset>("Created")
-                        .HasColumnType("timestamp with time zone");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<int?>("CreatedBy")
                         .HasColumnType("integer");
 
                     b.Property<DateTimeOffset>("LastModified")
-                        .HasColumnType("timestamp with time zone");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<int?>("LastModifiedBy")
                         .HasColumnType("integer");
@@ -609,7 +715,7 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedDate = new DateTimeOffset(new DateTime(2025, 7, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedDate = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Full system access across all tenants",
                             IsSystemRole = true,
                             Name = "SuperAdmin",
@@ -618,7 +724,7 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         new
                         {
                             Id = 2,
-                            CreatedDate = new DateTimeOffset(new DateTime(2025, 7, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedDate = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Full access within assigned tenant",
                             IsSystemRole = true,
                             Name = "TenantAdmin",
@@ -627,7 +733,7 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         new
                         {
                             Id = 3,
-                            CreatedDate = new DateTimeOffset(new DateTime(2025, 7, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedDate = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Regular user access within assigned tenant",
                             IsSystemRole = true,
                             Name = "NonTenantAdmin",

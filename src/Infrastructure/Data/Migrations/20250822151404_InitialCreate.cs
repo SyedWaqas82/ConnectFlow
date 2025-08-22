@@ -198,9 +198,9 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                     MaxTelegramChannels = table.Column<int>(type: "integer", nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     PublicId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    Created = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    Created = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     CreatedBy = table.Column<int>(type: "integer", nullable: true),
-                    LastModified = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    LastModified = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     LastModifiedBy = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
@@ -242,9 +242,9 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                     Settings = table.Column<string>(type: "jsonb", nullable: true),
                     DeactivatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     PublicId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    Created = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    Created = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     CreatedBy = table.Column<int>(type: "integer", nullable: true),
-                    LastModified = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    LastModified = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     LastModifiedBy = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
@@ -284,9 +284,9 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                     DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     DeletedBy = table.Column<int>(type: "integer", nullable: true),
                     PublicId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    Created = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    Created = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     CreatedBy = table.Column<int>(type: "integer", nullable: true),
-                    LastModified = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    LastModified = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     LastModifiedBy = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
@@ -333,9 +333,9 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                     PlanId = table.Column<int>(type: "integer", nullable: false),
                     TenantId = table.Column<int>(type: "integer", nullable: false),
                     PublicId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    Created = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    Created = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     CreatedBy = table.Column<int>(type: "integer", nullable: true),
-                    LastModified = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    LastModified = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     LastModifiedBy = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
@@ -383,9 +383,9 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                     ResumedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     TenantId = table.Column<int>(type: "integer", nullable: false),
                     PublicId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    Created = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    Created = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     CreatedBy = table.Column<int>(type: "integer", nullable: true),
-                    LastModified = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    LastModified = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     LastModifiedBy = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
@@ -430,9 +430,9 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                     PaidAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     SubscriptionId = table.Column<int>(type: "integer", nullable: false),
                     PublicId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    Created = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    Created = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     CreatedBy = table.Column<int>(type: "integer", nullable: true),
-                    LastModified = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    LastModified = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     LastModifiedBy = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
@@ -470,9 +470,9 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                     AssignedBy = table.Column<int>(type: "integer", nullable: true),
                     TenantUserId = table.Column<int>(type: "integer", nullable: false),
                     PublicId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    Created = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    Created = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     CreatedBy = table.Column<int>(type: "integer", nullable: true),
-                    LastModified = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    LastModified = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     LastModifiedBy = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
@@ -506,12 +506,23 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
 
             migrationBuilder.InsertData(
                 table: "AspNetRoles",
-                columns: new[] { "Id", "ConcurrencyStamp", "CreatedDate", "Description", "IsSystemRole", "Name", "NormalizedName" },
+                columns: new[] { "Id", "ConcurrencyStamp", "Description", "IsSystemRole", "Name", "NormalizedName" },
                 values: new object[,]
                 {
-                    { 1, null, new DateTimeOffset(new DateTime(2025, 7, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), "Full system access across all tenants", true, "SuperAdmin", "SUPERADMIN" },
-                    { 2, null, new DateTimeOffset(new DateTime(2025, 7, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), "Full access within assigned tenant", true, "TenantAdmin", "TENANTADMIN" },
-                    { 3, null, new DateTimeOffset(new DateTime(2025, 7, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), "Regular user access within assigned tenant", true, "NonTenantAdmin", "NONTENANTADMIN" }
+                    { 1, null, "Full system access across all tenants", true, "SuperAdmin", "SUPERADMIN" },
+                    { 2, null, "Full access within assigned tenant", true, "TenantAdmin", "TENANTADMIN" },
+                    { 3, null, "Regular user access within assigned tenant", true, "NonTenantAdmin", "NONTENANTADMIN" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Plans",
+                columns: new[] { "Id", "BillingCycle", "CreatedBy", "IsActive", "LastModifiedBy", "MaxChannels", "MaxFacebookChannels", "MaxInstagramChannels", "MaxTelegramChannels", "MaxUsers", "MaxWhatsAppChannels", "Name", "PaymentProviderPriceId", "Price", "Type" },
+                values: new object[,]
+                {
+                    { 1, 1, null, true, null, 1, 0, 0, 0, 2, 1, "Free", "price_free", 0m, 1 },
+                    { 2, 1, null, true, null, 3, 1, 1, 1, 5, 2, "Starter", "price_starter_monthly", 29.99m, 2 },
+                    { 3, 1, null, true, null, 10, 3, 3, 3, 25, 5, "Professional", "price_pro_monthly", 99.99m, 4 },
+                    { 4, 1, null, true, null, 50, 15, 15, 15, 100, 20, "Enterprise", "price_enterprise_monthly", 299.99m, 5 }
                 });
 
             migrationBuilder.CreateIndex(

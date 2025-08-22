@@ -4,7 +4,7 @@ public class TenantUser : BaseAuditableEntity, ISuspendibleEntity
 {
     public int UserId { get; set; } = default!;
     public TenantUserStatus Status { get; set; } = TenantUserStatus.Active;
-    public DateTimeOffset JoinedAt { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset JoinedAt { get; set; }
     public DateTimeOffset? LeftAt { get; set; }
     public int? InvitedBy { get; set; } // UserId of inviter
 

@@ -12,6 +12,9 @@ public abstract class BaseAuditableConfiguration<TEntity> : IEntityTypeConfigura
         builder.HasIndex(t => t.PublicId).IsUnique();
         builder.Property(t => t.PublicId).HasDefaultValueSql("gen_random_uuid()").IsRequired(); // PostgreSQL
         //builder.Property(t => t.PublicId).HasDefaultValueSql("newid()").IsRequired(); // SQL Server
+        //builder.Property(t => t.Created).HasDefaultValueSql("CURRENT_TIMESTAMP");
+        builder.Property(t => t.Created).HasDefaultValueSql("now()"); // PostgreSQL default value
+        builder.Property(t => t.LastModified).HasDefaultValueSql("now()"); // PostgreSQL default value
 
         // Common navigation properties
         builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(t => t.CreatedBy).OnDelete(DeleteBehavior.SetNull);

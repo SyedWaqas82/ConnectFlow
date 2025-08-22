@@ -15,7 +15,7 @@ public class ApplicationUser : IdentityUser<int>
     public string Locale { get; set; } = "en-US";
     public bool IsActive { get; set; } = true;
     public string? Preferences { get; set; } // JSON string for user preferences
-    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset? LastLoginAt { get; set; }
     public DateTimeOffset? DeactivatedAt { get; set; }
 

@@ -28,7 +28,6 @@ public class ApplicationRoleConfiguration : IEntityTypeConfiguration<Application
                     NormalizedName = Roles.SuperAdmin.ToUpperInvariant(),
                     Description = "Full system access across all tenants",
                     IsSystemRole = true,
-                    CreatedDate = new DateTime(2025, 07, 25, 0, 0, 0, DateTimeKind.Utc)
                 },
                 new ApplicationRole
                 {
@@ -37,7 +36,6 @@ public class ApplicationRoleConfiguration : IEntityTypeConfiguration<Application
                     NormalizedName = Roles.TenantAdmin.ToUpperInvariant(),
                     Description = "Full access within assigned tenant",
                     IsSystemRole = true,
-                    CreatedDate = new DateTime(2025, 07, 25, 0, 0, 0, DateTimeKind.Utc)
                 },
                 new ApplicationRole
                 {
@@ -46,7 +44,6 @@ public class ApplicationRoleConfiguration : IEntityTypeConfiguration<Application
                     NormalizedName = Roles.NonTenantAdmin.ToUpperInvariant(),
                     Description = "Regular user access within assigned tenant",
                     IsSystemRole = true,
-                    CreatedDate = new DateTime(2025, 07, 25, 0, 0, 0, DateTimeKind.Utc)
                 }
             };
 
