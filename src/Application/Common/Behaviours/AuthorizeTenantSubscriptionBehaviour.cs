@@ -28,7 +28,7 @@ public class AuthorizeTenantSubscriptionBehaviour<TRequest, TResponse> : IPipeli
             if (!hasActiveSubscription)
                 throw new SubscriptionRequiredException("This operation requires an active subscription.");
 
-            if (attribute.Roles != null)
+            if (!string.IsNullOrEmpty(attribute.Roles))
             {
                 var roles = attribute.Roles.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
