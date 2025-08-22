@@ -40,14 +40,40 @@ public class SubscriptionDto
     public int Id { get; init; }
     public Guid PublicId { get; init; }
     public SubscriptionStatus Status { get; init; }
-    public DateTimeOffset CurrentPeriodStartsAt { get; init; }
-    public DateTimeOffset CurrentPeriodEndsAt { get; init; }
+    public DateTimeOffset CurrentPeriodStart { get; init; }
+    public DateTimeOffset CurrentPeriodEnd { get; init; }
+    public PlanDto Plan { get; init; } = new PlanDto();
 
     private class Mapping : Profile
     {
         public Mapping()
         {
             CreateMap<Subscription, SubscriptionDto>();
+        }
+    }
+}
+
+public class PlanDto
+{
+    public int Id { get; init; }
+    public Guid PublicId { get; init; }
+    public string Name { get; init; } = string.Empty;
+    public decimal Price { get; init; }
+    public PlanType Type { get; init; }
+    public BillingCycle BillingCycle { get; init; }
+    public int MaxUsers { get; init; }
+    public int MaxChannels { get; init; }
+    public int MaxWhatsAppChannels { get; init; }
+    public int MaxFacebookChannels { get; init; }
+    public int MaxInstagramChannels { get; init; }
+    public int MaxTelegramChannels { get; init; }
+    public bool IsActive { get; init; }
+
+    private class Mapping : Profile
+    {
+        public Mapping()
+        {
+            CreateMap<Plan, PlanDto>();
         }
     }
 }

@@ -1,10 +1,7 @@
 ﻿using ConnectFlow.Domain.Constants;
-using ConnectFlow.Domain.Entities;
-using ConnectFlow.Domain.Enums;
 using ConnectFlow.Infrastructure.Identity;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 namespace ConnectFlow.Infrastructure.Data;
 
@@ -131,6 +128,7 @@ public class ApplicationDbContextInitialiser
                     Domain = "Default Tenant",
                     Name = "Default Tenant",
                     Description = "Default Tenant",
+                    PaymentProviderCustomerId = "cus_default", // Placeholder, replace with actual Stripe customer ID
                     CreatedBy = tenantAdmin.Id,
                 };
 
@@ -143,10 +141,8 @@ public class ApplicationDbContextInitialiser
                 UserId = tenantAdmin.Id,
                 TenantId = tenant.Id,
                 InvitedBy = tenantAdmin.Id,
-                Status = TenantUserStatus.Active,
                 CreatedBy = tenantAdmin.Id,
                 JoinedAt = DateTimeOffset.UtcNow,
-                IsActive = true,
             };
 
             tenantUser.TenantUserRoles.Add(new TenantUserRole
@@ -163,11 +159,15 @@ public class ApplicationDbContextInitialiser
             var subscription = _context.Subscriptions.FirstOrDefault(s => s.TenantId == tenant.Id);
             if (subscription == null)
             {
-                subscription = SubscriptionPlans.EnterpriseUnlimited;
-                subscription.StripeCustomerId = "cus_default"; // Placeholder, replace with actual Stripe customer ID
-                subscription.StripeSubscriptionId = "sub_default"; // Placeholder, replace with actual Stripe subscription
-                subscription.TenantId = tenant.Id;
-                subscription.CreatedBy = tenantAdmin.Id;
+                subscription = new Subscription
+                {
+                    PaymentProviderSubscriptionId = "sub_default", // Placeholder, replace with actual Stripe subscription
+                    Status = SubscriptionStatus.Active,
+                    CurrentPeriodStart = DateTimeOffset.UtcNow,
+                    PlanId = 2,
+                    TenantId = tenant.Id,
+                    CreatedBy = tenantAdmin.Id
+                };
 
                 _context.Subscriptions.Add(subscription);
                 await _context.SaveChangesAsync();
