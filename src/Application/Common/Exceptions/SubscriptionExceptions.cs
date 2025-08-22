@@ -21,23 +21,11 @@ public class SubscriptionLimitExceededException : Exception
     public int CurrentLimit { get; }
     public int CurrentUsage { get; }
 
-    public SubscriptionLimitExceededException(string limitType, int currentLimit, int currentUsage)
-        : base($"{limitType} limit exceeded. Current limit: {currentLimit}, Current usage: {currentUsage}")
+    public SubscriptionLimitExceededException(string limitType, int currentLimit, int currentUsage) : base($"{limitType} limit exceeded. Current limit: {currentLimit}, Current usage: {currentUsage}")
     {
         LimitType = limitType;
         CurrentLimit = currentLimit;
         CurrentUsage = currentUsage;
-    }
-}
-
-public class InvalidSubscriptionStateException : Exception
-{
-    public InvalidSubscriptionStateException(string message) : base(message)
-    {
-    }
-
-    public InvalidSubscriptionStateException(string message, Exception innerException) : base(message, innerException)
-    {
     }
 }
 

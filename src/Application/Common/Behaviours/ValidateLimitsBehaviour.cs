@@ -1,8 +1,6 @@
 using System.Reflection;
 using ConnectFlow.Application.Common.Exceptions;
-using ConnectFlow.Application.Common.Interfaces;
 using ConnectFlow.Application.Common.Security;
-using ConnectFlow.Domain.Enums;
 
 namespace ConnectFlow.Application.Common.Behaviours;
 
@@ -11,13 +9,13 @@ namespace ConnectFlow.Application.Common.Behaviours;
 /// </summary>
 public class ValidateLimitsBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : notnull
 {
-    private readonly ISubscriptionManagementService _subscriptionManagementService;
     private readonly IContextManager _contextManager;
+    private readonly ISubscriptionManagementService _subscriptionManagementService;
 
-    public ValidateLimitsBehaviour(ISubscriptionManagementService subscriptionManagementService, IContextManager contextManager)
+    public ValidateLimitsBehaviour(IContextManager contextManager, ISubscriptionManagementService subscriptionManagementService)
     {
-        _subscriptionManagementService = subscriptionManagementService;
         _contextManager = contextManager;
+        _subscriptionManagementService = subscriptionManagementService;
     }
 
     public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
@@ -33,19 +31,12 @@ public class ValidateLimitsBehaviour<TRequest, TResponse> : IPipelineBehavior<TR
         if (!tenantId.HasValue || _contextManager.IsSuperAdmin())
             return await next();
 
-        foreach (var limitValidationType in attribute.LimitValidationTypes.Distinct())
+        foreach (var entityType in attribute.LimitValidationTypes.Distinct())
         {
-            var validationResult = await _subscriptionManagementService.ValidateOperationAsync(limitValidationType, 1, cancellationToken);
-
-            if (!validationResult.IsValid)
+            var count = await _subscriptionManagementService.CanAddEntityAsync(entityType, cancellationToken);
+            if (!count.CanAdd)
             {
-                throw new EntityLimitExceededException(
-                    limitValidationType,
-                    validationResult.CurrentUsage ?? 0,
-                    validationResult.AllowedLimit ?? 0,
-                    validationResult.UpgradeRecommendation,
-                    validationResult.RecommendedPlan,
-                    validationResult.RecommendedPlanPrice);
+                throw new SubscriptionLimitExceededException(entityType.ToString(), count.MaxCount, count.CurrentCount);
             }
         }
 
