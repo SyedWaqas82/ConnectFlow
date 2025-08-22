@@ -1,6 +1,5 @@
 namespace ConnectFlow.Domain.Constants;
 
-
 public class EmailTemplates
 {
     public const string Welcome = nameof(Welcome);

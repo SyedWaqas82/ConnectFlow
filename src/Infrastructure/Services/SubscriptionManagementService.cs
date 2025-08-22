@@ -1,6 +1,6 @@
 using ConnectFlow.Application.Common.Exceptions;
 
-namespace ConnectFlow.Infrastructure.Services.Payment;
+namespace ConnectFlow.Infrastructure.Services;
 
 public class SubscriptionManagementService : ISubscriptionManagementService
 {

@@ -28,11 +28,9 @@ public class AuthorizeTenantSubscriptionBehaviour<TRequest, TResponse> : IPipeli
             if (!hasActiveSubscription)
                 throw new SubscriptionRequiredException("This operation requires an active subscription.");
 
-            if (!string.IsNullOrEmpty(attribute.Roles))
+            if (attribute.Roles != null && attribute.Roles.Count > 0)
             {
-                var roles = attribute.Roles.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-
-                var authorized = await AuthorizeAsync(roles, attribute.AllowSuperAdmin);
+                var authorized = await AuthorizeAsync(attribute.Roles.ToArray(), attribute.AllowSuperAdmin);
 
                 if (!authorized)
                     throw new ForbiddenAccessException();

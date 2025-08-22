@@ -14,8 +14,4 @@
     <PackageReference Include="MediatR" /> <!-- Last OpenSource MediatR version -->
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Events/Mediator/Subscriptions/" />
-  </ItemGroup>
-
 </Project>

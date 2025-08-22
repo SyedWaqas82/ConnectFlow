@@ -20,6 +20,7 @@ using ConnectFlow.Domain.Events.Messaging;
 using ConnectFlow.Infrastructure.Services.Messaging.RabbitMQ.Consumers;
 using ConnectFlow.Application.Common.Messaging.Handlers;
 using ConnectFlow.Infrastructure.Services.Payment.Configuration;
+using ConnectFlow.Infrastructure.Services.Payment;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -79,6 +80,10 @@ public static class DependencyInjection
 
         // Configure context services
         builder.AddContextServices();
+
+        // Register payment and subscription services
+        builder.Services.AddScoped<IPaymentService, StripeService>();
+        builder.Services.AddScoped<ISubscriptionManagementService, SubscriptionManagementService>();
 
         // Register IIdentityService after all dependencies are registered
         builder.Services.AddTransient<IIdentityService, IdentityService>();

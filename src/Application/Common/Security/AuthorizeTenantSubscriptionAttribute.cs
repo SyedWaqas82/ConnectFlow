@@ -6,15 +6,12 @@ namespace ConnectFlow.Application.Common.Security;
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
 public class AuthorizeTenantSubscriptionAttribute : Attribute
 {
-    public AuthorizeTenantSubscriptionAttribute() { }
+    public IReadOnlyList<string> Roles { get; }
+    public bool AllowSuperAdmin { get; }
 
-    /// <summary>
-    /// Gets the comma-delimited list of roles that are allowed to access the resource.
-    /// </summary>
-    public string Roles { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Gets a value indicating whether SuperAdmin is allowed.
-    /// </summary>
-    public bool AllowSuperAdmin { get; set; } = true;
+    public AuthorizeTenantSubscriptionAttribute(bool allowSuperAdmin = true, params string[] roles)
+    {
+        AllowSuperAdmin = allowSuperAdmin;
+        Roles = roles ?? Array.Empty<string>();
+    }
 }
