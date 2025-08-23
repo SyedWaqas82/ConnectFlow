@@ -18,6 +18,7 @@ public class TenantDto
         Subscriptions = Array.Empty<SubscriptionDto>();
     }
 
+    public int Id { get; init; }
     public Guid PublicId { get; init; }
     public string Name { get; init; } = string.Empty;
     public IReadOnlyCollection<string> Roles { get; init; }
@@ -36,6 +37,7 @@ public class TenantDto
 
 public record SubscriptionDto
 {
+    public int Id { get; init; }
     public Guid PublicId { get; init; }
     public SubscriptionStatus Status { get; init; }
     public DateTimeOffset CurrentPeriodStart { get; init; }
@@ -53,6 +55,7 @@ public record SubscriptionDto
 
 public record PlanDto
 {
+    public int Id { get; init; }
     public Guid PublicId { get; init; }
     public string Name { get; init; } = string.Empty;
     public decimal Price { get; init; }

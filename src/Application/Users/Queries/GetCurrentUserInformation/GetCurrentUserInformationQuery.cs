@@ -1,5 +1,8 @@
+using ConnectFlow.Application.Common.Security;
+
 namespace ConnectFlow.Application.Users.Queries.GetCurrentUserInformation;
 
+[Authorize]
 public record GetCurrentUserInformationQuery : IRequest<UserInformationDto>;
 
 public class GetCurrentUserInformationQueryHandler : IRequestHandler<GetCurrentUserInformationQuery, UserInformationDto>
