@@ -39,7 +39,7 @@ public record SubscriptionDto
 {
     public int Id { get; init; }
     public Guid PublicId { get; init; }
-    public SubscriptionStatus Status { get; init; }
+    public string Status { get; init; } = string.Empty;
     public DateTimeOffset CurrentPeriodStart { get; init; }
     public DateTimeOffset CurrentPeriodEnd { get; init; }
     public PlanDto Plan { get; init; } = new PlanDto();
@@ -48,7 +48,9 @@ public record SubscriptionDto
     {
         public Mapping()
         {
-            CreateMap<Subscription, SubscriptionDto>();
+            CreateMap<Subscription, SubscriptionDto>()
+                .ForMember(dest => dest.Plan, opt => opt.MapFrom(src => src.Plan))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));
         }
     }
 }
@@ -59,8 +61,8 @@ public record PlanDto
     public Guid PublicId { get; init; }
     public string Name { get; init; } = string.Empty;
     public decimal Price { get; init; }
-    public PlanType Type { get; init; }
-    public BillingCycle BillingCycle { get; init; }
+    public string Type { get; init; } = string.Empty;
+    public string BillingCycle { get; init; } = string.Empty;
     public int MaxUsers { get; init; }
     public int MaxChannels { get; init; }
     public int MaxWhatsAppChannels { get; init; }
@@ -73,7 +75,9 @@ public record PlanDto
     {
         public Mapping()
         {
-            CreateMap<Plan, PlanDto>();
+            CreateMap<Plan, PlanDto>()
+                .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type.ToString()))
+                .ForMember(dest => dest.BillingCycle, opt => opt.MapFrom(src => src.BillingCycle.ToString()));
         }
     }
 }

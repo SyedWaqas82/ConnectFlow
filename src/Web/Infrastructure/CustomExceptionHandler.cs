@@ -16,6 +16,7 @@ public class CustomExceptionHandler : IExceptionHandler
                 { typeof(ValidationException), HandleValidationException },
                 { typeof(NotFoundException), HandleNotFoundException },
                 { typeof(UnauthorizedAccessException), HandleUnauthorizedAccessException },
+                { typeof(TenantNotFoundException), HandleTenantNotFoundException },
                 { typeof(ForbiddenAccessException), HandleForbiddenAccessException },
             };
     }
@@ -70,6 +71,18 @@ public class CustomExceptionHandler : IExceptionHandler
             Status = StatusCodes.Status401Unauthorized,
             Title = "Unauthorized",
             Type = "https://tools.ietf.org/html/rfc7235#section-3.1"
+        });
+    }
+
+    private async Task HandleTenantNotFoundException(HttpContext httpContext, Exception ex)
+    {
+        httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
+
+        await httpContext.Response.WriteAsJsonAsync(new ProblemDetails
+        {
+            Status = StatusCodes.Status404NotFound,
+            Title = "Tenant Not Found or Invalid",
+            Type = "https://tools.ietf.org/html/rfc7231#section-6.5.4"
         });
     }
 

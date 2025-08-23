@@ -423,19 +423,9 @@ public class SubscriptionManagementService : ISubscriptionManagementService
         var tenantId = _contextManager.GetCurrentTenantId();
         if (!tenantId.HasValue)
         {
-            throw new ForbiddenAccessException();
+            throw new TenantNotFoundException();
         }
         return tenantId.Value;
-    }
-
-    private Guid GetCurrentUserId()
-    {
-        var userId = _contextManager.GetCurrentUserId();
-        if (!userId.HasValue)
-        {
-            throw new ForbiddenAccessException();
-        }
-        return userId.Value;
     }
 
     private int GetCurrentApplicationUserId()
@@ -443,7 +433,7 @@ public class SubscriptionManagementService : ISubscriptionManagementService
         var userId = _contextManager.GetCurrentApplicationUserId();
         if (!userId.HasValue)
         {
-            throw new ForbiddenAccessException();
+            throw new UnauthorizedAccessException();
         }
         return userId.Value;
     }

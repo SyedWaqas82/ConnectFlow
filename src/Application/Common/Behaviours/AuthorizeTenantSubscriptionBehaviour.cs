@@ -31,6 +31,11 @@ public class AuthorizeTenantSubscriptionBehaviour<TRequest, TResponse> : IPipeli
                 throw new UnauthorizedAccessException();
             }
 
+            if (_contextManager.GetCurrentTenantId().HasValue == false)
+            {
+                throw new TenantNotFoundException();
+            }
+
             var hasActiveSubscription = await _subscriptionManagementService.IsCurrentUserFromCurrentTenantHasActiveSubscriptionAsync(attribute.AllowSuperAdmin);
 
             if (!hasActiveSubscription)
