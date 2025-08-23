@@ -2,7 +2,7 @@ using ConnectFlow.Application.Common.Models;
 
 namespace ConnectFlow.Application.Users.Commands.CreateUser;
 
-public class CreateUserCommand : IRequest<Result<UserToken>>
+public record CreateUserCommand : IRequest<Result<UserToken>>
 {
     public string Email { get; init; } = string.Empty;
     public string Password { get; init; } = string.Empty;

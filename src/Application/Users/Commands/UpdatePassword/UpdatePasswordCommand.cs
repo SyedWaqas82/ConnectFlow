@@ -2,7 +2,7 @@ using ConnectFlow.Application.Common.Models;
 
 namespace ConnectFlow.Application.Users.Commands.UpdatePassword;
 
-public class UpdatePasswordCommand : IRequest<Result>
+public record UpdatePasswordCommand : IRequest<Result>
 {
     public Guid UserId { get; init; }
     public string PasswordToken { get; init; } = string.Empty;

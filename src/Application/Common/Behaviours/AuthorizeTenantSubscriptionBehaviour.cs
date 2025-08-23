@@ -10,10 +10,12 @@ namespace ConnectFlow.Application.Common.Behaviours;
 /// </summary>
 public class AuthorizeTenantSubscriptionBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : notnull
 {
+    private readonly IContextManager _contextManager;
     private readonly ISubscriptionManagementService _subscriptionManagementService;
 
-    public AuthorizeTenantSubscriptionBehaviour(ISubscriptionManagementService subscriptionManagementService)
+    public AuthorizeTenantSubscriptionBehaviour(IContextManager contextManager, ISubscriptionManagementService subscriptionManagementService)
     {
+        _contextManager = contextManager;
         _subscriptionManagementService = subscriptionManagementService;
     }
 
@@ -23,6 +25,12 @@ public class AuthorizeTenantSubscriptionBehaviour<TRequest, TResponse> : IPipeli
 
         if (attribute != null)
         {
+            // Must be authenticated user
+            if (_contextManager.GetCurrentUserId().HasValue == false)
+            {
+                throw new UnauthorizedAccessException();
+            }
+
             var hasActiveSubscription = await _subscriptionManagementService.IsCurrentUserFromCurrentTenantHasActiveSubscriptionAsync(attribute.AllowSuperAdmin);
 
             if (!hasActiveSubscription)

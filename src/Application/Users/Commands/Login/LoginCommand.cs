@@ -2,7 +2,7 @@ using ConnectFlow.Application.Common.Models;
 
 namespace ConnectFlow.Application.Users.Commands.Login;
 
-public class LoginCommand : IRequest<Result<AuthToken>>
+public record LoginCommand : IRequest<Result<AuthToken>>
 {
     public string Email { get; init; } = string.Empty;
     public string Password { get; init; } = string.Empty;

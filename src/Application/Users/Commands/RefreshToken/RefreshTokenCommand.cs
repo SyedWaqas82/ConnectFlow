@@ -2,7 +2,7 @@ using ConnectFlow.Application.Common.Models;
 
 namespace ConnectFlow.Application.Users.Commands.RefreshToken;
 
-public class RefreshTokenCommand : IRequest<Result<AuthToken>>
+public record RefreshTokenCommand : IRequest<Result<AuthToken>>
 {
     public string AccessToken { get; init; } = string.Empty;
     public string RefreshToken { get; init; } = string.Empty;

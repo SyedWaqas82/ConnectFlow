@@ -1,6 +1,6 @@
 namespace ConnectFlow.Application.Users.Queries.GetCurrentUserInformation;
 
-public class GetCurrentUserInformationQuery : IRequest<UserInformationDto>;
+public record GetCurrentUserInformationQuery : IRequest<UserInformationDto>;
 
 public class GetCurrentUserInformationQueryHandler : IRequestHandler<GetCurrentUserInformationQuery, UserInformationDto>
 {

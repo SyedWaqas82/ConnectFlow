@@ -2,7 +2,7 @@ using ConnectFlow.Application.Common.Models;
 
 namespace ConnectFlow.Application.Users.Commands.ResetPassword;
 
-public class ResetPasswordCommand : IRequest<Result<UserToken>>
+public record ResetPasswordCommand : IRequest<Result<UserToken>>
 {
     public string Email { get; init; } = string.Empty;
 }

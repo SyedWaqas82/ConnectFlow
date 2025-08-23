@@ -1,6 +1,6 @@
 ﻿namespace ConnectFlow.Application.WeatherForecasts.Queries.GetWeatherForecasts;
 
-public class WeatherForecast
+public record WeatherForecast
 {
     public DateTime Date { get; init; }
 

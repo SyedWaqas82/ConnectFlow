@@ -6,6 +6,7 @@ using ConnectFlow.Application.Users.Commands.RefreshToken;
 using ConnectFlow.Application.Users.Commands.ResetPassword;
 using ConnectFlow.Application.Users.Commands.UpdatePassword;
 using ConnectFlow.Application.Users.Queries.GetCurrentUserInformation;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace ConnectFlow.Web.Endpoints;
 
@@ -26,38 +27,38 @@ public class Users : EndpointGroupBase
             .MapGet(GetCurrentUserInformation, "GetCurrentUserInformation");
     }
 
-    public async Task<Result<UserToken>> Register(ISender sender, CreateUserCommand request)
+    public async Task<Ok<Result<UserToken>>> Register(ISender sender, CreateUserCommand request)
     {
-        return await sender.Send(request);
+        return TypedResults.Ok(await sender.Send(request));
     }
 
-    public Task<Result> ConfirmEmail(ISender sender, ConfirmEmailCommand command)
+    public async Task<Ok<Result>> ConfirmEmail(ISender sender, ConfirmEmailCommand command)
     {
-        return sender.Send(command);
+        return TypedResults.Ok(await sender.Send(command));
     }
 
-    public async Task<Result<AuthToken>> Login(ISender sender, LoginCommand request)
+    public async Task<Ok<Result<AuthToken>>> Login(ISender sender, LoginCommand request)
     {
-        return await sender.Send(request);
+        return TypedResults.Ok(await sender.Send(request));
     }
 
-    public Task<Result<AuthToken>> RefreshToken(ISender sender, RefreshTokenCommand command)
+    public async Task<Ok<Result<AuthToken>>> RefreshToken(ISender sender, RefreshTokenCommand command)
     {
-        return sender.Send(command);
+        return TypedResults.Ok(await sender.Send(command));
     }
 
-    public Task<Result<UserToken>> ResetPassword(ISender sender, ResetPasswordCommand command)
+    public async Task<Ok<Result<UserToken>>> ResetPassword(ISender sender, ResetPasswordCommand command)
     {
-        return sender.Send(command);
+        return TypedResults.Ok(await sender.Send(command));
     }
 
-    public Task<Result> UpdatePassword(ISender sender, UpdatePasswordCommand command)
+    public async Task<Ok<Result>> UpdatePassword(ISender sender, UpdatePasswordCommand command)
     {
-        return sender.Send(command);
+        return TypedResults.Ok(await sender.Send(command));
     }
 
-    public Task<UserInformationDto> GetCurrentUserInformation(ISender sender)
+    public async Task<Ok<UserInformationDto>> GetCurrentUserInformation(ISender sender)
     {
-        return sender.Send(new GetCurrentUserInformationQuery());
+        return TypedResults.Ok(await sender.Send(new GetCurrentUserInformationQuery()));
     }
 }

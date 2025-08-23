@@ -2,7 +2,7 @@ using ConnectFlow.Application.Common.Models;
 
 namespace ConnectFlow.Application.Users.Commands.ConfirmEmail;
 
-public class ConfirmEmailCommand : IRequest<Result>
+public record ConfirmEmailCommand : IRequest<Result>
 {
     public Guid UserId { get; init; }
     public string ConfirmationToken { get; init; } = string.Empty;
