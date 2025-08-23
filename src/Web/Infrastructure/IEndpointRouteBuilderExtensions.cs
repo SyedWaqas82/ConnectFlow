@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Asp.Versioning;
+using Microsoft.AspNetCore.Http;
 
 namespace ConnectFlow.Web.Infrastructure;
 
@@ -19,6 +20,22 @@ public static class IEndpointRouteBuilderExtensions
 
         return builder;
     }
+
+    // public static IEndpointRouteBuilder MapGet<T>(this IEndpointRouteBuilder builder, Delegate handler, [StringSyntax("Route")] string pattern = "", ApiVersion? apiVersion = null)
+    // {
+    //     Guard.Against.AnonymousMethod(handler);
+
+    //     var routeBuilder = builder.MapGet(pattern, handler)
+    //         .WithName(handler.Method.Name)
+    //         .Produces<T>(StatusCodes.Status200OK);
+
+    //     if (apiVersion != null)
+    //     {
+    //         routeBuilder.MapToApiVersion(apiVersion);
+    //     }
+
+    //     return builder;
+    // }
 
     public static IEndpointRouteBuilder MapPost(this IEndpointRouteBuilder builder, Delegate handler, [StringSyntax("Route")] string pattern = "", ApiVersion? apiVersion = null)
     {

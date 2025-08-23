@@ -1,6 +1,6 @@
 namespace ConnectFlow.Application.Users.Queries.GetCurrentUserInformation;
 
-public class UserInformationDto
+public record UserInformationDto
 {
     public Guid UserId { get; init; }
     public string FirstName { get; init; } = string.Empty;
@@ -10,7 +10,7 @@ public class UserInformationDto
     public IList<TenantDto> Tenants { get; init; } = new List<TenantDto>();
 }
 
-public class TenantDto
+public record TenantDto
 {
     public TenantDto()
     {
