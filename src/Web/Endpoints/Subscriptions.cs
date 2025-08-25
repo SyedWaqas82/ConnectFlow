@@ -1,4 +1,5 @@
 using ConnectFlow.Application.Subscriptions.Commands.CreateSubscription;
+using ConnectFlow.Application.Subscriptions.Commands.UpdateSubscription;
 using ConnectFlow.Application.Subscriptions.Queries.GetAvailablePlans;
 using ConnectFlow.Application.Subscriptions.Queries.GetSubscription;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -14,7 +15,7 @@ public class Subscriptions : EndpointGroupBase
         group.MapGet(GetSubscription, "GetSubscription");
         group.AllowAnonymous().MapGet(GetAvailablePlans, "GetAvailablePlans");
         group.MapPost(CreateSubscription, "CreateSubscription");
-        // group.MapPut(UpdateSubscription, "UpdateSubscription");
+        group.MapPut(UpdateSubscription, "UpdateSubscription");
         // group.MapPost(CancelSubscription, "CancelSubscription");
         // group.MapPost(ReactivateSubscription, "ReactivateSubscription");
         // group.MapPost(ProcessWebhook, "ProcessWebhook");
@@ -38,25 +39,11 @@ public class Subscriptions : EndpointGroupBase
         return TypedResults.Ok(result);
     }
 
-    // public async Task<IResult> UpdateSubscription(
-    //     UpdateSubscriptionRequest request,
-    //     ISender sender)
-    // {
-    //     try
-    //     {
-    //         var command = new UpdateSubscriptionCommand
-    //         {
-    //             NewPlanId = request.NewPlanId
-    //         };
-
-    //         var result = await sender.Send(command);
-    //         return Results.Ok(result);
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         return Results.BadRequest(new { error = ex.Message });
-    //     }
-    // }
+    public async Task<Ok<UpdateSubscriptionResult>> UpdateSubscription(ISender sender, UpdateSubscriptionCommand command)
+    {
+        var result = await sender.Send(command);
+        return TypedResults.Ok(result);
+    }
 
     // public async Task<IResult> CancelSubscription(
     //     CancelSubscriptionRequest request,
