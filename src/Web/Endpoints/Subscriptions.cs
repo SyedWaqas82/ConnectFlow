@@ -1,3 +1,4 @@
+using ConnectFlow.Application.Subscriptions.Commands.CancelSubscription;
 using ConnectFlow.Application.Subscriptions.Commands.CreateSubscription;
 using ConnectFlow.Application.Subscriptions.Commands.UpdateSubscription;
 using ConnectFlow.Application.Subscriptions.Queries.GetAvailablePlans;
@@ -16,7 +17,7 @@ public class Subscriptions : EndpointGroupBase
         group.AllowAnonymous().MapGet(GetAvailablePlans, "GetAvailablePlans");
         group.MapPost(CreateSubscription, "CreateSubscription");
         group.MapPut(UpdateSubscription, "UpdateSubscription");
-        // group.MapPost(CancelSubscription, "CancelSubscription");
+        group.MapPost(CancelSubscription, "CancelSubscription");
         // group.MapPost(ReactivateSubscription, "ReactivateSubscription");
         // group.MapPost(ProcessWebhook, "ProcessWebhook");
     }
@@ -45,25 +46,11 @@ public class Subscriptions : EndpointGroupBase
         return TypedResults.Ok(result);
     }
 
-    // public async Task<IResult> CancelSubscription(
-    //     CancelSubscriptionRequest request,
-    //     ISender sender)
-    // {
-    //     try
-    //     {
-    //         var command = new CancelSubscriptionCommand
-    //         {
-    //             CancelImmediately = request.CancelImmediately
-    //         };
-
-    //         var result = await sender.Send(command);
-    //         return Results.Ok(result);
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         return Results.BadRequest(new { error = ex.Message });
-    //     }
-    // }
+    public async Task<Ok<CancelSubscriptionResult>> CancelSubscription(ISender sender, CancelSubscriptionCommand command)
+    {
+        var result = await sender.Send(command);
+        return TypedResults.Ok(result);
+    }
 
     // public async Task<IResult> ReactivateSubscription(ISender sender)
     // {

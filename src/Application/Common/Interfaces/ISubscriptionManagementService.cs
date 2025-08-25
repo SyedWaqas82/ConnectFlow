@@ -1,6 +1,3 @@
-using ConnectFlow.Domain.Entities;
-using ConnectFlow.Domain.Enums;
-
 namespace ConnectFlow.Application.Common.Interfaces;
 
 /// <summary>

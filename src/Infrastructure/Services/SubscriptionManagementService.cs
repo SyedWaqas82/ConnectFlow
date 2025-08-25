@@ -286,8 +286,8 @@ public class SubscriptionManagementService : ISubscriptionManagementService
 
     // #region Subscription State Management
 
-    // public async Task HandleDowngradeAsync(int tenantId, Plan newPlan, CancellationToken cancellationToken = default)
-    // {
+    //public Task HandleDowngradeAsync(int tenantId, Plan newPlan, CancellationToken cancellationToken = default)
+    //{
     //     try
     //     {
     //         // Check current usage against new plan limits
@@ -321,10 +321,10 @@ public class SubscriptionManagementService : ISubscriptionManagementService
     //         _logger.LogError(ex, "Failed to handle downgrade for tenant {TenantId}", tenantId);
     //         throw;
     //     }
-    // }
+    //}
 
-    // public async Task HandleUpgradeAsync(int tenantId, Plan newPlan, CancellationToken cancellationToken = default)
-    // {
+    //public Task HandleUpgradeAsync(int tenantId, Plan newPlan, CancellationToken cancellationToken = default)
+    //{
     //     try
     //     {
     //         // Reactivate any suspended data that now falls within limits
@@ -337,7 +337,7 @@ public class SubscriptionManagementService : ISubscriptionManagementService
     //         _logger.LogError(ex, "Failed to handle upgrade for tenant {TenantId}", tenantId);
     //         throw;
     //     }
-    // }
+    //}
 
     // public async Task SuspendExcessiveDataAsync(int tenantId, CancellationToken cancellationToken = default)
     // {

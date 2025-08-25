@@ -47,12 +47,10 @@ public class UpdateSubscriptionCommandHandler : IRequestHandler<UpdateSubscripti
 
         if (isUpgrade)
         {
-            await _subscriptionManagementService.HandleUpgradeAsync(tenantId.Value, newPlan, cancellationToken);
             currentSubscription.AddDomainEvent(new SubscriptionUpgradedEvent(tenantId.Value, currentSubscription.Id, currentPlan.Name, newPlan.Name));
         }
         else if (isDowngrade)
         {
-            await _subscriptionManagementService.HandleDowngradeAsync(tenantId.Value, newPlan, cancellationToken);
             currentSubscription.AddDomainEvent(new SubscriptionDowngradedEvent(tenantId.Value, currentSubscription.Id, currentPlan.Name, newPlan.Name));
         }
 
