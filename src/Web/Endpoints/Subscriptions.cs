@@ -1,5 +1,7 @@
+using ConnectFlow.Application.Subscriptions.Commands.CreateSubscription;
 using ConnectFlow.Application.Subscriptions.Queries.GetAvailablePlans;
 using ConnectFlow.Application.Subscriptions.Queries.GetSubscription;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace ConnectFlow.Web.Endpoints;
 
@@ -7,15 +9,15 @@ public class Subscriptions : EndpointGroupBase
 {
     public override void Map(WebApplication app)
     {
-        var secureGroup = app.MapGroup(this).RequireAuthorization();
+        var group = app.MapGroup(this).RequireAuthorization();
 
-        secureGroup.MapGet(GetSubscription, "GetSubscription");
-        secureGroup.AllowAnonymous().MapGet(GetAvailablePlans, "GetAvailablePlans");
-        // secureGroup.MapPost(CreateSubscription, "CreateSubscription");
-        // secureGroup.MapPut(UpdateSubscription, "UpdateSubscription");
-        // secureGroup.MapPost(CancelSubscription, "CancelSubscription");
-        // secureGroup.MapPost(ReactivateSubscription, "ReactivateSubscription");
-        // secureGroup.MapPost(ProcessWebhook, "ProcessWebhook");
+        group.MapGet(GetSubscription, "GetSubscription");
+        group.AllowAnonymous().MapGet(GetAvailablePlans, "GetAvailablePlans");
+        group.MapPost(CreateSubscription, "CreateSubscription");
+        // group.MapPut(UpdateSubscription, "UpdateSubscription");
+        // group.MapPost(CancelSubscription, "CancelSubscription");
+        // group.MapPost(ReactivateSubscription, "ReactivateSubscription");
+        // group.MapPost(ProcessWebhook, "ProcessWebhook");
     }
 
     public async Task<IResult> GetSubscription(ISender sender)
@@ -30,27 +32,11 @@ public class Subscriptions : EndpointGroupBase
         return TypedResults.Ok(result);
     }
 
-    // public async Task<IResult> CreateSubscription(
-    //     CreateSubscriptionRequest request,
-    //     ISender sender)
-    // {
-    //     try
-    //     {
-    //         var command = new CreateSubscriptionCommand
-    //         {
-    //             PlanId = request.PlanId,
-    //             SuccessUrl = request.SuccessUrl,
-    //             CancelUrl = request.CancelUrl
-    //         };
-
-    //         var result = await sender.Send(command);
-    //         return Results.Ok(result);
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         return Results.BadRequest(new { error = ex.Message });
-    //     }
-    // }
+    public async Task<Ok<CreateSubscriptionResult>> CreateSubscription(ISender sender, CreateSubscriptionCommand command)
+    {
+        var result = await sender.Send(command);
+        return TypedResults.Ok(result);
+    }
 
     // public async Task<IResult> UpdateSubscription(
     //     UpdateSubscriptionRequest request,
@@ -128,12 +114,3 @@ public class Subscriptions : EndpointGroupBase
     //     }
     // }
 }
-
-public record CreateSubscriptionRequest(
-    string PlanId,
-    string SuccessUrl,
-    string CancelUrl);
-
-public record UpdateSubscriptionRequest(string NewPlanId);
-
-public record CancelSubscriptionRequest(bool CancelImmediately = false);
