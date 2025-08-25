@@ -1,5 +1,6 @@
 using ConnectFlow.Application.Subscriptions.Commands.CancelSubscription;
 using ConnectFlow.Application.Subscriptions.Commands.CreateSubscription;
+using ConnectFlow.Application.Subscriptions.Commands.ProcessWebhook;
 using ConnectFlow.Application.Subscriptions.Commands.ReactivateSubscription;
 using ConnectFlow.Application.Subscriptions.Commands.UpdateSubscription;
 using ConnectFlow.Application.Subscriptions.Queries.GetAvailablePlans;
@@ -20,7 +21,7 @@ public class Subscriptions : EndpointGroupBase
         group.MapPut(UpdateSubscription, "UpdateSubscription");
         group.MapPost(CancelSubscription, "CancelSubscription");
         group.MapPost(ReactivateSubscription, "ReactivateSubscription");
-        // group.MapPost(ProcessWebhook, "ProcessWebhook");
+        group.AllowAnonymous().MapPost(ProcessWebhook, "ProcessWebhook");
     }
 
     public async Task<IResult> GetSubscription(ISender sender)
@@ -59,25 +60,18 @@ public class Subscriptions : EndpointGroupBase
         return TypedResults.Ok(result);
     }
 
-    // public async Task<IResult> ProcessWebhook(HttpRequest request, ISender sender)
-    // {
-    //     try
-    //     {
-    //         var body = await new StreamReader(request.Body).ReadToEndAsync();
-    //         var signature = request.Headers["Stripe-Signature"].FirstOrDefault() ?? "";
+    public async Task<Ok<ProcessWebhookResult>> ProcessWebhook(HttpRequest request, ISender sender)
+    {
+        var body = await new StreamReader(request.Body).ReadToEndAsync();
+        var signature = request.Headers["Stripe-Signature"].FirstOrDefault() ?? "";
 
-    //         var command = new ProcessWebhookCommand
-    //         {
-    //             Body = body,
-    //             Signature = signature
-    //         };
+        var command = new ProcessWebhookCommand
+        {
+            Body = body,
+            Signature = signature
+        };
 
-    //         var result = await sender.Send(command);
-    //         return Results.Ok(result);
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         return Results.BadRequest(new { error = ex.Message });
-    //     }
-    // }
+        var result = await sender.Send(command);
+        return TypedResults.Ok(result);
+    }
 }
