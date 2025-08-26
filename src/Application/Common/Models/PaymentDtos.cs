@@ -13,6 +13,7 @@ public class PaymentSubscriptionDto
     public string Id { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
     public string CustomerId { get; set; } = string.Empty;
+    public string PriceId { get; set; } = string.Empty; // Stripe price ID
     public DateTimeOffset CurrentPeriodStart { get; set; }
     public DateTimeOffset CurrentPeriodEnd { get; set; }
     public bool CancelAtPeriodEnd { get; set; }

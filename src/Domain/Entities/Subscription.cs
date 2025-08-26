@@ -8,6 +8,18 @@ public class Subscription : BaseAuditableEntity
     public DateTimeOffset CurrentPeriodEnd { get; set; }
     public DateTimeOffset? CanceledAt { get; set; }
     public bool CancelAtPeriodEnd { get; set; }
+    public DateTimeOffset? CancellationRequestedAt { get; set; } // When cancellation was originally requested
+
+    // Grace Period for failed payments
+    public DateTimeOffset? GracePeriodEndsAt { get; set; }
+    public bool IsInGracePeriod { get; set; }
+    public DateTimeOffset? LastPaymentFailedAt { get; set; }
+
+    // Payment retry tracking
+    public int PaymentRetryCount { get; set; } = 0;
+    public DateTimeOffset? FirstPaymentFailureAt { get; set; }
+    public DateTimeOffset? NextRetryAt { get; set; }
+    public bool HasReachedMaxRetries { get; set; } = false;
 
     // Plan
     public int PlanId { get; set; }

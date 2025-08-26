@@ -45,9 +45,19 @@ public class StripeService : IPaymentService
 
             return Task.FromResult(eventDto);
         }
+        catch (StripeException ex) when (ex.StripeError?.Type == "invalid_request_error")
+        {
+            _logger.LogWarning(ex, "Invalid Stripe webhook request - signature validation failed");
+            throw new ArgumentException("Invalid webhook signature or request format", ex);
+        }
         catch (StripeException ex)
         {
             _logger.LogError(ex, "Failed to process Stripe webhook");
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error processing Stripe webhook");
             throw;
         }
     }
@@ -454,11 +464,15 @@ public class StripeService : IPaymentService
         var currentPeriodStart = subscription.RawJObject?["current_period_start"]?.ToObject<long>() ?? 0;
         var currentPeriodEnd = subscription.RawJObject?["current_period_end"]?.ToObject<long>() ?? 0;
 
+        // Extract price ID from the first item in the subscription (most subscriptions have only one item)
+        var priceId = subscription.Items?.Data?.FirstOrDefault()?.Price?.Id ?? string.Empty;
+
         return new PaymentSubscriptionDto
         {
             Id = subscription.Id,
             CustomerId = subscription.CustomerId,
             Status = subscription.Status,
+            PriceId = priceId,
             CurrentPeriodStart = DateTimeOffset.FromUnixTimeSeconds(currentPeriodStart),
             CurrentPeriodEnd = DateTimeOffset.FromUnixTimeSeconds(currentPeriodEnd),
             CancelAtPeriodEnd = subscription.CancelAtPeriodEnd,

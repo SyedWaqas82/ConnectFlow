@@ -60,18 +60,40 @@ public class Subscriptions : EndpointGroupBase
         return TypedResults.Ok(result);
     }
 
-    public async Task<Ok<ProcessWebhookResult>> ProcessWebhook(HttpRequest request, ISender sender)
+    public async Task<IResult> ProcessWebhook(HttpRequest request, ISender sender)
     {
-        var body = await new StreamReader(request.Body).ReadToEndAsync();
-        var signature = request.Headers["Stripe-Signature"].FirstOrDefault() ?? "";
-
-        var command = new ProcessWebhookCommand
+        try
         {
-            Body = body,
-            Signature = signature
-        };
+            var body = await new StreamReader(request.Body).ReadToEndAsync();
+            var signature = request.Headers["Stripe-Signature"].FirstOrDefault();
 
-        var result = await sender.Send(command);
-        return TypedResults.Ok(result);
+            // Return 400 if signature is missing (client error - don't retry)
+            if (string.IsNullOrEmpty(signature))
+            {
+                return TypedResults.BadRequest(new { error = "Missing Stripe-Signature header" });
+            }
+
+            var command = new ProcessWebhookCommand
+            {
+                Body = body,
+                Signature = signature
+            };
+
+            var result = await sender.Send(command);
+
+            // Return 200 if processed successfully, regardless of whether the event was handled
+            // Stripe considers any 2xx response as successful delivery
+            return TypedResults.Ok(result);
+        }
+        catch (ArgumentException ex)
+        {
+            // Invalid signature or malformed webhook data (client error - don't retry)
+            return TypedResults.BadRequest(new { error = "Invalid webhook signature or data", details = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            // Server error - Stripe will retry
+            return TypedResults.Problem(title: "Webhook processing failed", detail: ex.Message, statusCode: 500);
+        }
     }
 }

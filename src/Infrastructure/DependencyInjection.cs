@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using ConnectFlow.Application.Common.Models;
 using ConnectFlow.Domain.Constants;
 using ConnectFlow.Infrastructure.Common.Interfaces;
 using ConnectFlow.Infrastructure.Common.Configuration;
@@ -54,6 +55,11 @@ public static class DependencyInjection
         Guard.Against.Null(stripeSettings, message: "Stripe settings not found in configuration.");
         builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection(StripeSettings.SectionName));
 
+        // Configure subscription settings
+        var subscriptionSettings = builder.Configuration.GetSection(SubscriptionSettings.SectionName).Get<SubscriptionSettings>();
+        Guard.Against.Null(subscriptionSettings, message: "Subscription settings not found in configuration.");
+        builder.Services.Configure<SubscriptionSettings>(builder.Configuration.GetSection(SubscriptionSettings.SectionName));
+
         // Configure Entity Framework
         builder.ConfigureEntityFramework(dbConnectionString);
 
@@ -84,6 +90,7 @@ public static class DependencyInjection
         // Register payment and subscription services
         builder.Services.AddScoped<IPaymentService, StripeService>();
         builder.Services.AddScoped<ISubscriptionManagementService, SubscriptionManagementService>();
+        builder.Services.AddScoped<IPaymentWebhookEventHandlerService, StripeWebhookEventHandlerService>();
 
         // Register IIdentityService after all dependencies are registered
         builder.Services.AddTransient<IIdentityService, IdentityService>();

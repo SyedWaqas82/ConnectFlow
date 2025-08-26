@@ -1,7 +1,5 @@
 ﻿using System.Reflection;
 using ConnectFlow.Application.Common.Behaviours;
-using ConnectFlow.Application.Common.Models;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -25,9 +23,5 @@ public static class DependencyInjection
             cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(AuthorizeTenantSubscriptionBehaviour<,>));
             cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidateLimitsBehaviour<,>));
         });
-
-        var subscriptionSettings = builder.Configuration.GetSection(SubscriptionSettings.SectionName).Get<SubscriptionSettings>();
-        Guard.Against.Null(subscriptionSettings, message: "Subscription settings not found in configuration.");
-        builder.Services.Configure<SubscriptionSettings>(builder.Configuration.GetSection(SubscriptionSettings.SectionName));
     }
 }
