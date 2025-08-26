@@ -358,6 +358,9 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                     b.Property<DateTimeOffset?>("CanceledAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTimeOffset?>("CancellationRequestedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTimeOffset>("Created")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
@@ -372,6 +375,18 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                     b.Property<DateTimeOffset>("CurrentPeriodStart")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTimeOffset?>("FirstPaymentFailureAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("GracePeriodEndsAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("HasReachedMaxRetries")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsInGracePeriod")
+                        .HasColumnType("boolean");
+
                     b.Property<DateTimeOffset>("LastModified")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
@@ -380,10 +395,19 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                     b.Property<int?>("LastModifiedBy")
                         .HasColumnType("integer");
 
+                    b.Property<DateTimeOffset?>("LastPaymentFailedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("NextRetryAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("PaymentProviderSubscriptionId")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
+
+                    b.Property<int>("PaymentRetryCount")
+                        .HasColumnType("integer");
 
                     b.Property<int>("PlanId")
                         .HasColumnType("integer");
