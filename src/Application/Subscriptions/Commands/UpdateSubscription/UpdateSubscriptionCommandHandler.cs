@@ -30,7 +30,7 @@ public class UpdateSubscriptionCommandHandler : IRequestHandler<UpdateSubscripti
 
         var currentPlan = currentSubscription.Plan;
 
-        // Update subscription in Stripe
+        // Update subscription in Stripe - this will trigger a webhook that updates local state
         var stripeSubscription = await _paymentService.UpdateSubscriptionAsync(currentSubscription.PaymentProviderSubscriptionId, newPlan.PaymentProviderPriceId, metadata: new Dictionary<string, string>
                 {
                     { "tenant_id", tenantId.Value.ToString() },
@@ -38,30 +38,20 @@ public class UpdateSubscriptionCommandHandler : IRequestHandler<UpdateSubscripti
                     { "previous_plan_id", currentPlan.Id.ToString() }
                 }, cancellationToken: cancellationToken);
 
-        // Update local subscription
-        currentSubscription.PlanId = newPlan.Id;
-
-        // Handle plan changes
+        // Return result based on Stripe response - local state will be updated via webhook
         var isUpgrade = newPlan.Price > currentPlan.Price;
         var isDowngrade = newPlan.Price < currentPlan.Price;
 
-        if (isUpgrade)
-        {
-            currentSubscription.AddDomainEvent(new SubscriptionUpgradedEvent(tenantId.Value, currentSubscription.Id, currentPlan.Name, newPlan.Name));
-        }
-        else if (isDowngrade)
-        {
-            currentSubscription.AddDomainEvent(new SubscriptionDowngradedEvent(tenantId.Value, currentSubscription.Id, currentPlan.Name, newPlan.Name));
-        }
-
-        await _context.SaveChangesAsync(cancellationToken);
-
-        var message = isUpgrade ? "Subscription upgraded successfully" : isDowngrade ? "Subscription downgraded successfully - some data may have been suspended" : "Subscription plan changed successfully";
+        var message = isUpgrade
+            ? "Subscription upgrade request sent to Stripe. Local state will be updated via webhook."
+            : isDowngrade
+                ? "Subscription downgrade request sent to Stripe. Local state will be updated via webhook."
+                : "Subscription plan change request sent to Stripe. Local state will be updated via webhook.";
 
         return new UpdateSubscriptionResult
         {
             SubscriptionId = currentSubscription.Id,
-            Status = "success",
+            Status = "update_requested",
             Message = message
         };
     }

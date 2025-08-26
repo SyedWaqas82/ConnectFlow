@@ -5,14 +5,12 @@ public class ReactivateSubscriptionCommandHandler : IRequestHandler<ReactivateSu
     private readonly IApplicationDbContext _context;
     private readonly IPaymentService _paymentService;
     private readonly IContextManager _contextManager;
-    private readonly ISubscriptionManagementService _subscriptionManagementService;
 
-    public ReactivateSubscriptionCommandHandler(IApplicationDbContext context, IPaymentService paymentService, IContextManager contextManager, ISubscriptionManagementService subscriptionManagementService)
+    public ReactivateSubscriptionCommandHandler(IApplicationDbContext context, IPaymentService paymentService, IContextManager contextManager)
     {
         _context = context;
         _paymentService = paymentService;
         _contextManager = contextManager;
-        _subscriptionManagementService = subscriptionManagementService;
     }
 
     public async Task<ReactivateSubscriptionResult> Handle(ReactivateSubscriptionCommand request, CancellationToken cancellationToken)
@@ -24,23 +22,15 @@ public class ReactivateSubscriptionCommandHandler : IRequestHandler<ReactivateSu
         var subscription = await _context.Subscriptions.Include(s => s.Plan).FirstOrDefaultAsync(s => s.TenantId == tenantId.Value && s.CancelAtPeriodEnd == true && s.Status == SubscriptionStatus.Active, cancellationToken);
         Guard.Against.Null(subscription, nameof(subscription), "No subscription found that can be reactivated");
 
-        // Reactivate subscription in Stripe
+        // Reactivate subscription in Stripe - this will trigger a webhook that updates local state
         var stripeSubscription = await _paymentService.ReactivateSubscriptionAsync(subscription.PaymentProviderSubscriptionId, cancellationToken);
 
-        // Update local subscription
-        subscription.CancelAtPeriodEnd = false;
-        subscription.CanceledAt = null;
-
-        // Raise domain event
-        subscription.AddDomainEvent(new SubscriptionReactivatedEvent(tenantId.Value, subscription.Id, subscription.Plan.Name));
-
-        await _context.SaveChangesAsync(cancellationToken);
-
+        // Return result based on Stripe response - local state will be updated via webhook
         return new ReactivateSubscriptionResult
         {
             SubscriptionId = subscription.Id,
-            Status = "active",
-            Message = "Subscription has been reactivated successfully"
+            Status = "reactivation_requested",
+            Message = "Subscription reactivation request sent to Stripe. Local state will be updated via webhook."
         };
     }
 }
