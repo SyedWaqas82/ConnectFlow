@@ -58,7 +58,7 @@ await _contextManager.InitializeContextWithDefaultTenantAsync(applicationUserId)
 // Option 3: Manually set specific context values
 _contextManager.SetContext(
     applicationUserId: 123, 
-    publicUserId: Guid.Parse("..."), 
+    applicationUserPublicId: Guid.Parse("..."), 
     userName: "username", 
     roles: new List<string> { "Admin" }, 
     isSuperAdmin: false, 
@@ -92,7 +92,7 @@ var handler = scope.ServiceProvider.GetService<IMessageHandler<T>>();
 await contextManager.InitializeContextAsync(message.ApplicationUserId.GetValueOrDefault(), message.TenantId);
 
 // Log to verify context was set correctly
-_logger.LogDebug("Context initialized: UserId={UserId}, TenantId={TenantId}", 
+_logger.LogDebug("Context initialized: ApplicationUserId={ApplicationUserId}, TenantId={TenantId}", 
     message.ApplicationUserId, message.TenantId);
 
 // Call handler (which should use the same scope)
@@ -105,11 +105,11 @@ Then, in your handler, verify the context is available and restore it if necessa
 public async Task HandleAsync(TMessage message, CancellationToken cancellationToken)
 {
     // Check if context is available
-    var userId = _currentUserService.GetCurrentApplicationUserId();
+    var applicationUserId = _currentUserService.GetCurrentApplicationUserId();
     var tenantId = _currentTenantService.GetCurrentTenantId();
     
     // If context is missing, restore it from the message
-    if (userId == null || tenantId == null)
+    if (applicationUserId == null || tenantId == null)
     {
         _logger.LogWarning("Context not flowing to handler, restoring from message values");
         
@@ -120,7 +120,7 @@ public async Task HandleAsync(TMessage message, CancellationToken cancellationTo
                 message.TenantId);
                 
             // Verify context was restored
-            _logger.LogInformation("Context restored: UserId={UserId}, TenantId={TenantId}",
+            _logger.LogInformation("Context restored: ApplicationUserId={ApplicationUserId}, TenantId={TenantId}",
                 _currentUserService.GetCurrentApplicationUserId(),
                 _currentTenantService.GetCurrentTenantId());
         }
@@ -147,8 +147,8 @@ public class MyService
 
     public void DoSomething()
     {
-        var userId = _currentUserService.GetCurrentUserId();
-        var appUserId = _currentUserService.GetCurrentApplicationUserId();
+        var appicationPublicUserId = _currentUserService.GetCurrentApplicationUserId();
+        var applicationUserId = _currentUserService.GetCurrentApplicationUserId();
         var username = _currentUserService.GetCurrentUserName();
         var roles = _currentUserService.GetCurrentUserRoles();
         var isSuperAdmin = _currentUserService.IsSuperAdmin();
@@ -199,10 +199,10 @@ Always check if context is available in message handlers and restore it if neces
 public async Task HandleAsync(TMessage message, CancellationToken cancellationToken)
 {
     // Check if context is available
-    var userId = _currentUserService.GetCurrentApplicationUserId();
+    var applicationUserId = _currentUserService.GetCurrentApplicationUserId();
     var tenantId = _currentTenantService.GetCurrentTenantId();
     
-    if (userId == null || tenantId == null)
+    if (applicationUserId == null || tenantId == null)
     {
         _logger.LogWarning("Context not flowing to handler, restoring from message values");
         if (_currentUserService is IContextManager contextManager)
@@ -224,7 +224,7 @@ Always clear context when finishing background operations to prevent leaking con
 ```csharp
 try
 {
-    await _contextManager.InitializeContextAsync(userId, tenantId);
+    await _contextManager.InitializeContextAsync(applicationUserId, tenantId);
     // Do work with context
 }
 finally
@@ -358,12 +358,12 @@ public class EmailJob
         _emailService = emailService;
     }
 
-    public async Task SendEmailAsync(int userId, int tenantId, string emailContent)
+    public async Task SendEmailAsync(int applicationUserId, int tenantId, string emailContent)
     {
         try
         {
             // Initialize context for background processing
-            await _contextManager.InitializeContextAsync(userId, tenantId);
+            await _contextManager.InitializeContextAsync(applicationUserId, tenantId);
             
             // Use context in email service
             await _emailService.SendEmailAsync(emailContent);
@@ -404,19 +404,19 @@ public class EmailSendMessageEventHandler : IMessageHandler<EmailSendMessageEven
         try
         {
             // Log and verify context values
-            var userId = _currentUserService.GetCurrentApplicationUserId();
+            var applicationUserId = _currentUserService.GetCurrentApplicationUserId();
             var tenantId = _currentTenantService.GetCurrentTenantId();
-            _logger.LogDebug("Context values - Service: [UserId: {ServiceUserId}, TenantId: {ServiceTenantId}], Message: [UserId: {MessageUserId}, TenantId: {MessageTenantId}]", 
-                userId, tenantId, message.ApplicationUserId, message.TenantId);
+            _logger.LogDebug("Context values - Service: [ApplicationUserId: {ServiceUserId}, TenantId: {ServiceTenantId}], Message: [ApplicationUserId: {MessageUserId}, TenantId: {MessageTenantId}]", 
+                applicationUserId, tenantId, message.ApplicationUserId, message.TenantId);
             
             // If context is missing, restore it from message
-            if (userId == null || tenantId == null)
+            if (applicationUserId == null || tenantId == null)
             {
                 _logger.LogWarning("Context not flowing to handler, manually setting from message values");
                 
                 if (_currentUserService is IContextManager contextManager)
                 {
-                    _logger.LogInformation("Setting context directly: UserId={UserId}, TenantId={TenantId}", 
+                    _logger.LogInformation("Setting context directly: ApplicationUserId={ApplicationUserId}, TenantId={TenantId}", 
                         message.ApplicationUserId, message.TenantId);
                         
                     await contextManager.InitializeContextAsync(

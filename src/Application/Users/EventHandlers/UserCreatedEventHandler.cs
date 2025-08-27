@@ -24,14 +24,13 @@ public class UserCreatedEventHandler : INotificationHandler<UserCreatedEvent>
             CorrelationId = notification.CorrelationId,
             TenantId = notification.TenantId,
             ApplicationUserId = notification.ApplicationUserId,
-            PublicUserId = notification.PublicUserId,
+            ApplicationUserPublicId = notification.ApplicationUserPublicId,
             To = notification.Email,
             Subject = "Welcome to ConnectFlow!",
             IsHtml = true,
             TemplateId = EmailTemplates.Welcome,
             TemplateData = new Dictionary<string, object>
             {
-                { "userPublicId", notification.PublicUserId.GetValueOrDefault() },
                 { "name", $"{notification.FirstName} {notification.LastName}" },
                 { "firstName", notification.FirstName },
                 { "lastName", notification.LastName },
@@ -44,7 +43,7 @@ public class UserCreatedEventHandler : INotificationHandler<UserCreatedEvent>
                 { "emailConfirmed", notification.EmailConfirmed },
                 { "confirmationToken", notification.ConfirmationToken },
                 { "applicationUserId", notification.ApplicationUserId.GetValueOrDefault() },
-                { "publicUserId", notification.PublicUserId.GetValueOrDefault() },
+                { "applicationUserPublicId", notification.ApplicationUserPublicId.GetValueOrDefault() },
                 { "tenantId", notification.TenantId.GetValueOrDefault() },
                 { "correlationId", notification.CorrelationId.GetValueOrDefault() }
             },

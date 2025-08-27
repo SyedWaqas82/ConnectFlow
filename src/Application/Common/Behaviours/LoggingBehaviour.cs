@@ -16,10 +16,10 @@ public class LoggingBehaviour<TRequest> : IRequestPreProcessor<TRequest> where T
     public async Task Process(TRequest request, CancellationToken cancellationToken)
     {
         var requestName = typeof(TRequest).Name;
-        var userId = await Task.FromResult(_contextManager.GetCurrentUserId());
+        var applicationUserPublicId = await Task.FromResult(_contextManager.GetCurrentApplicationUserPublicId());
 
         string? userName = _contextManager.GetCurrentUserName();
 
-        _logger.LogInformation("ConnectFlow Request: {Name} {@UserId} {@UserName} {@Request}", requestName, userId, userName, request);
+        _logger.LogInformation("ConnectFlow Request: {Name} {@ApplicationUserPublicId} {@UserName} {@Request}", requestName, applicationUserPublicId, userName, request);
     }
 }

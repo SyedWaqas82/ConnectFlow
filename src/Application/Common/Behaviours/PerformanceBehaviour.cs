@@ -27,10 +27,10 @@ public class PerformanceBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequ
         if (elapsedMilliseconds > 500)
         {
             var requestName = typeof(TRequest).Name;
-            var userId = _contextManager.GetCurrentUserId();
+            var applicationUserPublicId = _contextManager.GetCurrentApplicationUserPublicId();
             var userName = _contextManager.GetCurrentUserName();
 
-            _logger.LogWarning("ConnectFlow Long Running Request: {Name} ({ElapsedMilliseconds} milliseconds) {@UserId} {@UserName} {@Request}", requestName, elapsedMilliseconds, userId, userName, request);
+            _logger.LogWarning("ConnectFlow Long Running Request: {Name} ({ElapsedMilliseconds} milliseconds) {@ApplicationUserPublicId} {@UserName} {@Request}", requestName, elapsedMilliseconds, applicationUserPublicId, userName, request);
         }
 
         return response;

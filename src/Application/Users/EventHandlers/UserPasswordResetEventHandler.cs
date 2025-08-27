@@ -24,14 +24,14 @@ public class UserPasswordResetEventHandler : INotificationHandler<UserPasswordRe
             CorrelationId = notification.CorrelationId,
             TenantId = notification.TenantId,
             ApplicationUserId = notification.ApplicationUserId,
-            PublicUserId = notification.PublicUserId,
+            ApplicationUserPublicId = notification.ApplicationUserPublicId,
             To = notification.Email,
             Subject = "Password Reset Request",
             IsHtml = true,
             TemplateId = EmailTemplates.PasswordReset,
             TemplateData = new Dictionary<string, object>
             {
-                { "userPublicId", notification.PublicUserId.GetValueOrDefault() },
+                { "applicationUserPublicId", notification.ApplicationUserPublicId.GetValueOrDefault() },
                 { "name", $"{notification.FirstName} {notification.LastName}" },
                 { "firstName", notification.FirstName },
                 { "lastName", notification.LastName },

@@ -4,8 +4,8 @@ public class UpdatePasswordCommandValidator : AbstractValidator<UpdatePasswordCo
 {
     public UpdatePasswordCommandValidator()
     {
-        RuleFor(x => x.UserId)
-            .NotEmpty().WithMessage("User ID is required.");
+        RuleFor(x => x.ApplicationUserPublicId)
+            .NotEmpty().WithMessage("Public User ID is required.");
 
         RuleFor(x => x.PasswordToken)
             .NotEmpty().WithMessage("Password token is required.");

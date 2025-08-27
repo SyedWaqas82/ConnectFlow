@@ -238,7 +238,7 @@ public abstract class RabbitMQConsumerService<T> : BackgroundService, IMessageCo
                 {
                     ["TenantId"] = message.TenantId,
                     ["ApplicationUserId"] = message.ApplicationUserId,
-                    ["PublicUserId"] = message.PublicUserId.ToString(),
+                    ["ApplicationUserPublicId"] = message.ApplicationUserPublicId.ToString(),
                     ["MessageType"] = message.MessageType,
                     ["RetryCount"] = message.RetryCount,
                     ["OriginalQueue"] = _queue?.Name

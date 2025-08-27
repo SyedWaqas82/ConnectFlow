@@ -36,7 +36,7 @@ namespace ConnectFlow.Web.Common
     public class DesignTimeContextService : IContextManager
     {
         public int? GetCurrentTenantId() => null; // or a default tenant id for migrations
-        public Guid? GetCurrentUserId() => null;
+        public Guid? GetCurrentApplicationUserPublicId() => null;
         public int? GetCurrentApplicationUserId() => null;
         public string? GetCurrentUserName() => null;
         public List<string> GetCurrentUserRoles() => new();
@@ -52,7 +52,7 @@ namespace ConnectFlow.Web.Common
             throw new NotImplementedException();
         }
 
-        public void SetContext(int? applicationUserId, Guid? publicUserId, string? userName, List<string>? roles, bool isSuperAdmin, int? tenantId)
+        public void SetContext(int? applicationUserId, Guid? applicationUserPublicId, string? userName, List<string>? roles, bool isSuperAdmin, int? tenantId)
         {
             throw new NotImplementedException();
         }

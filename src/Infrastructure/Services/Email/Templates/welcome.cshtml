@@ -1,10 +1,10 @@
 @{
-    var userPublicId = Model["userPublicId"].ToString();
+    var applicationUserPublicId = Model["applicationUserPublicId"].ToString();
     var name = Model["name"].ToString();
     var firstName = Model["firstName"].ToString();
     var lastName = Model["lastName"].ToString();
     var confirmationToken = Model["confirmationToken"].ToString();
-    var confirmationUrl = $"http://localhost:5001/api/v1/users/confirm-email?userid={userPublicId}&token={confirmationToken}";
+    var confirmationUrl = $"http://localhost:5001/api/v1/users/confirm-email?applicationUserPublicId={applicationUserPublicId}&token={confirmationToken}";
 }
 
 <!DOCTYPE html>

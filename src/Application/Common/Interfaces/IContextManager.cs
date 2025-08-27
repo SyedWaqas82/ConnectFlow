@@ -18,7 +18,7 @@ public interface IContextManager
     /// <summary>
     /// Manually set context for background jobs or non-HTTP contexts
     /// </summary>
-    void SetContext(int? applicationUserId, Guid? publicUserId, string? userName, List<string>? roles, bool isSuperAdmin, int? tenantId);
+    void SetContext(int? applicationUserId, Guid? applicationUserPublicId, string? userName, List<string>? roles, bool isSuperAdmin, int? tenantId);
 
     /// <summary>
     /// Clear all context information
@@ -31,9 +31,9 @@ public interface IContextManager
     int? GetCurrentApplicationUserId();
 
     /// <summary>
-    /// Gets the current user's public ID (Guid)
+    /// Gets the current user's application public ID (Guid)
     /// </summary>
-    Guid? GetCurrentUserId();
+    Guid? GetCurrentApplicationUserPublicId();
 
     /// <summary>
     /// Gets the current user's username

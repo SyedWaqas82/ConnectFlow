@@ -138,7 +138,7 @@ public class ApplicationDbContextInitialiser
 
             var tenantUser = new TenantUser
             {
-                UserId = tenantAdmin.Id,
+                ApplicationUserId = tenantAdmin.Id,
                 TenantId = tenant.Id,
                 InvitedBy = tenantAdmin.Id,
                 CreatedBy = tenantAdmin.Id,

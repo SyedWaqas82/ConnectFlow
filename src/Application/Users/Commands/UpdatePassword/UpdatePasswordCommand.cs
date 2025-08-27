@@ -4,7 +4,7 @@ namespace ConnectFlow.Application.Users.Commands.UpdatePassword;
 
 public record UpdatePasswordCommand : IRequest<Result>
 {
-    public Guid UserId { get; init; }
+    public Guid ApplicationUserPublicId { get; init; }
     public string PasswordToken { get; init; } = string.Empty;
     public string NewPassword { get; init; } = string.Empty;
 }
@@ -20,6 +20,6 @@ public class UpdatePasswordCommandHandler : IRequestHandler<UpdatePasswordComman
 
     public async Task<Result> Handle(UpdatePasswordCommand request, CancellationToken cancellationToken)
     {
-        return await _identityService.UpdatePasswordAsync(request.UserId, request.PasswordToken, request.NewPassword);
+        return await _identityService.UpdatePasswordAsync(request.ApplicationUserPublicId, request.PasswordToken, request.NewPassword);
     }
 }

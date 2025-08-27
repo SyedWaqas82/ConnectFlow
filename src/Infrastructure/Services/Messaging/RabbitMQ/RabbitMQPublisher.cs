@@ -121,7 +121,7 @@ public class RabbitMQPublisher : IMessagePublisher, IDisposable
         // Add custom headers
         properties.Headers["TenantId"] = message.TenantId;
         properties.Headers["ApplicationUserId"] = message.ApplicationUserId;
-        properties.Headers["PublicUserId"] = message.PublicUserId.ToString();
+        properties.Headers["ApplicationUserPublicId"] = message.ApplicationUserPublicId.ToString();
         properties.Headers["MessageType"] = message.MessageType;
         properties.Headers["RetryCount"] = message.RetryCount;
 

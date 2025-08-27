@@ -26,14 +26,14 @@ public class GetCurrentUserInformationQueryHandler : IRequestHandler<GetCurrentU
     {
         _logger.LogInformation("Getting current user information");
 
-        var userId = _contextManager.GetCurrentUserId();
+        var applicationUserPublicId = _contextManager.GetCurrentApplicationUserPublicId();
         var applicationUserId = _contextManager.GetCurrentApplicationUserId();
-        Guard.Against.Null(userId, message: "unknown user");
+        Guard.Against.Null(applicationUserPublicId, message: "unknown user");
 
-        var userResult = await _identityService.GetUserAsync(userId.Value);
+        var userResult = await _identityService.GetUserAsync(applicationUserPublicId.Value);
         if (userResult.Succeeded == false)
         {
-            _logger.LogWarning("User not found for ID {UserId}", userId);
+            _logger.LogWarning("User not found for Public ID {ApplicationUserPublicId}", applicationUserPublicId);
             throw new Exception($"User not found.");
         }
 
@@ -41,12 +41,12 @@ public class GetCurrentUserInformationQueryHandler : IRequestHandler<GetCurrentU
 
         return new UserInformationDto
         {
-            UserId = user.UserId,
+            ApplicationUserPublicId = user.ApplicationUserPublicId,
             FirstName = user.FirstName,
             LastName = user.LastName,
             Email = user.Email,
             Tenants = await _dbContext.Tenants.AsNoTracking()
-                .Where(t => t.TenantUsers.Any(u => u.UserId == applicationUserId && u.Status == TenantUserStatus.Active)).ProjectTo<TenantDto>(_mapper.ConfigurationProvider)
+                .Where(t => t.TenantUsers.Any(u => u.ApplicationUserId == applicationUserId && u.Status == TenantUserStatus.Active)).ProjectTo<TenantDto>(_mapper.ConfigurationProvider)
                 .ToListAsync(cancellationToken)
         };
     }

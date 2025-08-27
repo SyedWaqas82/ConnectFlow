@@ -23,6 +23,6 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
         builder.Property(au => au.CreatedAt).HasDefaultValueSql("now()"); // PostgreSQL default value
 
         // Configure relationships
-        builder.HasMany(au => au.TenantUsers).WithOne().HasForeignKey(tu => tu.UserId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasMany(au => au.TenantUsers).WithOne().HasForeignKey(tu => tu.ApplicationUserId).OnDelete(DeleteBehavior.Cascade);
     }
 }

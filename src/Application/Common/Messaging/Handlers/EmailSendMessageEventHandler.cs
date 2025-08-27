@@ -21,7 +21,7 @@ public class EmailSendMessageEventHandler : IMessageHandler<EmailSendMessageEven
     {
         try
         {
-            _logger.LogInformation("Processing email send request for {To} with subject {Subject} (Tenant: {TenantId} {UserId})", message.To, message.Subject, message.TenantId, message.ApplicationUserId);
+            _logger.LogInformation("Processing email send request for {To} with subject {Subject} (Tenant: {TenantId} {applicationUserId})", message.To, message.Subject, message.TenantId, message.ApplicationUserId);
 
             var email = new EmailMessage
             {

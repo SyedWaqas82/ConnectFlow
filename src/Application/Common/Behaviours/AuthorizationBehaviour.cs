@@ -22,7 +22,7 @@ public class AuthorizationBehaviour<TRequest, TResponse> : IPipelineBehavior<TRe
         if (authorizeAttributes.Any())
         {
             // Must be authenticated user
-            if (_contextManager.GetCurrentUserId().HasValue == false)
+            if (_contextManager.GetCurrentApplicationUserPublicId().HasValue == false)
             {
                 throw new UnauthorizedAccessException();
             }
@@ -56,13 +56,13 @@ public class AuthorizationBehaviour<TRequest, TResponse> : IPipelineBehavior<TRe
 
             // Policy-based authorization
             var authorizeAttributesWithPolicies = authorizeAttributes.Where(a => !string.IsNullOrWhiteSpace(a.Policy));
-            var currentUserId = _contextManager.GetCurrentUserId();
+            var currentApplicationUserPublicId = _contextManager.GetCurrentApplicationUserPublicId();
 
-            if (authorizeAttributesWithPolicies.Any() && currentUserId.HasValue)
+            if (authorizeAttributesWithPolicies.Any() && currentApplicationUserPublicId.HasValue)
             {
                 foreach (var policy in authorizeAttributesWithPolicies.Select(a => a.Policy))
                 {
-                    var authorized = await _identityService.AuthorizeAsync(currentUserId.Value, policy);
+                    var authorized = await _identityService.AuthorizeAsync(currentApplicationUserPublicId.Value, policy);
 
                     if (!authorized)
                     {

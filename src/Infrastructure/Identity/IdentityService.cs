@@ -66,7 +66,7 @@ public class IdentityService : IIdentityService
         // Join the tenant as the admin user
         await JoinTenantInternalAsync(newUser, tenant.Id, validRoles, _contextManager.GetCurrentApplicationUserId());
 
-        return Result<UserToken>.Success(new UserToken() { ApplicationUserId = newUser.PublicId, Token = userCreationResult.ConfirmationToken });
+        return Result<UserToken>.Success(new UserToken() { ApplicationUserPublicId = newUser.PublicId, Token = userCreationResult.ConfirmationToken });
     }
 
     public async Task<Result> CreateTenantForExistingUserAsync(string email)
@@ -118,7 +118,7 @@ public class IdentityService : IIdentityService
                 await JoinTenantInternalAsync(result.Result.Data, tenantId.Value, validRoles, _contextManager.GetCurrentApplicationUserId());
             }
 
-            return Result<UserToken>.Success(new UserToken() { ApplicationUserId = result.Result.Data.PublicId, Token = result.ConfirmationToken });
+            return Result<UserToken>.Success(new UserToken() { ApplicationUserPublicId = result.Result.Data.PublicId, Token = result.ConfirmationToken });
         }
 
         return Result<UserToken>.Failure(result.Result.Errors, null);
@@ -149,9 +149,9 @@ public class IdentityService : IIdentityService
         return Result.Success();
     }
 
-    public async Task<Result> ConfirmEmailAsync(Guid userId, string confirmationToken)
+    public async Task<Result> ConfirmEmailAsync(Guid applicationUserPublicId, string confirmationToken)
     {
-        var user = await _userManager.FindByPublicIdAsync(userId);
+        var user = await _userManager.FindByPublicIdAsync(applicationUserPublicId);
 
         if (user == null || user.IsActive == false)
         {
@@ -170,7 +170,7 @@ public class IdentityService : IIdentityService
             await _mediator.Publish(new UserEmailConfirmedEvent
             {
                 ApplicationUserId = user.Id,
-                PublicUserId = user.PublicId,
+                ApplicationUserPublicId = user.PublicId,
                 CorrelationId = _contextManager.GetCorrelationId(),
                 Email = user.Email!,
                 FirstName = user.FirstName,
@@ -195,7 +195,7 @@ public class IdentityService : IIdentityService
         await _mediator.Publish(new UserPasswordResetEvent
         {
             ApplicationUserId = user.Id,
-            PublicUserId = user.PublicId,
+            ApplicationUserPublicId = user.PublicId,
             CorrelationId = _contextManager.GetCorrelationId(),
             Email = user.Email!,
             FirstName = user.FirstName,
@@ -203,12 +203,12 @@ public class IdentityService : IIdentityService
             ResetPasswordToken = resetPasswordToken
         });
 
-        return Result<UserToken>.Success(new UserToken() { ApplicationUserId = user.PublicId, Token = resetPasswordToken });
+        return Result<UserToken>.Success(new UserToken() { ApplicationUserPublicId = user.PublicId, Token = resetPasswordToken });
     }
 
-    public async Task<Result> UpdatePasswordAsync(Guid userId, string passwordToken, string newPassword)
+    public async Task<Result> UpdatePasswordAsync(Guid applicationUserPublicId, string passwordToken, string newPassword)
     {
-        var user = await _userManager.FindByPublicIdAsync(userId);
+        var user = await _userManager.FindByPublicIdAsync(applicationUserPublicId);
 
         if (user == null || user.IsActive == false)
         {
@@ -222,7 +222,7 @@ public class IdentityService : IIdentityService
             await _mediator.Publish(new UserPasswordUpdateEvent
             {
                 ApplicationUserId = user.Id,
-                PublicUserId = user.PublicId,
+                ApplicationUserPublicId = user.PublicId,
                 CorrelationId = _contextManager.GetCorrelationId(),
                 Email = user.Email!,
                 FirstName = user.FirstName,
@@ -233,9 +233,9 @@ public class IdentityService : IIdentityService
         return result.ToApplicationResult();
     }
 
-    public async Task<Result> ChangePasswordAsync(Guid userId, string password, string newPassword)
+    public async Task<Result> ChangePasswordAsync(Guid applicationUserPublicId, string password, string newPassword)
     {
-        var user = await _userManager.FindByPublicIdAsync(userId);
+        var user = await _userManager.FindByPublicIdAsync(applicationUserPublicId);
 
         if (user == null || user.IsActive == false)
         {
@@ -249,7 +249,7 @@ public class IdentityService : IIdentityService
             await _mediator.Publish(new UserPasswordUpdateEvent
             {
                 ApplicationUserId = user.Id,
-                PublicUserId = user.PublicId,
+                ApplicationUserPublicId = user.PublicId,
                 CorrelationId = _contextManager.GetCorrelationId(),
                 Email = user.Email!,
                 FirstName = user.FirstName,
@@ -306,35 +306,35 @@ public class IdentityService : IIdentityService
         return await ManageTokensAsync(user, false);
     }
 
-    public async Task<string?> GetUserNameAsync(Guid userId)
+    public async Task<string?> GetUserNameAsync(Guid applicationUserPublicId)
     {
-        var user = await _userManager.FindByPublicIdAsync(userId);
+        var user = await _userManager.FindByPublicIdAsync(applicationUserPublicId);
 
         return user?.UserName;
     }
 
-    public async Task<bool> IsInRoleAsync(Guid userId, string role)
+    public async Task<bool> IsInRoleAsync(Guid applicationUserPublicId, string role)
     {
-        var user = await _userManager.FindByPublicIdAsync(userId);
+        var user = await _userManager.FindByPublicIdAsync(applicationUserPublicId);
 
         return user != null && await _userManager.IsInRoleAsync(user, role);
     }
 
-    public async Task<Result<(Guid UserId, string FirstName, string LastName, string Email)>> GetUserAsync(Guid userId)
+    public async Task<Result<(Guid ApplicationUserPublicId, string FirstName, string LastName, string Email)>> GetUserAsync(Guid applicationUserPublicId)
     {
-        var user = await _userManager.FindByPublicIdAsync(userId);
+        var user = await _userManager.FindByPublicIdAsync(applicationUserPublicId);
 
         if (user == null || user.Email == null)
         {
             return Result<(Guid, string, string, string)>.Failure(new[] { "user not found" }, default);
         }
 
-        return Result<(Guid UserId, string FirstName, string LastName, string Email)>.Success((user.PublicId, user.FirstName, user.LastName, user.Email));
+        return Result<(Guid ApplicationUserPublicId, string FirstName, string LastName, string Email)>.Success((user.PublicId, user.FirstName, user.LastName, user.Email));
     }
 
-    public async Task<bool> AuthorizeAsync(Guid userId, string policyName)
+    public async Task<bool> AuthorizeAsync(Guid applicationUserPublicId, string policyName)
     {
-        var user = await _userManager.FindByPublicIdAsync(userId);
+        var user = await _userManager.FindByPublicIdAsync(applicationUserPublicId);
 
         if (user == null || !user.IsActive || !user.EmailConfirmed)
         {
@@ -431,7 +431,7 @@ public class IdentityService : IIdentityService
             await _mediator.Publish(new UserCreatedEvent
             {
                 ApplicationUserId = user.Id,
-                PublicUserId = user.PublicId,
+                ApplicationUserPublicId = user.PublicId,
                 CorrelationId = _contextManager.GetCorrelationId(),
                 Email = user.Email,
                 FirstName = user.FirstName,
@@ -455,7 +455,7 @@ public class IdentityService : IIdentityService
     {
         var tenantUser = new TenantUser
         {
-            UserId = user.Id,
+            ApplicationUserId = user.Id,
             TenantId = tenantId,
             InvitedBy = invitedBy,
             EntityStatus = EntityStatus.Active,
@@ -505,7 +505,7 @@ public class IdentityService : IIdentityService
         user.LastLoginAt = DateTimeOffset.UtcNow;
         await _userManager.UpdateAsync(user);
 
-        AuthToken authToken = new() { ApplicationUserId = user.PublicId, Email = user.Email!, ExpiresIn = accessTokenResult.ExpiresInMinutes * 60, AccessToken = accessTokenResult.AccessToken, RefreshToken = refreshToken };
+        AuthToken authToken = new() { ApplicationUserPublicId = user.PublicId, Email = user.Email!, ExpiresIn = accessTokenResult.ExpiresInMinutes * 60, AccessToken = accessTokenResult.AccessToken, RefreshToken = refreshToken };
 
         return Result<AuthToken>.Success(authToken);
     }

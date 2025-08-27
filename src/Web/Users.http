@@ -12,7 +12,7 @@
 #@Email=waqas_sayed@hotmail.com
 #@Password=SyedWaqas123!
 
-@UserId=7a92ac09-81c1-46fa-812c-ae0085d5e920
+@ApplicationUserPublicId=7a92ac09-81c1-46fa-812c-ae0085d5e920
 @EmailConfirmationToken=CfDJ8I9Tjk8vOcdNsFAAFQwFrUC09UQc9s7iDvRB7khLIWbZEiIr7k/07JiE36LgWi9om04qKbQKtxdQ71U6j4Um4ufSYdrUPiBE3dCtBlvqI1DYxzf0QqivlCQlE2GMUZVLjPUU+tvRM6MBU0wv+JxzFpnI9D4LUJDcWrmFb8eW2OpYGs5JBYIwRW6+Rwddi4zRvg==
 @BearerToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMmZiNjQyNS04OWI4LTQ4YWYtYTg2ZC1iZjUxMzNlODk0MWMiLCJqdGkiOiJmZDIwY2ZjZS1kZGI4LTQzMzctODNhMy1kMjBjMmQ0ODM4NjIiLCJpYXQiOjE3NTU5NjE5NzYsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWVpZGVudGlmaWVyIjoiMTJmYjY0MjUtODliOC00OGFmLWE4NmQtYmY1MTMzZTg5NDFjIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6InRlbmFudGFkbWluQGNvbm5lY3RmbG93LmxvY2FsIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvZW1haWxhZGRyZXNzIjoidGVuYW50YWRtaW5AY29ubmVjdGZsb3cubG9jYWwiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9zaWQiOiI0IiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiVGVuYW50QWRtaW4iLCJuYmYiOjE3NTU5NjE5NzYsImV4cCI6MTc1NTk2NTU3NiwiaXNzIjoiQ29ubmVjdEZsb3cuRGV2IiwiYXVkIjoiQ29ubmVjdEZsb3cuRGV2In0.6ExBrkSObSyZY6nGm0LTxuu4gdLom8hqoWf9VVyJyXQ
 @RefreshToken=pok53btWBuJ+dQYRk/Zjdv76StYiv2Ldkxk9e9ZQUuIBJCjKZYim4LZ4qFLnjlkesENhWFVfC892XnEIVTbGSQ==
@@ -47,7 +47,7 @@ POST {{Web_HostAddress}}/Users/ConfirmEmail
 Content-Type: application/json
 
 {
-  "userId": "{{UserId}}",
+  "applicationUserPublicId": "{{ApplicationUserPublicId}}",
   "confirmationToken": "{{EmailConfirmationToken}}"
 }
 
@@ -79,7 +79,7 @@ POST {{Web_HostAddress}}/Users/UpdatePassword
 content-Type: application/json
 
 {
-  "userId": "{{UserId}}",
+  "applicationUserPublicId": "{{ApplicationUserPublicId}}",
   "passwordToken": "{{PasswordToken}}",
   "newPassword": "NewPassword123!"
 }

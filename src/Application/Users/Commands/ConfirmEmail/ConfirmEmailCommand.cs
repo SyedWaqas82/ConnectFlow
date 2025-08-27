@@ -4,7 +4,7 @@ namespace ConnectFlow.Application.Users.Commands.ConfirmEmail;
 
 public record ConfirmEmailCommand : IRequest<Result>
 {
-    public Guid UserId { get; init; }
+    public Guid ApplicationUserPublicId { get; init; }
     public string ConfirmationToken { get; init; } = string.Empty;
 }
 
@@ -19,6 +19,6 @@ public class ConfirmEmailCommandHandler : IRequestHandler<ConfirmEmailCommand, R
 
     public async Task<Result> Handle(ConfirmEmailCommand request, CancellationToken cancellationToken)
     {
-        return await _identityService.ConfirmEmailAsync(request.UserId, request.ConfirmationToken);
+        return await _identityService.ConfirmEmailAsync(request.ApplicationUserPublicId, request.ConfirmationToken);
     }
 }

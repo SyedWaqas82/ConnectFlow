@@ -26,7 +26,7 @@ public class AuthorizeTenantSubscriptionBehaviour<TRequest, TResponse> : IPipeli
         if (attribute != null)
         {
             // Must be authenticated user
-            if (_contextManager.GetCurrentUserId().HasValue == false)
+            if (_contextManager.GetCurrentApplicationUserPublicId().HasValue == false)
             {
                 throw new UnauthorizedAccessException();
             }

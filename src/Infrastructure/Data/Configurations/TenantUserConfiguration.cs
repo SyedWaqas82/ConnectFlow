@@ -8,14 +8,14 @@ public class TenantUserConfiguration : BaseAuditableConfiguration<TenantUser>
     {
         base.Configure(builder);
 
-        builder.Property(tu => tu.UserId).IsRequired();
+        builder.Property(tu => tu.ApplicationUserId).IsRequired();
         builder.Property(tu => tu.Status).IsRequired();
         builder.Property(tu => tu.JoinedAt).IsRequired();
         builder.Property(tu => tu.InvitedBy).IsRequired(false);
         builder.Property(tu => tu.LeftAt).IsRequired(false);
         builder.Property(tu => tu.TenantId).IsRequired();
         builder.HasIndex(tu => tu.TenantId);
-        builder.HasIndex(tu => new { tu.TenantId, tu.UserId }).IsUnique();
+        builder.HasIndex(tu => new { tu.TenantId, tu.ApplicationUserId }).IsUnique();
 
         // Configure relationships
         builder.HasMany(tu => tu.TenantUserRoles).WithOne(tur => tur.TenantUser).HasForeignKey(tur => tur.TenantUserId).OnDelete(DeleteBehavior.Cascade);

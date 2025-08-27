@@ -2,11 +2,11 @@ namespace ConnectFlow.Domain.Entities;
 
 public class TenantUser : BaseAuditableEntity, ISuspendibleEntity
 {
-    public int UserId { get; set; } = default!;
+    public int ApplicationUserId { get; set; } = default!;
     public TenantUserStatus Status { get; set; } = TenantUserStatus.Active;
     public DateTimeOffset JoinedAt { get; set; }
     public DateTimeOffset? LeftAt { get; set; }
-    public int? InvitedBy { get; set; } // UserId of inviter
+    public int? InvitedBy { get; set; } // ApplicationUserId of inviter
 
     // ISuspendibleEntity implementation
     public EntityStatus EntityStatus { get; set; } = EntityStatus.Active;
