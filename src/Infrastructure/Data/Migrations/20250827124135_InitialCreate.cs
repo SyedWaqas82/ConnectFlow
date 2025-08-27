@@ -232,7 +232,7 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                     PaymentProviderCustomerId = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     Avatar = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     Phone = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
-                    Email = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
                     Website = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     Address = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     City = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),

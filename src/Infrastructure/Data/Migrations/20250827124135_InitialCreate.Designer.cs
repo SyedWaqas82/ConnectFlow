@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ConnectFlow.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250827061232_InitialCreate")]
+    [Migration("20250827124135_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -491,8 +491,9 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         .HasColumnType("character varying(100)");
 
                     b.Property<string>("Email")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<DateTimeOffset>("LastModified")
                         .ValueGeneratedOnAdd()
