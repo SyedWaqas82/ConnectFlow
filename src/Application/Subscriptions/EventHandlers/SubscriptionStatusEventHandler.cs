@@ -1,4 +1,6 @@
 using ConnectFlow.Application.Common.Models;
+using ConnectFlow.Application.Common.Messaging;
+using ConnectFlow.Domain.Constants;
 
 namespace ConnectFlow.Application.Subscriptions.EventHandlers;
 
@@ -9,15 +11,15 @@ public class SubscriptionStatusEventHandler : INotificationHandler<SubscriptionS
 {
     private readonly ILogger<SubscriptionStatusEventHandler> _logger;
     private readonly IApplicationDbContext _context;
-    private readonly IEmailService _emailService;
+    private readonly IMessagePublisher _messagePublisher;
     private readonly ISubscriptionManagementService _subscriptionManagementService;
     private readonly SubscriptionSettings _subscriptionSettings;
 
-    public SubscriptionStatusEventHandler(ILogger<SubscriptionStatusEventHandler> logger, IApplicationDbContext context, IEmailService emailService, ISubscriptionManagementService subscriptionManagementService, IOptions<SubscriptionSettings> subscriptionSettings)
+    public SubscriptionStatusEventHandler(ILogger<SubscriptionStatusEventHandler> logger, IApplicationDbContext context, IMessagePublisher messagePublisher, ISubscriptionManagementService subscriptionManagementService, IOptions<SubscriptionSettings> subscriptionSettings)
     {
         _logger = logger;
         _context = context;
-        _emailService = emailService;
+        _messagePublisher = messagePublisher;
         _subscriptionManagementService = subscriptionManagementService;
         _subscriptionSettings = subscriptionSettings.Value;
     }
@@ -29,7 +31,7 @@ public class SubscriptionStatusEventHandler : INotificationHandler<SubscriptionS
 
         try
         {
-            var subscription = await _context.Subscriptions.Include(s => s.Tenant).FirstOrDefaultAsync(s => s.Id == notification.SubscriptionId, cancellationToken);
+            var subscription = await _context.Subscriptions.Include(s => s.Tenant).Include(s => s.Plan).FirstOrDefaultAsync(s => s.Id == notification.SubscriptionId, cancellationToken);
 
             if (subscription == null)
             {
@@ -131,29 +133,59 @@ public class SubscriptionStatusEventHandler : INotificationHandler<SubscriptionS
 
     private async Task SendEmailNotificationAsync(Subscription subscription, SubscriptionStatusEvent notification, CancellationToken cancellationToken)
     {
-        var subject = GetEmailSubject(notification.Action, notification.SuspendLimitsImmediately);
-        var body = GetEmailBody(notification.Action, subscription.Tenant.Name, notification.Reason, notification.SuspendLimitsImmediately);
-
-        var emailMessage = new EmailMessage
+        try
         {
-            To = subscription.Tenant.Email ?? string.Empty,
-            Subject = subject,
-            Body = body
-        };
+            var templateId = GetEmailTemplateId(notification.Action);
+            var subject = GetEmailSubject(notification.Action, notification.SuspendLimitsImmediately);
 
-        var result = await _emailService.SendAsync(emailMessage, cancellationToken);
+            var emailEvent = new EmailSendMessageEvent()
+            {
+                CorrelationId = notification.CorrelationId,
+                TenantId = notification.TenantId,
+                To = subscription.Tenant.Email,
+                Subject = subject,
+                IsHtml = true,
+                TemplateId = templateId,
+                TemplateData = new Dictionary<string, object>
+                {
+                    { "tenantName", subscription.Tenant.Name ?? "Valued Customer" },
+                    { "reason", notification.Reason },
+                    { "subscriptionId", subscription.Id },
+                    { "planName", subscription.Plan?.Name ?? "Current Plan" },
+                    { "subscriptionAction", notification.Action.ToString() },
+                    { "suspendedAt", DateTimeOffset.UtcNow.ToString("MMMM dd, yyyy") },
+                    { "reactivatedAt", DateTimeOffset.UtcNow.ToString("MMMM dd, yyyy") },
+                    { "cancelledAt", DateTimeOffset.UtcNow.ToString("MMMM dd, yyyy") },
+                    { "gracePeriodDays", _subscriptionSettings?.GracePeriodDays.ToString() ?? "7" },
+                    { "gracePeriodEndDate", subscription.GracePeriodEndsAt?.ToString("MMMM dd, yyyy") ?? string.Empty },
+                    { "isImmediate", notification.SuspendLimitsImmediately.ToString() },
+                    { "correlationId", notification.CorrelationId.GetValueOrDefault() }
+                },
+            };
 
-        if (result.Succeeded)
-        {
-            _logger.LogInformation("Sent {Action} email to {Email} for subscription {SubscriptionId}",
+            var queue = MessagingConfiguration.GetQueueByTypeAndDomain(MessagingConfiguration.QueueType.Default, MessagingConfiguration.QueueDomain.Email);
+            await _messagePublisher.PublishAsync(emailEvent, queue.RoutingKey, cancellationToken);
+
+            _logger.LogInformation("Queued {Action} email notification for tenant {TenantEmail} for subscription {SubscriptionId}",
                 notification.Action, subscription.Tenant.Email, subscription.Id);
         }
-        else
+        catch (Exception ex)
         {
-            _logger.LogError("Failed to send email to {Email} for subscription {SubscriptionId}: {Errors}",
-                subscription.Tenant.Email, subscription.Id, string.Join(", ", result.Errors));
+            _logger.LogError(ex, "Failed to queue email notification for subscription {SubscriptionId}", subscription.Id);
         }
     }
+
+    private string GetEmailTemplateId(SubscriptionAction action) => action switch
+    {
+        SubscriptionAction.Create => EmailTemplates.SubscriptionCreated,
+        SubscriptionAction.Suspend => EmailTemplates.SubscriptionSuspended,
+        SubscriptionAction.Reactivate => EmailTemplates.SubscriptionReactivated,
+        SubscriptionAction.Cancel => EmailTemplates.SubscriptionCancelled,
+        SubscriptionAction.GracePeriodStart => EmailTemplates.SubscriptionGracePeriodStart,
+        SubscriptionAction.GracePeriodEnd => EmailTemplates.SubscriptionGracePeriodEnd,
+        SubscriptionAction.PlanChanged => EmailTemplates.SubscriptionPlanChanged,
+        _ => EmailTemplates.SubscriptionSuspended
+    };
 
     private string GetEmailSubject(SubscriptionAction action, bool suspendLimitsImmediately = false) => action switch
     {
@@ -166,18 +198,5 @@ public class SubscriptionStatusEventHandler : INotificationHandler<SubscriptionS
         SubscriptionAction.GracePeriodEnd => "Grace period ended",
         SubscriptionAction.PlanChanged => "Your subscription plan has been updated",
         _ => "Subscription update"
-    };
-
-    private string GetEmailBody(SubscriptionAction action, string tenantName, string reason, bool suspendLimitsImmediately = false) => action switch
-    {
-        SubscriptionAction.Create => $"Hello {tenantName},\n\nWelcome! Your subscription is now active and you have full access to our services. Thank you for joining us!",
-        SubscriptionAction.Suspend => $"Hello {tenantName},\n\nYour subscription has been suspended. Reason: {reason}\n\nPlease contact support if you have any questions.",
-        SubscriptionAction.Reactivate => $"Hello {tenantName},\n\nGreat news! Your subscription has been reactivated and you now have full access to our services.",
-        SubscriptionAction.Cancel when suspendLimitsImmediately => $"Hello {tenantName},\n\nYour subscription has been cancelled immediately. Reason: {reason}\n\nThank you for using our services.",
-        SubscriptionAction.Cancel => $"Hello {tenantName},\n\nYour subscription is scheduled to be cancelled at the end of your current billing period. Reason: {reason}\n\nYou'll continue to have access until your current period ends.",
-        SubscriptionAction.GracePeriodStart => $"Hello {tenantName},\n\nWe were unable to process your payment. You have {(_subscriptionSettings?.GracePeriodDays ?? 7)} days to update your payment method before your service is suspended.",
-        SubscriptionAction.GracePeriodEnd => $"Hello {tenantName},\n\nYour grace period has ended. Please update your payment method to continue using our services.",
-        SubscriptionAction.PlanChanged => $"Hello {tenantName},\n\nYour subscription plan has been updated. {reason}",
-        _ => $"Hello {tenantName},\n\nYour subscription has been updated. {reason}"
     };
 }

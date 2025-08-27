@@ -1,0 +1,126 @@
+@{
+    var tenantName = Model["tenantName"].ToString();
+    var reason = Model["reason"]?.ToString() ?? "Plan changed";
+    var subscriptionId = Model["subscriptionId"];
+    var planName = Model["planName"]?.ToString() ?? "New Plan";
+}
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Subscription Plan Updated</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: #17a2b8;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .content {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .update-icon {
+            font-size: 48px;
+            color: #17a2b8;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .details {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .button {
+            background: #17a2b8;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            display: inline-block;
+            margin: 20px 0;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .info-alert {
+            background: #e7f3ff;
+            border: 1px solid #b8daff;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+            color: #004085;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Plan Updated</h1>
+        </div>
+        <div class="content">
+            <div class="update-icon">🔄</div>
+
+            <h2>Hello @tenantName,</h2>
+
+            <p>Your ConnectFlow subscription plan has been successfully updated!</p>
+
+            <div class="details">
+                <h3>Update Details:</h3>
+                <p><strong>Subscription ID:</strong> #@subscriptionId</p>
+                <p><strong>New Plan:</strong> @planName</p>
+                <p><strong>Updated On:</strong> @DateTime.UtcNow.ToString("MMMM dd, yyyy")</p>
+                <p><strong>Details:</strong> @reason</p>
+            </div>
+
+            <div class="info-alert">
+                <strong>What's changed?</strong>
+                <p>Your new plan features are now active. Check your dashboard to see the updated limits and features
+                    available to you.</p>
+            </div>
+
+            <h3>Next steps:</h3>
+            <ul>
+                <li>Review your new plan features in the dashboard</li>
+                <li>Check updated usage limits</li>
+                <li>Explore any new features now available</li>
+                <li>Contact support if you have questions</li>
+            </ul>
+
+            <a href="http://localhost:3000/dashboard" class="button">View Your Dashboard</a>
+
+            <p>Thank you for continuing to grow with ConnectFlow. We're excited to support your expanded needs!</p>
+        </div>
+        <div class="footer">
+            <p>Best regards,<br />The ConnectFlow Team</p>
+        </div>
+    </div>
+</body>
+
+</html>

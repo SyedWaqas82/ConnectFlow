@@ -382,6 +382,7 @@ public class IdentityService : IIdentityService
         var tenant = new Tenant
         {
             Name = name,
+            Email = adminUser.Email!,
             Settings = "{}",
             CreatedBy = _contextManager.GetCurrentApplicationUserId() ?? adminUser.Id
         };

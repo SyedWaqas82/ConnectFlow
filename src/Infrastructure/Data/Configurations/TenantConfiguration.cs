@@ -14,7 +14,7 @@ public class TenantConfiguration : BaseAuditableConfiguration<Tenant>
         builder.Property(t => t.PaymentProviderCustomerId).IsRequired().HasMaxLength(50);
         builder.Property(t => t.Avatar).HasMaxLength(200);
         builder.Property(t => t.Phone).HasMaxLength(20);
-        builder.Property(t => t.Email).HasMaxLength(100);
+        builder.Property(t => t.Email).HasMaxLength(256).IsRequired();
         builder.Property(t => t.Website).HasMaxLength(200);
         builder.Property(t => t.Address).HasMaxLength(200);
         builder.Property(t => t.City).HasMaxLength(100);

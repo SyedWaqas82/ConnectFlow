@@ -1,5 +1,6 @@
-using ConnectFlow.Domain.Events.Mediator.Subscriptions;
 using ConnectFlow.Application.Common.Models;
+using ConnectFlow.Application.Common.Messaging;
+using ConnectFlow.Domain.Constants;
 
 namespace ConnectFlow.Application.Subscriptions.EventHandlers;
 
@@ -10,14 +11,14 @@ public class PaymentStatusEventHandler : INotificationHandler<PaymentStatusEvent
 {
     private readonly ILogger<PaymentStatusEventHandler> _logger;
     private readonly IApplicationDbContext _context;
-    private readonly IEmailService _emailService;
+    private readonly IMessagePublisher _messagePublisher;
     private readonly SubscriptionSettings _subscriptionSettings;
 
-    public PaymentStatusEventHandler(ILogger<PaymentStatusEventHandler> logger, IApplicationDbContext context, IEmailService emailService, IOptions<SubscriptionSettings> subscriptionSettings)
+    public PaymentStatusEventHandler(ILogger<PaymentStatusEventHandler> logger, IApplicationDbContext context, IMessagePublisher messagePublisher, IOptions<SubscriptionSettings> subscriptionSettings)
     {
         _logger = logger;
         _context = context;
-        _emailService = emailService;
+        _messagePublisher = messagePublisher;
         _subscriptionSettings = subscriptionSettings.Value;
     }
 
@@ -28,7 +29,7 @@ public class PaymentStatusEventHandler : INotificationHandler<PaymentStatusEvent
 
         try
         {
-            var subscription = await _context.Subscriptions.Include(s => s.Tenant).FirstOrDefaultAsync(s => s.Id == notification.SubscriptionId, cancellationToken);
+            var subscription = await _context.Subscriptions.Include(s => s.Tenant).Include(s => s.Plan).FirstOrDefaultAsync(s => s.Id == notification.SubscriptionId, cancellationToken);
 
             if (subscription == null)
             {
@@ -174,27 +175,42 @@ public class PaymentStatusEventHandler : INotificationHandler<PaymentStatusEvent
 
     private async Task SendEmailNotificationAsync(Subscription subscription, PaymentStatusEvent notification, CancellationToken cancellationToken)
     {
-        var subject = GetEmailSubject(notification.Action);
-        var body = GetEmailBody(notification.Action, subscription.Tenant.Name, notification.Reason, notification.Amount);
-
-        var emailMessage = new EmailMessage
+        try
         {
-            To = subscription.Tenant.Email ?? string.Empty,
-            Subject = subject,
-            Body = body
-        };
+            var templateId = GetEmailTemplateId(notification.Action);
+            var subject = GetEmailSubject(notification.Action);
 
-        var result = await _emailService.SendAsync(emailMessage, cancellationToken);
+            var emailEvent = new EmailSendMessageEvent()
+            {
+                CorrelationId = notification.CorrelationId,
+                TenantId = notification.TenantId,
+                To = subscription.Tenant.Email,
+                Subject = subject,
+                IsHtml = true,
+                TemplateId = templateId,
+                TemplateData = new Dictionary<string, object>
+                {
+                    { "tenantName", subscription.Tenant.Name ?? "Valued Customer" },
+                    { "amount", notification.Amount?.ToString("C") ?? "$0.00" },
+                    { "reason", notification.Reason },
+                    { "subscriptionId", subscription.Id },
+                    { "planName", subscription.Plan?.Name ?? "Current Plan" },
+                    { "paymentAction", notification.Action.ToString() },
+                    { "timestamp", notification.Timestamp.ToString("MMMM dd, yyyy") },
+                    { "nextRetryDate", subscription.NextRetryAt?.ToString("MMMM dd, yyyy") ?? string.Empty },
+                    { "failureCount", notification.FailureCount },
+                    { "correlationId", notification.CorrelationId.GetValueOrDefault() }
+                },
+            };
 
-        if (result.Succeeded)
-        {
-            _logger.LogInformation("Sent {Action} email to {Email} for subscription {SubscriptionId}",
-                notification.Action, subscription.Tenant.Email, subscription.Id);
+            var queue = MessagingConfiguration.GetQueueByTypeAndDomain(MessagingConfiguration.QueueType.Default, MessagingConfiguration.QueueDomain.Email);
+            await _messagePublisher.PublishAsync(emailEvent, queue.RoutingKey, cancellationToken);
+
+            _logger.LogInformation("Queued {Action} email notification for tenant {TenantEmail} for subscription {SubscriptionId}", notification.Action, subscription.Tenant.Email, subscription.Id);
         }
-        else
+        catch (Exception ex)
         {
-            _logger.LogError("Failed to send email to {Email} for subscription {SubscriptionId}: {Errors}",
-                subscription.Tenant.Email, subscription.Id, string.Join(", ", result.Errors));
+            _logger.LogError(ex, "Failed to queue email notification for subscription {SubscriptionId}", subscription.Id);
         }
     }
 
@@ -244,6 +260,16 @@ public class PaymentStatusEventHandler : INotificationHandler<PaymentStatusEvent
         return baseGracePeriodEnd > intelligentEndTime ? baseGracePeriodEnd : intelligentEndTime;
     }
 
+    private string GetEmailTemplateId(PaymentAction action) => action switch
+    {
+        PaymentAction.Success => EmailTemplates.PaymentSuccess,
+        PaymentAction.Failed => EmailTemplates.PaymentFailed,
+        PaymentAction.Retry => EmailTemplates.PaymentRetry,
+        PaymentAction.Refunded => EmailTemplates.PaymentRefunded,
+        PaymentAction.PartialRefund => EmailTemplates.PaymentPartialRefund,
+        _ => EmailTemplates.PaymentFailed
+    };
+
     private string GetEmailSubject(PaymentAction action) => action switch
     {
         PaymentAction.Success => "Payment Successful - Thank You!",
@@ -252,15 +278,5 @@ public class PaymentStatusEventHandler : INotificationHandler<PaymentStatusEvent
         PaymentAction.Refunded => "Payment Refunded",
         PaymentAction.PartialRefund => "Partial Refund Processed",
         _ => "Payment Update"
-    };
-
-    private string GetEmailBody(PaymentAction action, string tenantName, string reason, decimal? amount) => action switch
-    {
-        PaymentAction.Success => $"Hello {tenantName},\n\nYour payment of {amount:C} has been processed successfully. Thank you for your continued subscription!",
-        PaymentAction.Failed => $"Hello {tenantName},\n\nWe were unable to process your payment. Reason: {reason}\n\nPlease update your payment method to avoid service interruption.",
-        PaymentAction.Retry => $"Hello {tenantName},\n\nWe will retry processing your payment. Please ensure your payment method is up to date.",
-        PaymentAction.Refunded => $"Hello {tenantName},\n\nA refund of {amount:C} has been processed. Reason: {reason}",
-        PaymentAction.PartialRefund => $"Hello {tenantName},\n\nA partial refund of {amount:C} has been processed. Reason: {reason}",
-        _ => $"Hello {tenantName},\n\nYour payment status has been updated. Amount: {amount:C}"
     };
 }

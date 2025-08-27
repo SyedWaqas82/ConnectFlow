@@ -8,7 +8,7 @@ public class Tenant : BaseAuditableEntity
     public string PaymentProviderCustomerId { get; set; } = string.Empty;
     public string? Avatar { get; set; }
     public string? Phone { get; set; }
-    public string? Email { get; set; }
+    public required string Email { get; set; }
     public string? Website { get; set; }
     public string? Address { get; set; }
     public string? City { get; set; }

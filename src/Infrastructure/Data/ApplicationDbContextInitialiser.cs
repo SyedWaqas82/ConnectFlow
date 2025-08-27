@@ -125,6 +125,7 @@ public class ApplicationDbContextInitialiser
             {
                 tenant = new Tenant
                 {
+                    Email = tenantAdmin.Email!,
                     Domain = "Default Tenant",
                     Name = "Default Tenant",
                     Description = "Default Tenant",
