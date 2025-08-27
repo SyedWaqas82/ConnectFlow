@@ -45,8 +45,13 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
                 return false;
             }
 
-            var plan = await FindPlanByPriceIdAsync(priceId, cancellationToken);
-            if (plan == null) return false;
+            var plan = await _context.Plans.FirstOrDefaultAsync(p => p.PaymentProviderPriceId == priceId && p.IsActive, cancellationToken);
+
+            if (plan == null)
+            {
+                _logger.LogWarning("Plan not found for price ID {PriceId}", priceId);
+                return false;
+            }
 
             // Check if subscription already exists
             var existingSubscription = await FindSubscriptionByStripeIdAsync(stripeSubscriptionId!, cancellationToken, includePlan: false, includeTenant: false);
@@ -270,18 +275,6 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
         return tenant;
     }
 
-    private async Task<Plan?> FindPlanByPriceIdAsync(string priceId, CancellationToken cancellationToken)
-    {
-        var plan = await _context.Plans.FirstOrDefaultAsync(p => p.PaymentProviderPriceId == priceId && p.IsActive, cancellationToken);
-
-        if (plan == null)
-        {
-            _logger.LogWarning("Plan not found for price ID {PriceId}", priceId);
-        }
-
-        return plan;
-    }
-
     private string? ExtractPriceIdFromSubscriptionData(Dictionary<string, object> subscriptionData)
     {
         var priceId = subscriptionData.GetValueOrDefault("items")?.ToString();
@@ -348,8 +341,17 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
             newSubscription.CanceledAt = subscription.CanceledAt.Value;
         }
 
+        // Add domain event for subscription creation
+        var subscriptionEvent = new SubscriptionStatusEvent(
+            newSubscription.Id,
+            SubscriptionAction.Create,
+            "Subscription created via Stripe webhook",
+            sendEmailNotification: true,
+            tenantId: tenant.Id);
+
+        newSubscription.AddDomainEvent(subscriptionEvent);
+
         _context.Subscriptions.Add(newSubscription);
-        newSubscription.AddDomainEvent(new SubscriptionCreatedEvent(tenant.Id, newSubscription.Id, plan.Name));
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -391,7 +393,8 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
             newPlan = currentPlan;
         }
 
-        existingSubscription.Status = newStatus;
+        // Update subscription data from Stripe (keep data synchronization)
+        // Note: Status changes will be handled by event handlers
         existingSubscription.CurrentPeriodStart = subscription.CurrentPeriodStart;
         existingSubscription.CurrentPeriodEnd = subscription.CurrentPeriodEnd;
 
@@ -423,116 +426,89 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
             existingSubscription.CanceledAt = null;
         }
 
-        // Handle plan changes (upgrade/downgrade)
+        // Add appropriate domain events before database save
         if (hasPlansChanged)
         {
-            var isUpgrade = newPlan.Price > currentPlan.Price;
-            var isDowngrade = newPlan.Price < currentPlan.Price;
+            var planChangeEvent = new SubscriptionStatusEvent(
+                existingSubscription.Id,
+                SubscriptionAction.PlanChanged,
+                $"Plan changed from {currentPlan.Name} to {newPlan.Name}",
+                sendEmailNotification: true,
+                suspendLimitsImmediately: true, // Plan changes are immediate
+                previousPlanId: currentPlan.Id,
+                newPlanId: newPlan.Id,
+                tenantId: existingSubscription.TenantId);
 
-            if (isUpgrade)
-            {
-                existingSubscription.AddDomainEvent(new SubscriptionUpgradedEvent(
-                    existingSubscription.TenantId,
-                    existingSubscription.Id,
-                    currentPlan.Name,
-                    newPlan.Name));
+            existingSubscription.AddDomainEvent(planChangeEvent);
 
-                _logger.LogInformation("Subscription {SubscriptionId} upgraded from {FromPlan} to {ToPlan}",
-                    existingSubscription.Id, currentPlan.Name, newPlan.Name);
-            }
-            else if (isDowngrade)
-            {
-                existingSubscription.AddDomainEvent(new SubscriptionDowngradedEvent(
-                    existingSubscription.TenantId,
-                    existingSubscription.Id,
-                    currentPlan.Name,
-                    newPlan.Name));
-
-                _logger.LogInformation("Subscription {SubscriptionId} downgraded from {FromPlan} to {ToPlan}",
-                    existingSubscription.Id, currentPlan.Name, newPlan.Name);
-            }
+            _logger.LogInformation("Subscription {SubscriptionId} plan changed from {FromPlan} to {ToPlan}",
+                existingSubscription.Id, currentPlan.Name, newPlan.Name);
         }
 
-        // Handle status changes
+        // Track if we've already handled cancellation to avoid duplicates
+        var cancellationEventAdded = false;
+
+        // Handle status changes with events
         if (previousStatus != newStatus)
         {
-            existingSubscription.AddDomainEvent(new SubscriptionStatusUpdatedEvent(
-                existingSubscription.TenantId,
-                existingSubscription.Id,
-                newPlan.Name,
-                previousStatus,
-                newStatus));
-
-            // Handle cancellation scenarios
-            if (newStatus == SubscriptionStatus.Canceled)
+            var action = newStatus switch
             {
-                // Check if this was a scheduled cancellation at period end
-                var wasScheduledForCancellation = existingSubscription.CancelAtPeriodEnd;
+                SubscriptionStatus.Canceled => SubscriptionAction.Cancel,
+                SubscriptionStatus.Active when previousStatus != SubscriptionStatus.Active => SubscriptionAction.Reactivate,
+                _ => SubscriptionAction.StatusUpdate
+            };
 
-                if (wasScheduledForCancellation)
+            if (action != SubscriptionAction.StatusUpdate)
+            {
+                var statusEvent = new SubscriptionStatusEvent(
+                    existingSubscription.Id,
+                    action,
+                    $"Status changed from {previousStatus} to {newStatus}",
+                    sendEmailNotification: true,
+                    suspendLimitsImmediately: action == SubscriptionAction.Cancel, // Cancellations via status change are immediate
+                    tenantId: existingSubscription.TenantId);
+
+                existingSubscription.AddDomainEvent(statusEvent);
+
+                // Track if we added a cancellation event
+                if (action == SubscriptionAction.Cancel)
                 {
-                    _logger.LogInformation("Subscription {SubscriptionId} reached period end and was canceled as scheduled", existingSubscription.Id);
-
-                    existingSubscription.AddDomainEvent(new SubscriptionCancelledEvent(
-                        existingSubscription.TenantId,
-                        existingSubscription.Id,
-                        false)); // false = was scheduled for end of period
-                }
-                else
-                {
-                    _logger.LogInformation("Subscription {SubscriptionId} was canceled immediately", existingSubscription.Id);
-
-                    existingSubscription.AddDomainEvent(new SubscriptionCancelledEvent(
-                        existingSubscription.TenantId,
-                        existingSubscription.Id,
-                        true)); // true = immediate cancellation
-                }
-
-                // Handle auto-downgrade after grace period or cancellation
-                if (existingSubscription.IsInGracePeriod)
-                {
-                    existingSubscription.IsInGracePeriod = false;
-                    existingSubscription.GracePeriodEndsAt = null;
-
-                    existingSubscription.AddDomainEvent(new SubscriptionGracePeriodEndedEvent(
-                        existingSubscription.TenantId,
-                        existingSubscription.Id,
-                        newPlan.Name,
-                        _subscriptionSettings.AutoDowngradeAfterGracePeriod));
-                }
-
-                // Auto-downgrade if configured
-                if (_subscriptionSettings.AutoDowngradeAfterGracePeriod)
-                {
-                    await HandleAutoDowngradeToFreeAsync(existingSubscription, cancellationToken);
+                    cancellationEventAdded = true;
                 }
             }
         }
 
-        // Handle changes to cancel at period end flag
+        // Handle cancellation flag changes (but avoid duplicate cancellation events)
         if (previousCancelAtPeriodEnd != subscription.CancelAtPeriodEnd)
         {
-            if (subscription.CancelAtPeriodEnd && !previousCancelAtPeriodEnd)
+            if (subscription.CancelAtPeriodEnd && !previousCancelAtPeriodEnd && !cancellationEventAdded)
             {
-                // Subscription was set to cancel at period end
+                var cancelEvent = new SubscriptionStatusEvent(
+                    existingSubscription.Id,
+                    SubscriptionAction.Cancel,
+                    "Subscription set to cancel at period end",
+                    sendEmailNotification: true,
+                    suspendLimitsImmediately: false, // Period-end cancellation is not immediate
+                    tenantId: existingSubscription.TenantId);
+
+                existingSubscription.AddDomainEvent(cancelEvent);
+
                 _logger.LogInformation("Subscription {SubscriptionId} set to cancel at period end ({PeriodEnd})",
                     existingSubscription.Id, subscription.CurrentPeriodEnd);
-
-                existingSubscription.AddDomainEvent(new SubscriptionCancelledEvent(
-                    existingSubscription.TenantId,
-                    existingSubscription.Id,
-                    false)); // false = scheduled for end of period
             }
             else if (!subscription.CancelAtPeriodEnd && previousCancelAtPeriodEnd)
             {
-                // Cancellation was cancelled - subscription reactivated
+                var reactivateEvent = new SubscriptionStatusEvent(
+                    existingSubscription.Id,
+                    SubscriptionAction.Reactivate,
+                    "Cancellation reversed - subscription reactivated",
+                    sendEmailNotification: true,
+                    tenantId: existingSubscription.TenantId);
+
+                existingSubscription.AddDomainEvent(reactivateEvent);
+
                 _logger.LogInformation("Subscription {SubscriptionId} cancellation was reversed - subscription reactivated",
                     existingSubscription.Id);
-
-                existingSubscription.AddDomainEvent(new SubscriptionReactivatedEvent(
-                    existingSubscription.TenantId,
-                    existingSubscription.Id,
-                    newPlan.Name));
             }
         }
 
@@ -544,53 +520,26 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
 
     private async Task<bool> ProcessSubscriptionDeletionAsync(Subscription existingSubscription, CancellationToken cancellationToken)
     {
-        var previousStatus = existingSubscription.Status;
         var wasScheduledForCancellation = existingSubscription.CancelAtPeriodEnd;
 
-        // When subscription.deleted event is received, the subscription is definitely canceled
-        existingSubscription.Status = SubscriptionStatus.Canceled;
+        // Update cancellation timestamps (keep data synchronization)
+        // Note: Status change will be handled by event handler
         existingSubscription.CanceledAt = DateTimeOffset.UtcNow; // When it was actually canceled
         existingSubscription.CancelAtPeriodEnd = false; // Reset flag since cancellation is now complete
 
         _logger.LogInformation("Subscription {SubscriptionId} deleted - was scheduled for cancellation: {WasScheduled}",
             existingSubscription.Id, wasScheduledForCancellation);
 
-        // Raise appropriate events based on whether this was scheduled or immediate
-        existingSubscription.AddDomainEvent(new SubscriptionStatusUpdatedEvent(
-            existingSubscription.TenantId,
+        // Add cancellation domain event
+        var cancelEvent = new SubscriptionStatusEvent(
             existingSubscription.Id,
-            existingSubscription.Plan.Name,
-            previousStatus,
-            SubscriptionStatus.Canceled));
+            SubscriptionAction.Cancel,
+            wasScheduledForCancellation ? "Subscription reached period end and was canceled as scheduled" : "Subscription was canceled immediately",
+            sendEmailNotification: true,
+            suspendLimitsImmediately: true, // Always suspend limits immediately when subscription is actually deleted
+            tenantId: existingSubscription.TenantId);
 
-        if (wasScheduledForCancellation)
-        {
-            // This was a scheduled cancellation that reached its period end
-            existingSubscription.AddDomainEvent(new SubscriptionCancelledEvent(
-                existingSubscription.TenantId,
-                existingSubscription.Id,
-                false)); // false = was scheduled cancellation reaching period end
-
-            _logger.LogInformation("Subscription {SubscriptionId} reached period end and completed scheduled cancellation",
-                existingSubscription.Id);
-        }
-        else
-        {
-            // This was an immediate cancellation
-            existingSubscription.AddDomainEvent(new SubscriptionCancelledEvent(
-                existingSubscription.TenantId,
-                existingSubscription.Id,
-                true)); // true = immediate cancellation
-
-            _logger.LogInformation("Subscription {SubscriptionId} was canceled immediately",
-                existingSubscription.Id);
-        }
-
-        // Handle auto-downgrade if configured
-        if (_subscriptionSettings.AutoDowngradeAfterGracePeriod)
-        {
-            await HandleAutoDowngradeToFreeAsync(existingSubscription, cancellationToken);
-        }
+        existingSubscription.AddDomainEvent(cancelEvent);
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -601,44 +550,20 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
 
     private async Task<bool> ProcessPaymentSuccessAsync(Subscription existingSubscription, string stripeInvoiceId, decimal amountPaid, string currency, CancellationToken cancellationToken)
     {
-        // Update subscription status if it was in grace period or past due
-        var previousStatus = existingSubscription.Status;
-        if (existingSubscription.Status == SubscriptionStatus.PastDue || existingSubscription.IsInGracePeriod)
-        {
-            existingSubscription.Status = SubscriptionStatus.Active;
-            existingSubscription.IsInGracePeriod = false;
-            existingSubscription.GracePeriodEndsAt = null;
-            existingSubscription.LastPaymentFailedAt = null;
-
-            // Reset retry counters on successful payment
-            ResetRetryTracking(existingSubscription);
-
-            existingSubscription.AddDomainEvent(new SubscriptionStatusUpdatedEvent(
-                existingSubscription.TenantId,
-                existingSubscription.Id,
-                existingSubscription.Plan.Name,
-                previousStatus,
-                SubscriptionStatus.Active));
-
-            if (previousStatus == SubscriptionStatus.PastDue)
-            {
-                existingSubscription.AddDomainEvent(new SubscriptionGracePeriodEndedEvent(
-                    existingSubscription.TenantId,
-                    existingSubscription.Id,
-                    existingSubscription.Plan.Name,
-                    false));
-            }
-        }
-
         // Create or update invoice record
         await CreateOrUpdateInvoiceAsync(stripeInvoiceId, existingSubscription.Id, amountPaid, currency, "paid", cancellationToken);
 
-        existingSubscription.AddDomainEvent(new PaymentSucceededEvent(
-            existingSubscription.TenantId,
+        // Add PaymentStatusEvent domain event for payment success
+        // The PaymentStatusEventHandler will handle status updates and retry tracking reset
+        var paymentEvent = new PaymentStatusEvent(
             existingSubscription.Id,
-            stripeInvoiceId,
-            amountPaid,
-            currency));
+            PaymentAction.Success,
+            "Payment succeeded",
+            amount: amountPaid,
+            sendEmailNotification: true,
+            tenantId: existingSubscription.TenantId);
+
+        existingSubscription.AddDomainEvent(paymentEvent);
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -647,242 +572,37 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
         return true;
     }
 
-    private void ResetRetryTracking(Subscription subscription)
-    {
-        subscription.PaymentRetryCount = 0;
-        subscription.FirstPaymentFailureAt = null;
-        subscription.NextRetryAt = null;
-        subscription.HasReachedMaxRetries = false;
-    }
-
     private async Task<bool> ProcessPaymentFailureAsync(Subscription existingSubscription, string stripeInvoiceId, decimal amountDue, string currency, int attemptCount, CancellationToken cancellationToken)
     {
-        var previousStatus = existingSubscription.Status;
+        // Create or update invoice record
+        await CreateOrUpdateInvoiceAsync(stripeInvoiceId, existingSubscription.Id, amountDue, currency, "payment_failed", cancellationToken);
 
-        // Update retry tracking
-        UpdateRetryTracking(existingSubscription, attemptCount);
-
-        // Check if max retries reached
+        // Check if max retries reached - this info is passed to PaymentStatusEvent
         var hasReachedMaxRetries = attemptCount >= _subscriptionSettings.MaxPaymentRetries;
         if (hasReachedMaxRetries && !existingSubscription.HasReachedMaxRetries)
         {
             existingSubscription.HasReachedMaxRetries = true;
-            existingSubscription.AddDomainEvent(new SubscriptionMaxRetriesReachedEvent(
-                existingSubscription.TenantId,
-                existingSubscription.Id,
-                existingSubscription.Plan.Name,
-                attemptCount,
-                existingSubscription.FirstPaymentFailureAt!.Value));
         }
 
-        // Handle grace period logic
-        await HandleGracePeriodLogicAsync(existingSubscription, attemptCount);
-
-        // Handle auto-downgrade after max retries if enabled
-        if (hasReachedMaxRetries && _subscriptionSettings.AutoDowngradeAfterMaxRetries)
-        {
-            await HandleAutoDowngradeAfterMaxRetriesAsync(existingSubscription, cancellationToken);
-        }
-
-        // Create or update invoice record
-        await CreateOrUpdateInvoiceAsync(stripeInvoiceId, existingSubscription.Id, amountDue, currency, "payment_failed", cancellationToken);
-
-        // Raise payment failed event
-        existingSubscription.AddDomainEvent(new PaymentFailedEvent(
-            existingSubscription.TenantId,
+        // Add PaymentStatusEvent domain event for payment failure
+        // The PaymentStatusEventHandler will handle suspension logic when SuspendOnFailure=true
+        // The PaymentStatusEventHandler will handle retry tracking and grace period logic
+        var paymentEvent = new PaymentStatusEvent(
             existingSubscription.Id,
-            stripeInvoiceId,
-            amountDue,
-            currency,
-            $"Payment attempt {attemptCount} failed"));
+            PaymentAction.Failed,
+            $"Payment attempt {attemptCount} failed",
+            amount: amountDue,
+            sendEmailNotification: true,
+            failureCount: attemptCount,
+            tenantId: existingSubscription.TenantId);
 
-        // Raise status updated event if status changed
-        if (previousStatus != existingSubscription.Status)
-        {
-            existingSubscription.AddDomainEvent(new SubscriptionStatusUpdatedEvent(
-                existingSubscription.TenantId,
-                existingSubscription.Id,
-                existingSubscription.Plan.Name,
-                previousStatus,
-                existingSubscription.Status));
-        }
+        existingSubscription.AddDomainEvent(paymentEvent);
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Payment failed for subscription {SubscriptionId}, entering grace period until {GracePeriodEnd}",
-            existingSubscription.Id, existingSubscription.GracePeriodEndsAt);
+        _logger.LogInformation("Payment failed for subscription {SubscriptionId}, attempt {AttemptCount}",
+            existingSubscription.Id, attemptCount);
         return true;
-    }
-
-    private void UpdateRetryTracking(Subscription subscription, int attemptCount)
-    {
-        subscription.LastPaymentFailedAt = DateTimeOffset.UtcNow;
-        subscription.PaymentRetryCount = attemptCount;
-
-        // Track first failure
-        if (subscription.FirstPaymentFailureAt == null)
-        {
-            subscription.FirstPaymentFailureAt = DateTimeOffset.UtcNow;
-        }
-
-        // Calculate next retry time based on Stripe's retry schedule
-        subscription.NextRetryAt = CalculateNextRetryTime(attemptCount, subscription.FirstPaymentFailureAt.Value);
-    }
-
-    private DateTimeOffset CalculateNextRetryTime(int attemptCount, DateTimeOffset firstFailureAt)
-    {
-        // Stripe's approximate retry schedule:
-        // 1st retry: 3-5 days after initial failure
-        // 2nd retry: 5-7 days after first retry
-        // 3rd retry: 7-9 days after second retry
-        // 4th retry: 10-11 days after third retry
-
-        return attemptCount switch
-        {
-            1 => firstFailureAt.AddDays(4), // First retry around day 4
-            2 => firstFailureAt.AddDays(9), // Second retry around day 9
-            3 => firstFailureAt.AddDays(16), // Third retry around day 16
-            4 => firstFailureAt.AddDays(25), // Final retry around day 25
-            _ => firstFailureAt.AddDays(3) // Default fallback
-        };
-    }
-
-    private async Task HandleGracePeriodLogicAsync(Subscription subscription, int attemptCount)
-    {
-        if (!subscription.IsInGracePeriod)
-        {
-            subscription.IsInGracePeriod = true;
-
-            // Calculate grace period end date intelligently
-            if (_subscriptionSettings.UseIntelligentGracePeriod)
-            {
-                subscription.GracePeriodEndsAt = CalculateIntelligentGracePeriodEnd(attemptCount, subscription.FirstPaymentFailureAt!.Value);
-            }
-            else
-            {
-                subscription.GracePeriodEndsAt = DateTimeOffset.UtcNow.AddDays(_subscriptionSettings.GracePeriodDays);
-            }
-
-            subscription.Status = SubscriptionStatus.PastDue;
-
-            subscription.AddDomainEvent(new SubscriptionGracePeriodStartedEvent(
-                subscription.TenantId,
-                subscription.Id,
-                subscription.Plan.Name,
-                subscription.GracePeriodEndsAt.Value));
-
-            subscription.AddDomainEvent(new SubscriptionPastDueEvent(
-                subscription.TenantId,
-                subscription.Id,
-                subscription.Plan.Name,
-                DateTimeOffset.UtcNow));
-        }
-
-        await Task.CompletedTask;
-    }
-
-    private DateTimeOffset CalculateIntelligentGracePeriodEnd(int attemptCount, DateTimeOffset firstFailureAt)
-    {
-        // Base grace period calculation
-        var baseGracePeriodEnd = DateTimeOffset.UtcNow.AddDays(_subscriptionSettings.GracePeriodDays);
-
-        // If we're still in Stripe's retry period, extend grace period beyond the last expected retry
-        var nextRetryTime = CalculateNextRetryTime(attemptCount, firstFailureAt);
-        var stripeRetryEndTime = firstFailureAt.AddDays(_subscriptionSettings.StripeRetryPeriodDays);
-
-        // Ensure grace period extends beyond Stripe's retry attempts with additional buffer
-        var intelligentEndTime = stripeRetryEndTime.AddHours(_subscriptionSettings.RetryAttemptGracePeriodHours);
-
-        // Use the later of the two dates
-        return baseGracePeriodEnd > intelligentEndTime ? baseGracePeriodEnd : intelligentEndTime;
-    }
-
-    private async Task HandleAutoDowngradeAfterMaxRetriesAsync(Subscription subscription, CancellationToken cancellationToken)
-    {
-        try
-        {
-            // Find the free plan
-            var freePlan = await _context.Plans.FirstOrDefaultAsync(p => p.Name.ToLower() == _subscriptionSettings.DefaultDowngradePlanName.ToLower() && p.IsActive, cancellationToken);
-
-            if (freePlan == null)
-            {
-                _logger.LogWarning("Free plan '{PlanName}' not found for auto-downgrade after max retries", _subscriptionSettings.DefaultDowngradePlanName);
-                return;
-            }
-
-            var currentPlan = subscription.Plan;
-
-            // Create new free subscription immediately
-            var freeSubscription = new Subscription
-            {
-                PaymentProviderSubscriptionId = $"free_{Guid.NewGuid()}",
-                Status = SubscriptionStatus.Active,
-                CurrentPeriodStart = DateTimeOffset.UtcNow,
-                CurrentPeriodEnd = DateTimeOffset.UtcNow.AddYears(100), // Free plan never expires
-                CancelAtPeriodEnd = false,
-                PlanId = freePlan.Id,
-                TenantId = subscription.TenantId
-            };
-
-            _context.Subscriptions.Add(freeSubscription);
-
-            // Mark current subscription as canceled
-            subscription.Status = SubscriptionStatus.Canceled;
-            subscription.CanceledAt = DateTimeOffset.UtcNow;
-            subscription.IsInGracePeriod = false;
-
-            freeSubscription.AddDomainEvent(new SubscriptionDowngradedEvent(
-                subscription.TenantId,
-                subscription.Id,
-                currentPlan.Name,
-                freePlan.Name));
-
-            _logger.LogInformation("Auto-downgraded subscription {SubscriptionId} to free plan after max retries for tenant {TenantId}",
-                subscription.Id, subscription.TenantId);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error during auto-downgrade after max retries for subscription {SubscriptionId}", subscription.Id);
-        }
-    }
-
-    private async Task HandleAutoDowngradeToFreeAsync(Subscription subscription, CancellationToken cancellationToken)
-    {
-        try
-        {
-            // Find the free plan
-            var freePlan = await _context.Plans.FirstOrDefaultAsync(p => p.Name.ToLower() == _subscriptionSettings.DefaultDowngradePlanName.ToLower() && p.IsActive, cancellationToken);
-
-            if (freePlan == null)
-            {
-                _logger.LogWarning("Free plan '{PlanName}' not found for auto-downgrade", _subscriptionSettings.DefaultDowngradePlanName);
-                return;
-            }
-
-            var currentPlan = subscription.Plan;
-
-            // Create new free subscription
-            var freeSubscription = new Subscription
-            {
-                PaymentProviderSubscriptionId = $"free_{Guid.NewGuid()}",
-                Status = SubscriptionStatus.Active,
-                CurrentPeriodStart = DateTimeOffset.UtcNow,
-                CurrentPeriodEnd = DateTimeOffset.UtcNow.AddYears(100), // Free plan never expires
-                CancelAtPeriodEnd = false,
-                PlanId = freePlan.Id,
-                TenantId = subscription.TenantId
-            };
-
-            _context.Subscriptions.Add(freeSubscription);
-
-            freeSubscription.AddDomainEvent(new SubscriptionDowngradedEvent(subscription.TenantId, subscription.Id, currentPlan.Name, freePlan.Name));
-
-            _logger.LogInformation("Auto-downgraded subscription {SubscriptionId} to free plan for tenant {TenantId}", subscription.Id, subscription.TenantId);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error during auto-downgrade to free plan for subscription {SubscriptionId}", subscription.Id);
-        }
     }
 
     private static SubscriptionStatus MapStripeStatusToSubscriptionStatus(string stripeStatus)

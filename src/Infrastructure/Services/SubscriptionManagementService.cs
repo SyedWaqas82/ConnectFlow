@@ -1,4 +1,6 @@
 using ConnectFlow.Application.Common.Exceptions;
+using ConnectFlow.Domain.Events.Mediator.ChannelAccounts;
+using ConnectFlow.Domain.Events.Mediator.TenantUsers;
 
 namespace ConnectFlow.Infrastructure.Services;
 
@@ -44,13 +46,13 @@ public class SubscriptionManagementService : ISubscriptionManagementService
         try
         {
             var tenantId = GetCurrentTenantId();
-            var userId = GetCurrentApplicationUserId();
+            var applicationUserId = GetCurrentApplicationUserId();
 
             if (IsSuperAdminAllowed(allowSuperAdmin))
                 return true;
 
             // Tenant User suspension check is made at query filter level
-            var isTenantUser = await _context.TenantUsers.AnyAsync(tu => tu.TenantId == tenantId && tu.UserId == userId && tu.Status == TenantUserStatus.Active);
+            var isTenantUser = await _context.TenantUsers.AnyAsync(tu => tu.TenantId == tenantId && tu.ApplicationUserId == applicationUserId && tu.Status == TenantUserStatus.Active);
 
             if (!isTenantUser)
                 return false;
@@ -69,13 +71,13 @@ public class SubscriptionManagementService : ISubscriptionManagementService
         try
         {
             var tenantId = GetCurrentTenantId();
-            var userId = GetCurrentApplicationUserId();
+            var applicationUserId = GetCurrentApplicationUserId();
 
             if (IsSuperAdminAllowed(allowSuperAdmin))
                 return true;
 
             // Tenant User suspension check is made at query filter level
-            return await _context.TenantUserRoles.Include(tur => tur.TenantUser).AnyAsync(tur => tur.TenantUser.UserId == userId && tur.TenantUser.Status == TenantUserStatus.Active && tur.TenantUser.TenantId == tenantId && tur.RoleName == role);
+            return await _context.TenantUserRoles.Include(tur => tur.TenantUser).AnyAsync(tur => tur.TenantUser.ApplicationUserId == applicationUserId && tur.TenantUser.Status == TenantUserStatus.Active && tur.TenantUser.TenantId == tenantId && tur.RoleName == role);
         }
         catch (Exception ex)
         {
@@ -193,228 +195,202 @@ public class SubscriptionManagementService : ISubscriptionManagementService
 
     #endregion
 
-    // #region Entity Suspension/Reactivation (Generic ISuspendibleEntity Operations)
+    #region Entity Suspension/Reactivation Operations
 
-    // public async Task SuspendEntityAsync<T>(T entity, string reason, CancellationToken cancellationToken = default) where T : BaseAuditableEntity, ISuspendibleEntity
-    // {
-    //     try
-    //     {
-    //         entity.EntityStatus = EntityStatus.Suspended;
-    //         entity.SuspendedAt = DateTimeOffset.UtcNow;
-    //         entity.ResumedAt = null;
+    public async Task SyncEntitiesWithLimitsAsync(int tenantId, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Starting comprehensive entity sync with plan limits for tenant {TenantId}", tenantId);
 
-    //         // Add domain event
-    //         entity.AddDomainEvent(new EntitySuspendedEvent<T>(entity, reason));
+        try
+        {
+            // Get the current active subscription and plan
+            var subscription = await GetActiveSubscriptionAsync(tenantId, cancellationToken);
 
-    //         await _context.SaveChangesAsync(cancellationToken);
+            if (subscription?.Plan == null)
+            {
+                _logger.LogWarning("No active subscription found for tenant {TenantId}. Suspending all entities.", tenantId);
+                await SuspendAllEntitiesAsync(tenantId, "No active subscription", cancellationToken);
+                return;
+            }
 
-    //         _logger.LogInformation("Suspended {EntityType} entity {EntityId} for reason: {Reason}", typeof(T).Name, entity.Id, reason);
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         _logger.LogError(ex, "Failed to suspend {EntityType} entity {EntityId}", typeof(T).Name, entity.Id);
-    //         throw;
-    //     }
-    // }
+            var plan = subscription.Plan;
+            _logger.LogInformation("Syncing entities for tenant {TenantId} with plan {PlanName} (MaxUsers: {MaxUsers}, MaxChannels: {MaxChannels})", tenantId, plan.Name, plan.MaxUsers, plan.MaxChannels);
 
-    // public async Task ReactivateEntityAsync<T>(T entity, string reason, CancellationToken cancellationToken = default) where T : BaseAuditableEntity, ISuspendibleEntity
-    // {
-    //     try
-    //     {
-    //         entity.EntityStatus = EntityStatus.Active;
-    //         entity.ResumedAt = DateTimeOffset.UtcNow;
-    //         entity.SuspendedAt = null;
+            // Sync users with plan limits
+            await SyncTenantUsersWithPlanLimitsAsync(tenantId, plan.MaxUsers, cancellationToken);
 
-    //         // Add domain event
-    //         entity.AddDomainEvent(new EntityReactivatedEvent<T>(entity, reason));
+            // PHASE 1: Sync each channel type to their individual limits first
+            await SyncChannelsAsync(tenantId, ChannelType.WhatsApp, plan.MaxWhatsAppChannels, cancellationToken);
+            await SyncChannelsAsync(tenantId, ChannelType.Facebook, plan.MaxFacebookChannels, cancellationToken);
+            await SyncChannelsAsync(tenantId, ChannelType.Instagram, plan.MaxInstagramChannels, cancellationToken);
+            await SyncChannelsAsync(tenantId, ChannelType.Telegram, plan.MaxTelegramChannels, cancellationToken);
 
-    //         await _context.SaveChangesAsync(cancellationToken);
+            // PHASE 2: Apply total channel limits fairly across all types (pass null for channelType)
+            await SyncChannelsAsync(tenantId, null, plan.MaxChannels, cancellationToken);
 
-    //         _logger.LogInformation("Reactivated {EntityType} entity {EntityId} for reason: {Reason}", typeof(T).Name, entity.Id, reason);
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         _logger.LogError(ex, "Failed to reactivate {EntityType} entity {EntityId}", typeof(T).Name, entity.Id);
-    //         throw;
-    //     }
-    // }
+            _logger.LogInformation("Successfully completed comprehensive entity sync for tenant {TenantId}", tenantId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to sync entities with plan limits for tenant {TenantId}", tenantId);
+            throw;
+        }
+    }
 
-    // public async Task SuspendExcessiveEntitiesAsync<T>(int tenantId, Func<int, Task<int>> getMaxAllowed, Func<int, Task<List<T>>> getExcessiveEntities, CancellationToken cancellationToken = default) where T : BaseAuditableEntity, ISuspendibleEntity
-    // {
-    //     try
-    //     {
-    //         var maxAllowed = await getMaxAllowed(tenantId);
-    //         var excessiveEntities = await getExcessiveEntities(tenantId);
+    /// <summary>
+    /// Syncs users with plan limits - suspends excess users or restores suspended users within limits
+    /// </summary>
+    private async Task SyncTenantUsersWithPlanLimitsAsync(int tenantId, int maxUsers, CancellationToken cancellationToken)
+    {
+        // ignore query filters to get all users (active and suspended)
+        var allTenantUsers = await _context.TenantUsers.IgnoreQueryFilters().Where(tu => tu.TenantId == tenantId && tu.Status == TenantUserStatus.Active)
+            .OrderBy(tu => tu.Created).ToListAsync(cancellationToken); // Oldest users get priority to stay active
 
-    //         foreach (var entity in excessiveEntities)
-    //         {
-    //             await SuspendEntityAsync(entity, $"Exceeded plan limit of {maxAllowed}", cancellationToken);
-    //         }
+        var activeTenantUsers = allTenantUsers.Where(u => u.Status == TenantUserStatus.Active).ToList();
+        var suspendedTenantUsers = allTenantUsers.Where(u => u.EntityStatus == EntityStatus.Suspended).ToList();
 
-    //         _logger.LogInformation("Suspended {Count} {EntityType} entities for tenant {TenantId} due to plan limits",
-    //             excessiveEntities.Count, typeof(T).Name, tenantId);
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         _logger.LogError(ex, "Failed to suspend excessive {EntityType} entities for tenant {TenantId}", typeof(T).Name, tenantId);
-    //         throw;
-    //     }
-    // }
+        _logger.LogDebug("Current user state for tenant {TenantId}: {ActiveCount} active, {SuspendedCount} suspended, limit: {MaxUsers}", tenantId, activeTenantUsers.Count, suspendedTenantUsers.Count, maxUsers);
 
-    // public async Task ReactivateSuspendedEntitiesAsync<T>(int tenantId, Func<int, Task<List<T>>> getSuspendedEntities, CancellationToken cancellationToken = default) where T : BaseAuditableEntity, ISuspendibleEntity
-    // {
-    //     try
-    //     {
-    //         var suspendedEntities = await getSuspendedEntities(tenantId);
+        // If we have more active users than allowed, suspend the excess (newest first)
+        if (activeTenantUsers.Count > maxUsers)
+        {
+            var tenantUsersToSuspend = activeTenantUsers.OrderByDescending(u => u.Created).Take(activeTenantUsers.Count - maxUsers).ToList();
 
-    //         foreach (var entity in suspendedEntities)
-    //         {
-    //             await ReactivateEntityAsync(entity, "Plan upgrade - reactivating suspended entities", cancellationToken);
-    //         }
+            foreach (var tenantUser in tenantUsersToSuspend)
+            {
+                tenantUser.EntityStatus = EntityStatus.Suspended;
+                tenantUser.SuspendedAt = DateTimeOffset.UtcNow;
+                tenantUser.AddDomainEvent(new TenantUserSuspendedEvent(tenantId, tenantUser.ApplicationUserId, tenantUser.Id));
+            }
 
-    //         _logger.LogInformation("Reactivated {Count} {EntityType} entities for tenant {TenantId}",
-    //             suspendedEntities.Count, typeof(T).Name, tenantId);
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         _logger.LogError(ex, "Failed to reactivate {EntityType} entities for tenant {TenantId}", typeof(T).Name, tenantId);
-    //         throw;
-    //     }
-    // }
+            await _context.SaveChangesAsync(cancellationToken);
 
-    // #endregion
+            _logger.LogInformation("Suspended {Count} users for tenant {TenantId} to comply with plan limit of {MaxUsers}", tenantUsersToSuspend.Count, tenantId, maxUsers);
+        }
+        // If we have room for more users and have suspended users, restore them (oldest first)
+        else if (activeTenantUsers.Count < maxUsers && suspendedTenantUsers.Any())
+        {
+            var availableSlots = maxUsers - activeTenantUsers.Count;
+            var tenantUsersToRestore = suspendedTenantUsers.OrderBy(u => u.Created).Take(availableSlots).ToList();
 
-    // #region Subscription State Management
+            foreach (var tenantUser in tenantUsersToRestore)
+            {
+                tenantUser.EntityStatus = EntityStatus.Active;
+                tenantUser.ResumedAt = DateTimeOffset.UtcNow;
+                tenantUser.AddDomainEvent(new TenantUserRestoredEvent(tenantId, tenantUser.ApplicationUserId, tenantUser.Id));
+            }
 
-    //public Task HandleDowngradeAsync(int tenantId, Plan newPlan, CancellationToken cancellationToken = default)
-    //{
-    //     try
-    //     {
-    //         // Check current usage against new plan limits
-    //         var currentUsage = await GetUsageStatisticsAsync(tenantId, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
 
-    //         // Suspend excess users if needed
-    //         if (currentUsage["Users"] > newPlan.MaxUsers)
-    //         {
-    //             await SuspendExcessiveEntitiesAsync<TenantUser>(
-    //                 tenantId,
-    //                 _ => Task.FromResult(newPlan.MaxUsers),
-    //                 async tenantId => await _context.TenantUsers
-    //                     .Where(tu => tu.TenantId == tenantId && tu.Status == TenantUserStatus.Active)
-    //                     .OrderByDescending(tu => tu.JoinedAt)
-    //                     .Skip(newPlan.MaxUsers)
-    //                     .ToListAsync(cancellationToken),
-    //                 cancellationToken
-    //             );
-    //         }
+            _logger.LogInformation("Restored {Count} users for tenant {TenantId}. Current active: {ActiveCount}/{MaxUsers}", tenantUsersToRestore.Count, tenantId, activeTenantUsers.Count + tenantUsersToRestore.Count, maxUsers);
+        }
+        else
+        {
+            _logger.LogDebug("User limits are already in compliance for tenant {TenantId}: {ActiveCount}/{MaxUsers}", tenantId, activeTenantUsers.Count, maxUsers);
+        }
+    }
 
-    //         // Suspend excess channels
-    //         await SuspendExcessiveChannelsAsync(tenantId, ChannelType.WhatsApp, newPlan.MaxWhatsAppChannels, cancellationToken);
-    //         await SuspendExcessiveChannelsAsync(tenantId, ChannelType.Facebook, newPlan.MaxFacebookChannels, cancellationToken);
-    //         await SuspendExcessiveChannelsAsync(tenantId, ChannelType.Instagram, newPlan.MaxInstagramChannels, cancellationToken);
-    //         await SuspendExcessiveChannelsAsync(tenantId, ChannelType.Telegram, newPlan.MaxTelegramChannels, cancellationToken);
+    /// <summary>
+    /// Unified method to sync channels - if channelType is null, syncs total channels across all types; otherwise syncs specific channel type
+    /// </summary>
+    private async Task SyncChannelsAsync(int tenantId, ChannelType? channelType, int maxChannels, CancellationToken cancellationToken)
+    {
+        // ignore query filters to get all channels (active and suspended) and filter out soft deleted ones
+        var query = _context.ChannelAccounts.IgnoreQueryFilters().Where(c => c.TenantId == tenantId && !c.IsDeleted);
 
-    //         _logger.LogInformation("Handled downgrade for tenant {TenantId} to plan {PlanId}", tenantId, newPlan.Id);
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         _logger.LogError(ex, "Failed to handle downgrade for tenant {TenantId}", tenantId);
-    //         throw;
-    //     }
-    //}
+        if (channelType.HasValue)
+        {
+            query = query.Where(c => c.Type == channelType.Value);
+        }
 
-    //public Task HandleUpgradeAsync(int tenantId, Plan newPlan, CancellationToken cancellationToken = default)
-    //{
-    //     try
-    //     {
-    //         // Reactivate any suspended data that now falls within limits
-    //         await ReactivateDataAsync(tenantId, cancellationToken);
+        var channels = await query.OrderBy(c => c.Created).ToListAsync(cancellationToken);
 
-    //         _logger.LogInformation("Handled upgrade for tenant {TenantId} to plan {PlanId}", tenantId, newPlan.Id);
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         _logger.LogError(ex, "Failed to handle upgrade for tenant {TenantId}", tenantId);
-    //         throw;
-    //     }
-    //}
+        var activeChannels = channels.Where(c => c.EntityStatus == EntityStatus.Active).ToList();
+        var suspendedChannels = channels.Where(c => c.EntityStatus == EntityStatus.Suspended).ToList();
 
-    // public async Task SuspendExcessiveDataAsync(int tenantId, CancellationToken cancellationToken = default)
-    // {
-    //     try
-    //     {
-    //         var subscription = await GetActiveSubscriptionAsync(tenantId, cancellationToken);
-    //         if (subscription == null)
-    //         {
-    //             _logger.LogWarning("No active subscription found for tenant {TenantId}, cannot suspend data", tenantId);
-    //             return;
-    //         }
+        // Logging - different messages for type vs total
+        var logContext = channelType.HasValue ? $"{channelType.Value} channel" : "Total channel";
+        _logger.LogDebug("{LogContext} state for tenant {TenantId}: {ActiveCount} active, {SuspendedCount} suspended, limit: {MaxChannels}", logContext, tenantId, activeChannels.Count, suspendedChannels.Count, maxChannels);
 
-    //         var plan = subscription.Plan;
+        // SUSPENSION: If exceeds limit, suspend excess (newest first)
+        if (activeChannels.Count > maxChannels)
+        {
+            var channelsToSuspend = activeChannels.OrderByDescending(c => c.Created).Take(activeChannels.Count - maxChannels).ToList();
 
-    //         // Suspend excessive users
-    //         var userCount = await GetCurrentUserCountAsync(tenantId, cancellationToken);
-    //         if (userCount > plan.MaxUsers)
-    //         {
-    //             await SuspendExcessiveEntitiesAsync<TenantUser>(
-    //                 tenantId,
-    //                 _ => Task.FromResult(plan.MaxUsers),
-    //                 async tenantId => await _context.TenantUsers
-    //                     .Where(tu => tu.TenantId == tenantId && tu.Status == TenantUserStatus.Active)
-    //                     .OrderByDescending(tu => tu.JoinedAt)
-    //                     .Skip(plan.MaxUsers)
-    //                     .ToListAsync(cancellationToken),
-    //                 cancellationToken
-    //             );
-    //         }
+            foreach (var channel in channelsToSuspend)
+            {
+                channel.EntityStatus = EntityStatus.Suspended;
+                channel.SuspendedAt = DateTimeOffset.UtcNow;
+                channel.AddDomainEvent(new ChannelAccountSuspendedEvent(tenantId, channel.Id));
+            }
 
-    //         // Suspend excessive channels
-    //         await SuspendExcessiveChannelsAsync(tenantId, ChannelType.WhatsApp, plan.MaxWhatsAppChannels, cancellationToken);
-    //         await SuspendExcessiveChannelsAsync(tenantId, ChannelType.Facebook, plan.MaxFacebookChannels, cancellationToken);
-    //         await SuspendExcessiveChannelsAsync(tenantId, ChannelType.Instagram, plan.MaxInstagramChannels, cancellationToken);
-    //         await SuspendExcessiveChannelsAsync(tenantId, ChannelType.Telegram, plan.MaxTelegramChannels, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
 
-    //         _logger.LogInformation("Suspended excessive data for tenant {TenantId}", tenantId);
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         _logger.LogError(ex, "Failed to suspend excessive data for tenant {TenantId}", tenantId);
-    //         throw;
-    //     }
-    // }
+            var suspensionsByType = channelsToSuspend.GroupBy(c => c.Type).ToDictionary(g => g.Key, g => g.Count());
+            var logMessage = string.Join(", ", suspensionsByType.Select(kvp => $"{kvp.Value} {kvp.Key}"));
+            _logger.LogInformation("Suspended {Count} channels for tenant {TenantId} to comply with total limit of {MaxChannels}: {ByType}",
+                channelsToSuspend.Count, tenantId, maxChannels, logMessage);
+        }
+        // RESTORATION: If under limit and have suspended channels, restore them (oldest first)
+        else if (activeChannels.Count < maxChannels && suspendedChannels.Any())
+        {
+            var availableSlots = maxChannels - activeChannels.Count;
+            var channelsToRestore = suspendedChannels.OrderBy(c => c.Created).Take(availableSlots).ToList();
 
-    // public async Task ReactivateDataAsync(int tenantId, CancellationToken cancellationToken = default)
-    // {
-    //     try
-    //     {
-    //         // Reactivate suspended users
-    //         await ReactivateSuspendedEntitiesAsync<TenantUser>(
-    //             tenantId,
-    //             async tenantId => await _context.TenantUsers
-    //                 .Where(tu => tu.TenantId == tenantId && tu.EntityStatus == EntityStatus.Suspended)
-    //                 .ToListAsync(cancellationToken),
-    //             cancellationToken
-    //         );
+            foreach (var channel in channelsToRestore)
+            {
+                channel.EntityStatus = EntityStatus.Active;
+                channel.ResumedAt = DateTimeOffset.UtcNow;
+                channel.AddDomainEvent(new ChannelAccountRestoredEvent(tenantId, channel.Id));
+            }
 
-    //         // Reactivate suspended channels
-    //         await ReactivateSuspendedEntitiesAsync<ChannelAccount>(
-    //             tenantId,
-    //             async tenantId => await _context.ChannelAccounts
-    //                 .Where(ca => ca.TenantId == tenantId && ca.EntityStatus == EntityStatus.Suspended)
-    //                 .ToListAsync(cancellationToken),
-    //             cancellationToken
-    //         );
+            await _context.SaveChangesAsync(cancellationToken);
 
-    //         _logger.LogInformation("Reactivated suspended data for tenant {TenantId}", tenantId);
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         _logger.LogError(ex, "Failed to reactivate data for tenant {TenantId}", tenantId);
-    //         throw;
-    //     }
-    // }
+            var restorationsByType = channelsToRestore.GroupBy(c => c.Type).ToDictionary(g => g.Key, g => g.Count());
+            var logMessage = string.Join(", ", restorationsByType.Select(kvp => $"{kvp.Value} {kvp.Key}"));
+            _logger.LogInformation("Restored {Count} channels for tenant {TenantId} for total limit compliance. Current total active: {TotalActive}/{MaxChannels}: {ByType}",
+                channelsToRestore.Count, tenantId, activeChannels.Count + channelsToRestore.Count, maxChannels, logMessage);
+        }
+        else
+        {
+            _logger.LogDebug("{LogContext} limits are in compliance for tenant {TenantId}: {ActiveCount}/{MaxChannels}",
+                logContext, tenantId, activeChannels.Count, maxChannels);
+        }
+    }    /// <summary>
+         /// Suspends all entities for a tenant when there's no active subscription
+         /// </summary>
+    private async Task SuspendAllEntitiesAsync(int tenantId, string reason, CancellationToken cancellationToken)
+    {
+        // query filter will filter out suspended users
+        var activeUsers = await _context.TenantUsers.Where(tu => tu.TenantId == tenantId && tu.EntityStatus == EntityStatus.Active).ToListAsync(cancellationToken);
 
-    // #endregion
+        foreach (var user in activeUsers)
+        {
+            user.EntityStatus = EntityStatus.Suspended;
+            user.SuspendedAt = DateTimeOffset.UtcNow;
+            user.AddDomainEvent(new TenantUserSuspendedEvent(tenantId, user.ApplicationUserId, user.Id));
+        }
+
+        // ignore query filters and manually include active channels and non deleted ones
+        var activeChannels = await _context.ChannelAccounts
+            .IgnoreQueryFilters()
+            .Where(c => c.TenantId == tenantId && !c.IsDeleted && c.EntityStatus == EntityStatus.Active)
+            .ToListAsync(cancellationToken);
+
+        foreach (var channel in activeChannels)
+        {
+            channel.EntityStatus = EntityStatus.Suspended;
+            channel.SuspendedAt = DateTimeOffset.UtcNow;
+            channel.AddDomainEvent(new ChannelAccountSuspendedEvent(tenantId, channel.Id));
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Suspended all entities for tenant {TenantId}: {UserCount} users, {ChannelCount} channels. Reason: {Reason}",
+            tenantId, activeUsers.Count, activeChannels.Count, reason);
+    }
+
+    #endregion
 
     #region Private Helper Methods
 
@@ -430,41 +406,18 @@ public class SubscriptionManagementService : ISubscriptionManagementService
 
     private int GetCurrentApplicationUserId()
     {
-        var userId = _contextManager.GetCurrentApplicationUserId();
-        if (!userId.HasValue)
+        var applicationUserId = _contextManager.GetCurrentApplicationUserId();
+        if (!applicationUserId.HasValue)
         {
             throw new UnauthorizedAccessException();
         }
-        return userId.Value;
+        return applicationUserId.Value;
     }
 
     private bool IsSuperAdminAllowed(bool allowSuperAdmin)
     {
         return allowSuperAdmin && _contextManager.IsSuperAdmin();
     }
-
-    // private async Task SuspendExcessiveChannelsAsync(int tenantId, ChannelType channelType, int maxAllowed, CancellationToken cancellationToken)
-    // {
-    //     var channelsCount = await GetChannelsCountAsync(tenantId, cancellationToken);
-
-    //     var currentCount = channelsCount.FirstOrDefault(cc => cc.Type == channelType);
-
-    //     if (currentCount.ChannelCount > maxAllowed)
-    //     {
-    //         await SuspendExcessiveEntitiesAsync<ChannelAccount>(
-    //             tenantId,
-    //             _ => Task.FromResult(maxAllowed),
-    //             async tenantId => await _context.ChannelAccounts
-    //                 .Where(ca => ca.TenantId == tenantId && ca.Type == channelType && !ca.IsDeleted && ca.EntityStatus == EntityStatus.Active)
-    //                 .OrderByDescending(ca => ca.Created)
-    //                 .Skip(maxAllowed)
-    //                 .ToListAsync(cancellationToken),
-    //             cancellationToken
-    //         );
-
-    //         _logger.LogInformation("Processed suspension check for {ChannelType} channels in tenant {TenantId}", channelType, tenantId);
-    //     }
-    // }
 
     #endregion
 }
