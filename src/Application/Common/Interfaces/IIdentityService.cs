@@ -17,6 +17,7 @@ public interface IIdentityService
     Task<string?> GetUserNameAsync(Guid applicationUserPublicId);
     Task<bool> IsInRoleAsync(Guid applicationUserPublicId, string role);
     Task<Result<(Guid ApplicationUserPublicId, string FirstName, string LastName, string Email)>> GetUserAsync(Guid applicationUserPublicId);
+    Task<Result<(Guid ApplicationUserPublicId, string FirstName, string LastName, string Email)>> GetUserAsync(int applicationUserId);
     Task<bool> AuthorizeAsync(Guid applicationUserPublicId, string policyName);
     Task<Result> RevokeAsync(string email);
     Task<Result> RevokeAllAsync();

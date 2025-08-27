@@ -328,6 +328,18 @@ public class IdentityService : IIdentityService
         return Result<(Guid ApplicationUserPublicId, string FirstName, string LastName, string Email)>.Success((appUser.PublicId, appUser.FirstName, appUser.LastName, appUser.Email));
     }
 
+    public async Task<Result<(Guid ApplicationUserPublicId, string FirstName, string LastName, string Email)>> GetUserAsync(int applicationUserId)
+    {
+        var appUser = await _userManager.FindByIdAsync(applicationUserId.ToString());
+
+        if (appUser == null || appUser.Email == null)
+        {
+            return Result<(Guid, string, string, string)>.Failure(new[] { "user not found" }, default);
+        }
+
+        return Result<(Guid ApplicationUserPublicId, string FirstName, string LastName, string Email)>.Success((appUser.PublicId, appUser.FirstName, appUser.LastName, appUser.Email));
+    }
+
     public async Task<bool> AuthorizeAsync(Guid applicationUserPublicId, string policyName)
     {
         var appUser = await _userManager.FindByPublicIdAsync(applicationUserPublicId);

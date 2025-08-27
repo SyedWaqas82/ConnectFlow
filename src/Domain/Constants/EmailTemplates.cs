@@ -20,4 +20,8 @@ public class EmailTemplates
     public const string SubscriptionGracePeriodStart = nameof(SubscriptionGracePeriodStart);
     public const string SubscriptionGracePeriodEnd = nameof(SubscriptionGracePeriodEnd);
     public const string SubscriptionPlanChanged = nameof(SubscriptionPlanChanged);
+
+    // Tenant User templates
+    public const string TenantUserSuspended = nameof(TenantUserSuspended);
+    public const string TenantUserRestored = nameof(TenantUserRestored);
 }
