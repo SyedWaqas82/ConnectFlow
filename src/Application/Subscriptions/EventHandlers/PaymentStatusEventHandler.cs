@@ -82,7 +82,7 @@ public class PaymentStatusEventHandler : INotificationHandler<PaymentStatusEvent
                 // Trigger reactivation if subscription was suspended
                 if (originalStatus == SubscriptionStatus.Unpaid)
                 {
-                    TriggerSubscriptionReactivationAsync(subscription, "Payment successful", cancellationToken);
+                    TriggerSubscriptionReactivationAsync(subscription, "Payment successful");
                 }
                 break;
 
@@ -108,13 +108,13 @@ public class PaymentStatusEventHandler : INotificationHandler<PaymentStatusEvent
                     subscription.Status = SubscriptionStatus.PastDue;
 
                     // Trigger grace period start
-                    TriggerGracePeriodStartAsync(subscription, notification.Reason, cancellationToken);
+                    TriggerGracePeriodStartAsync(subscription, notification.Reason);
                 }
 
                 // Check if suspension is needed
                 if (ShouldSuspendAfterFailure(notification.FailureCount))
                 {
-                    TriggerSubscriptionSuspensionAsync(subscription, notification.Reason, cancellationToken);
+                    TriggerSubscriptionSuspensionAsync(subscription, notification.Reason);
                 }
                 break;
 
@@ -130,43 +130,27 @@ public class PaymentStatusEventHandler : INotificationHandler<PaymentStatusEvent
             subscription.Id, notification.Action);
     }
 
-    private void TriggerSubscriptionSuspensionAsync(Subscription subscription, string reason, CancellationToken cancellationToken)
+    private void TriggerSubscriptionSuspensionAsync(Subscription subscription, string reason)
     {
-        var suspensionEvent = new SubscriptionStatusEvent(
-            subscription.Id,
-            SubscriptionAction.Suspend,
-            reason,
-            sendEmailNotification: true,
-            tenantId: subscription.TenantId);
+        var suspensionEvent = new SubscriptionStatusEvent(subscription.TenantId, default, subscription.Id, SubscriptionAction.Suspend, reason, sendEmailNotification: true);
 
         subscription.AddDomainEvent(suspensionEvent);
 
         _logger.LogInformation("Triggered suspension for subscription {SubscriptionId}", subscription.Id);
     }
 
-    private void TriggerSubscriptionReactivationAsync(Subscription subscription, string reason, CancellationToken cancellationToken)
+    private void TriggerSubscriptionReactivationAsync(Subscription subscription, string reason)
     {
-        var reactivationEvent = new SubscriptionStatusEvent(
-            subscription.Id,
-            SubscriptionAction.Reactivate,
-            reason,
-            sendEmailNotification: true,
-            tenantId: subscription.TenantId);
+        var reactivationEvent = new SubscriptionStatusEvent(subscription.TenantId, default, subscription.Id, SubscriptionAction.Reactivate, reason, sendEmailNotification: true);
 
         subscription.AddDomainEvent(reactivationEvent);
 
         _logger.LogInformation("Triggered reactivation for subscription {SubscriptionId}", subscription.Id);
     }
 
-    private void TriggerGracePeriodStartAsync(Subscription subscription, string reason, CancellationToken cancellationToken)
+    private void TriggerGracePeriodStartAsync(Subscription subscription, string reason)
     {
-        var gracePeriodEvent = new SubscriptionStatusEvent(
-            subscriptionId: subscription.Id,
-            action: SubscriptionAction.GracePeriodStart,
-            reason: reason,
-            sendEmailNotification: true,
-            suspendLimitsImmediately: false, // Grace period is lenient
-            tenantId: subscription.TenantId);
+        var gracePeriodEvent = new SubscriptionStatusEvent(subscription.TenantId, default, subscription.Id, SubscriptionAction.GracePeriodStart, reason, sendEmailNotification: true, suspendLimitsImmediately: false);
 
         subscription.AddDomainEvent(gracePeriodEvent);
 
@@ -180,10 +164,10 @@ public class PaymentStatusEventHandler : INotificationHandler<PaymentStatusEvent
             var templateId = GetEmailTemplateId(notification.Action);
             var subject = GetEmailSubject(notification.Action);
 
-            var emailEvent = new EmailSendMessageEvent()
+            var emailEvent = new EmailSendMessageEvent(notification.TenantId, notification.ApplicationUserId)
             {
                 CorrelationId = notification.CorrelationId,
-                TenantId = notification.TenantId,
+                ApplicationUserPublicId = notification.ApplicationUserPublicId,
                 To = subscription.Tenant.Email,
                 Subject = subject,
                 IsHtml = true,

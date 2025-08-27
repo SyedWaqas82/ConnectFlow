@@ -4,10 +4,8 @@ public class TenantUserRestoredEvent : BaseEvent
 {
     public int TenantUserId { get; }
 
-    public TenantUserRestoredEvent(int tenantId, int applicationUserId, int tenantUserId)
+    public TenantUserRestoredEvent(int tenantId, int applicationUserId, int tenantUserId) : base(tenantId, applicationUserId)
     {
-        TenantId = tenantId;
-        ApplicationUserId = applicationUserId;
         TenantUserId = tenantUserId;
     }
 }

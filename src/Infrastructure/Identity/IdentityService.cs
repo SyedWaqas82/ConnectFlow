@@ -167,9 +167,8 @@ public class IdentityService : IIdentityService
 
         if (result.Succeeded)
         {
-            await _mediator.Publish(new UserEmailConfirmedEvent
+            await _mediator.Publish(new UserEmailConfirmedEvent(default, appUser.Id)
             {
-                ApplicationUserId = appUser.Id,
                 ApplicationUserPublicId = appUser.PublicId,
                 CorrelationId = _contextManager.GetCorrelationId(),
                 Email = appUser.Email!,
@@ -192,9 +191,8 @@ public class IdentityService : IIdentityService
 
         string resetPasswordToken = await _userManager.GeneratePasswordResetTokenAsync(appUser);
 
-        await _mediator.Publish(new UserPasswordResetEvent
+        await _mediator.Publish(new UserPasswordResetEvent(default, appUser.Id)
         {
-            ApplicationUserId = appUser.Id,
             ApplicationUserPublicId = appUser.PublicId,
             CorrelationId = _contextManager.GetCorrelationId(),
             Email = appUser.Email!,
@@ -219,9 +217,8 @@ public class IdentityService : IIdentityService
 
         if (result.Succeeded)
         {
-            await _mediator.Publish(new UserPasswordUpdateEvent
+            await _mediator.Publish(new UserPasswordUpdateEvent(default, appUser.Id)
             {
-                ApplicationUserId = appUser.Id,
                 ApplicationUserPublicId = appUser.PublicId,
                 CorrelationId = _contextManager.GetCorrelationId(),
                 Email = appUser.Email!,
@@ -246,9 +243,8 @@ public class IdentityService : IIdentityService
 
         if (result.Succeeded)
         {
-            await _mediator.Publish(new UserPasswordUpdateEvent
+            await _mediator.Publish(new UserPasswordUpdateEvent(default, appUser.Id)
             {
-                ApplicationUserId = appUser.Id,
                 ApplicationUserPublicId = appUser.PublicId,
                 CorrelationId = _contextManager.GetCorrelationId(),
                 Email = appUser.Email!,
@@ -387,7 +383,7 @@ public class IdentityService : IIdentityService
             CreatedBy = _contextManager.GetCurrentApplicationUserId() ?? adminUser.Id
         };
 
-        tenant.AddDomainEvent(new TenantCreatedEvent(tenant));
+        tenant.AddDomainEvent(new TenantCreatedEvent(tenant.Id, adminUser.Id));
 
         _context.Tenants.Add(tenant);
         await _context.SaveChangesAsync();
@@ -429,9 +425,8 @@ public class IdentityService : IIdentityService
                 confirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(appUser);
             }
 
-            await _mediator.Publish(new UserCreatedEvent
+            await _mediator.Publish(new UserCreatedEvent(default, appUser.Id)
             {
-                ApplicationUserId = appUser.Id,
                 ApplicationUserPublicId = appUser.PublicId,
                 CorrelationId = _contextManager.GetCorrelationId(),
                 Email = appUser.Email,
@@ -465,7 +460,7 @@ public class IdentityService : IIdentityService
             Status = TenantUserStatus.Active
         };
 
-        tenantUser.AddDomainEvent(new TenantUserJoinedEvent(tenantUser));
+        tenantUser.AddDomainEvent(new TenantUserJoinedEvent(tenantId, appUser.Id));
 
         _context.TenantUsers.Add(tenantUser);
         await _context.SaveChangesAsync();

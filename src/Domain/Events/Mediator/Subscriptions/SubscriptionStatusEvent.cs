@@ -14,15 +14,7 @@ public class SubscriptionStatusEvent : BaseEvent
     public int? PreviousPlanId { get; }
     public int? NewPlanId { get; }
 
-    public SubscriptionStatusEvent(
-        int subscriptionId,
-        SubscriptionAction action,
-        string reason,
-        bool sendEmailNotification = true,
-        bool suspendLimitsImmediately = false,
-        int? previousPlanId = null,
-        int? newPlanId = null,
-        int? tenantId = null)
+    public SubscriptionStatusEvent(int tenantId, int applicationUserId, int subscriptionId, SubscriptionAction action, string reason, bool sendEmailNotification = true, bool suspendLimitsImmediately = false, int? previousPlanId = null, int? newPlanId = null) : base(tenantId, applicationUserId)
     {
         SubscriptionId = subscriptionId;
         Action = action;
@@ -32,7 +24,6 @@ public class SubscriptionStatusEvent : BaseEvent
         PreviousPlanId = previousPlanId;
         NewPlanId = newPlanId;
         Timestamp = DateTimeOffset.UtcNow;
-        TenantId = tenantId;
     }
 }
 

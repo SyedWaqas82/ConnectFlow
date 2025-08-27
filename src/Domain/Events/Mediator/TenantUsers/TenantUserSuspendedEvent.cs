@@ -4,10 +4,8 @@ public class TenantUserSuspendedEvent : BaseEvent
 {
     public int TenantUserId { get; }
 
-    public TenantUserSuspendedEvent(int tenantId, int applicationUserId, int tenantUserId)
+    public TenantUserSuspendedEvent(int tenantId, int applicationUserId, int tenantUserId) : base(tenantId, applicationUserId)
     {
-        TenantId = tenantId;
-        ApplicationUserId = applicationUserId;
         TenantUserId = tenantUserId;
     }
 }

@@ -6,4 +6,8 @@ public class UserPasswordResetEvent : BaseEvent
     public required string FirstName { get; init; }
     public required string LastName { get; init; }
     public required string ResetPasswordToken { get; init; }
+
+    public UserPasswordResetEvent(int tenantId, int applicationUserId) : base(tenantId, applicationUserId)
+    {
+    }
 }

@@ -19,11 +19,9 @@ public class UserCreatedEventHandler : INotificationHandler<UserCreatedEvent>
     {
         _logger.LogInformation("ConnectFlow Domain Event: {DomainEvent}", notification.GetType().Name);
 
-        var emailEvent = new EmailSendMessageEvent()
+        var emailEvent = new EmailSendMessageEvent(notification.TenantId, notification.ApplicationUserId)
         {
             CorrelationId = notification.CorrelationId,
-            TenantId = notification.TenantId,
-            ApplicationUserId = notification.ApplicationUserId,
             ApplicationUserPublicId = notification.ApplicationUserPublicId,
             To = notification.Email,
             Subject = "Welcome to ConnectFlow!",
@@ -42,9 +40,9 @@ public class UserCreatedEventHandler : INotificationHandler<UserCreatedEvent>
                 { "locale", notification.Locale ?? string.Empty },
                 { "emailConfirmed", notification.EmailConfirmed },
                 { "confirmationToken", notification.ConfirmationToken },
-                { "applicationUserId", notification.ApplicationUserId.GetValueOrDefault() },
+                { "applicationUserId", notification.ApplicationUserId },
                 { "applicationUserPublicId", notification.ApplicationUserPublicId.GetValueOrDefault() },
-                { "tenantId", notification.TenantId.GetValueOrDefault() },
+                { "tenantId", notification.TenantId },
                 { "correlationId", notification.CorrelationId.GetValueOrDefault() }
             },
         };

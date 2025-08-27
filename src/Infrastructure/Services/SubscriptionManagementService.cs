@@ -321,7 +321,7 @@ public class SubscriptionManagementService : ISubscriptionManagementService
             {
                 channel.EntityStatus = EntityStatus.Suspended;
                 channel.SuspendedAt = DateTimeOffset.UtcNow;
-                channel.AddDomainEvent(new ChannelAccountSuspendedEvent(tenantId, channel.Id));
+                channel.AddDomainEvent(new ChannelAccountSuspendedEvent(tenantId, default, channel.Id));
             }
 
             await _context.SaveChangesAsync(cancellationToken);
@@ -341,7 +341,7 @@ public class SubscriptionManagementService : ISubscriptionManagementService
             {
                 channel.EntityStatus = EntityStatus.Active;
                 channel.ResumedAt = DateTimeOffset.UtcNow;
-                channel.AddDomainEvent(new ChannelAccountRestoredEvent(tenantId, channel.Id));
+                channel.AddDomainEvent(new ChannelAccountRestoredEvent(tenantId, default, channel.Id));
             }
 
             await _context.SaveChangesAsync(cancellationToken);
@@ -381,7 +381,7 @@ public class SubscriptionManagementService : ISubscriptionManagementService
         {
             channel.EntityStatus = EntityStatus.Suspended;
             channel.SuspendedAt = DateTimeOffset.UtcNow;
-            channel.AddDomainEvent(new ChannelAccountSuspendedEvent(tenantId, channel.Id));
+            channel.AddDomainEvent(new ChannelAccountSuspendedEvent(tenantId, default, channel.Id));
         }
 
         await _context.SaveChangesAsync(cancellationToken);

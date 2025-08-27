@@ -5,4 +5,8 @@ public class UserEmailConfirmedEvent : BaseEvent
     public required string Email { get; init; }
     public required string FirstName { get; init; }
     public required string LastName { get; init; }
+
+    public UserEmailConfirmedEvent(int tenantId, int applicationUserId) : base(tenantId, applicationUserId)
+    {
+    }
 }

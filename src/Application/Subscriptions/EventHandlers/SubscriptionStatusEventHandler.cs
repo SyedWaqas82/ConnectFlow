@@ -138,10 +138,10 @@ public class SubscriptionStatusEventHandler : INotificationHandler<SubscriptionS
             var templateId = GetEmailTemplateId(notification.Action);
             var subject = GetEmailSubject(notification.Action, notification.SuspendLimitsImmediately);
 
-            var emailEvent = new EmailSendMessageEvent()
+            var emailEvent = new EmailSendMessageEvent(notification.TenantId, notification.ApplicationUserId)
             {
                 CorrelationId = notification.CorrelationId,
-                TenantId = notification.TenantId,
+                ApplicationUserPublicId = notification.ApplicationUserPublicId,
                 To = subscription.Tenant.Email,
                 Subject = subject,
                 IsHtml = true,

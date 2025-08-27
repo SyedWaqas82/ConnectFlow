@@ -4,9 +4,8 @@ public class ChannelAccountSuspendedEvent : BaseEvent
 {
     public int ChannelAccountId { get; }
 
-    public ChannelAccountSuspendedEvent(int tenantId, int channelAccountId)
+    public ChannelAccountSuspendedEvent(int tenantId, int applicationUserId, int channelAccountId) : base(tenantId, applicationUserId)
     {
-        TenantId = tenantId;
         ChannelAccountId = channelAccountId;
     }
 }

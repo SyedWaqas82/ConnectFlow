@@ -19,11 +19,9 @@ public class UserPasswordResetEventHandler : INotificationHandler<UserPasswordRe
     {
         _logger.LogInformation("ConnectFlow Domain Event: {DomainEvent}", notification.GetType().Name);
 
-        var emailMessage = new EmailSendMessageEvent
+        var emailMessage = new EmailSendMessageEvent(notification.TenantId, notification.ApplicationUserId)
         {
             CorrelationId = notification.CorrelationId,
-            TenantId = notification.TenantId,
-            ApplicationUserId = notification.ApplicationUserId,
             ApplicationUserPublicId = notification.ApplicationUserPublicId,
             To = notification.Email,
             Subject = "Password Reset Request",

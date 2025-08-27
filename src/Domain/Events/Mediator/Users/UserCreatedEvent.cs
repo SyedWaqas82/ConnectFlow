@@ -12,4 +12,8 @@ public class UserCreatedEvent : BaseEvent
     public string? Locale { get; init; }
     public bool EmailConfirmed { get; init; }
     public required string ConfirmationToken { get; init; }
+
+    public UserCreatedEvent(int tenantId, int applicationUserId) : base(tenantId, applicationUserId)
+    {
+    }
 }

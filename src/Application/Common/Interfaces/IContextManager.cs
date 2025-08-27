@@ -8,7 +8,7 @@ public interface IContextManager
     /// <summary>
     /// Initialize context with user and tenant information
     /// </summary>
-    Task InitializeContextAsync(int applicationUserId, int? tenantId);
+    Task InitializeContextAsync(int applicationUserId, int tenantId);
 
     /// <summary>
     /// Initialize context with default tenant for a user

@@ -13,14 +13,7 @@ public class PaymentStatusEvent : BaseEvent
     public int FailureCount { get; }
     public DateTimeOffset Timestamp { get; }
 
-    public PaymentStatusEvent(
-        int subscriptionId,
-        PaymentAction action,
-        string reason,
-        decimal? amount = null,
-        bool sendEmailNotification = true,
-        int failureCount = 0,
-        int? tenantId = null)
+    public PaymentStatusEvent(int tenantId, int applicationUserId, int subscriptionId, PaymentAction action, string reason, decimal? amount = null, bool sendEmailNotification = true, int failureCount = 0) : base(tenantId, applicationUserId)
     {
         SubscriptionId = subscriptionId;
         Action = action;
@@ -29,7 +22,6 @@ public class PaymentStatusEvent : BaseEvent
         SendEmailNotification = sendEmailNotification;
         FailureCount = failureCount;
         Timestamp = DateTimeOffset.UtcNow;
-        TenantId = tenantId;
     }
 }
 

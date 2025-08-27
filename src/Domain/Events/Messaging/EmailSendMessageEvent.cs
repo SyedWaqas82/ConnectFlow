@@ -11,4 +11,8 @@ public class EmailSendMessageEvent : BaseMessageEvent
     public string? TemplateId { get; init; }
     public Dictionary<string, object> TemplateData { get; init; } = new();
     public override string MessageType => nameof(EmailSendMessageEvent);
+
+    public EmailSendMessageEvent(int tenantId, int applicationUserId) : base(tenantId, applicationUserId)
+    {
+    }
 }

@@ -32,7 +32,7 @@ public class UnifiedContextService : IContextManager
         _dbContext = dbContext;
     }
 
-    public async Task InitializeContextAsync(int applicationUserId, int? tenantId)
+    public async Task InitializeContextAsync(int applicationUserId, int tenantId)
     {
         _logger.LogInformation("Initializing context for application user ID {ApplicationUserId} and tenant ID {TenantId}", applicationUserId, tenantId);
 
@@ -55,7 +55,7 @@ public class UnifiedContextService : IContextManager
             _logger.LogDebug("Set user context: AppId={AppId}, PublicId={PublicId}, IsSuperAdmin={IsSuperAdmin}", appUser.Id, appUser.PublicId, _isSuperAdmin);
 
             // Set tenant context
-            if (tenantId.HasValue)
+            if (tenantId != default)
             {
                 _currentTenantId = tenantId;
                 _logger.LogDebug("Set tenant context: TenantId={TenantId}", tenantId);

@@ -4,9 +4,9 @@ public abstract class BaseMessageEvent
 {
     public Guid MessageId { get; init; } = Guid.NewGuid();
     public Guid? CorrelationId { get; init; } = Guid.NewGuid();
-    public int? ApplicationUserId { get; init; }
+    public int ApplicationUserId { get; }
     public Guid? ApplicationUserPublicId { get; init; }
-    public int? TenantId { get; init; }
+    public int TenantId { get; }
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
     public int RetryCount { get; set; }
     public Dictionary<string, object> Headers { get; init; } = new();
@@ -21,4 +21,10 @@ public abstract class BaseMessageEvent
     public bool IsAcknowledged { get; private set; }
     public bool IsRejected { get; private set; }
     public bool Requeue { get; private set; }
+
+    public BaseMessageEvent(int tenantId, int applicationUserId)
+    {
+        TenantId = tenantId;
+        ApplicationUserId = applicationUserId;
+    }
 }

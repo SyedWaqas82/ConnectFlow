@@ -42,7 +42,7 @@ namespace ConnectFlow.Web.Common
         public List<string> GetCurrentUserRoles() => new();
         public bool IsSuperAdmin() => false;
 
-        public Task InitializeContextAsync(int applicationUserId, int? tenantId)
+        public Task InitializeContextAsync(int applicationUserId, int tenantId)
         {
             throw new NotImplementedException();
         }
