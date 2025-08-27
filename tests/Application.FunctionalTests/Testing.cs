@@ -65,9 +65,9 @@ public partial class Testing
 
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
-        var user = new ApplicationUser { UserName = userName, Email = userName };
+        var appUser = new ApplicationUser { UserName = userName, Email = userName };
 
-        var result = await userManager.CreateAsync(user, password);
+        var result = await userManager.CreateAsync(appUser, password);
 
         if (roles.Any())
         {
@@ -78,12 +78,12 @@ public partial class Testing
                 await roleManager.CreateAsync(new IdentityRole(role));
             }
 
-            await userManager.AddToRolesAsync(user, roles);
+            await userManager.AddToRolesAsync(appUser, roles);
         }
 
         if (result.Succeeded)
         {
-            _userId = user.Id;
+            _userId = appUser.Id;
 
             return _userId;
         }
@@ -99,7 +99,7 @@ public partial class Testing
         {
             await _database.ResetAsync();
         }
-        catch (Exception) 
+        catch (Exception)
         {
         }
 

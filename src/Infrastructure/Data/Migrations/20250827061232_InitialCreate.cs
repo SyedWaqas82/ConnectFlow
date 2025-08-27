@@ -381,7 +381,7 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    ApplicationUserId = table.Column<int>(type: "integer", nullable: false),
                     Status = table.Column<int>(type: "integer", nullable: false),
                     JoinedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     LeftAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
@@ -400,6 +400,12 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                 {
                     table.PrimaryKey("PK_TenantUsers", x => x.Id);
                     table.ForeignKey(
+                        name: "FK_TenantUsers_AspNetUsers_ApplicationUserId",
+                        column: x => x.ApplicationUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
                         name: "FK_TenantUsers_AspNetUsers_CreatedBy",
                         column: x => x.CreatedBy,
                         principalTable: "AspNetUsers",
@@ -411,12 +417,6 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.SetNull);
-                    table.ForeignKey(
-                        name: "FK_TenantUsers_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_TenantUsers_Tenants_TenantId",
                         column: x => x.TenantId,
@@ -744,6 +744,11 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_TenantUsers_ApplicationUserId",
+                table: "TenantUsers",
+                column: "ApplicationUserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_TenantUsers_CreatedBy",
                 table: "TenantUsers",
                 column: "CreatedBy");
@@ -765,15 +770,10 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                 column: "TenantId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TenantUsers_TenantId_UserId",
+                name: "IX_TenantUsers_TenantId_ApplicationUserId",
                 table: "TenantUsers",
-                columns: new[] { "TenantId", "UserId" },
+                columns: new[] { "TenantId", "ApplicationUserId" },
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_TenantUsers_UserId",
-                table: "TenantUsers",
-                column: "UserId");
         }
 
         /// <inheritdoc />

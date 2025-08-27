@@ -151,30 +151,30 @@ public class IdentityService : IIdentityService
 
     public async Task<Result> ConfirmEmailAsync(Guid applicationUserPublicId, string confirmationToken)
     {
-        var user = await _userManager.FindByPublicIdAsync(applicationUserPublicId);
+        var appUser = await _userManager.FindByPublicIdAsync(applicationUserPublicId);
 
-        if (user == null || user.IsActive == false)
+        if (appUser == null || appUser.IsActive == false)
         {
             return Result.Failure(new[] { "user not found" });
         }
 
-        if (await _userManager.IsEmailConfirmedAsync(user))
+        if (await _userManager.IsEmailConfirmedAsync(appUser))
         {
             return Result.Failure(new[] { "already confirmed" });
         }
 
-        var result = await _userManager.ConfirmEmailAsync(user, confirmationToken);
+        var result = await _userManager.ConfirmEmailAsync(appUser, confirmationToken);
 
         if (result.Succeeded)
         {
             await _mediator.Publish(new UserEmailConfirmedEvent
             {
-                ApplicationUserId = user.Id,
-                ApplicationUserPublicId = user.PublicId,
+                ApplicationUserId = appUser.Id,
+                ApplicationUserPublicId = appUser.PublicId,
                 CorrelationId = _contextManager.GetCorrelationId(),
-                Email = user.Email!,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
+                Email = appUser.Email!,
+                FirstName = appUser.FirstName,
+                LastName = appUser.LastName,
             });
         }
 
@@ -183,50 +183,50 @@ public class IdentityService : IIdentityService
 
     public async Task<Result<UserToken>> ResetPasswordAsync(string email)
     {
-        var user = await _userManager.FindByEmailAsync(email);
+        var appUser = await _userManager.FindByEmailAsync(email);
 
-        if (user == null || user.IsActive == false)
+        if (appUser == null || appUser.IsActive == false)
         {
             return Result<UserToken>.Failure(new[] { "user not found" }, null);
         }
 
-        string resetPasswordToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+        string resetPasswordToken = await _userManager.GeneratePasswordResetTokenAsync(appUser);
 
         await _mediator.Publish(new UserPasswordResetEvent
         {
-            ApplicationUserId = user.Id,
-            ApplicationUserPublicId = user.PublicId,
+            ApplicationUserId = appUser.Id,
+            ApplicationUserPublicId = appUser.PublicId,
             CorrelationId = _contextManager.GetCorrelationId(),
-            Email = user.Email!,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
+            Email = appUser.Email!,
+            FirstName = appUser.FirstName,
+            LastName = appUser.LastName,
             ResetPasswordToken = resetPasswordToken
         });
 
-        return Result<UserToken>.Success(new UserToken() { ApplicationUserPublicId = user.PublicId, Token = resetPasswordToken });
+        return Result<UserToken>.Success(new UserToken() { ApplicationUserPublicId = appUser.PublicId, Token = resetPasswordToken });
     }
 
     public async Task<Result> UpdatePasswordAsync(Guid applicationUserPublicId, string passwordToken, string newPassword)
     {
-        var user = await _userManager.FindByPublicIdAsync(applicationUserPublicId);
+        var appUser = await _userManager.FindByPublicIdAsync(applicationUserPublicId);
 
-        if (user == null || user.IsActive == false)
+        if (appUser == null || appUser.IsActive == false)
         {
             return Result.Failure(new[] { "user not found" });
         }
 
-        var result = await _userManager.ResetPasswordAsync(user, passwordToken, newPassword);
+        var result = await _userManager.ResetPasswordAsync(appUser, passwordToken, newPassword);
 
         if (result.Succeeded)
         {
             await _mediator.Publish(new UserPasswordUpdateEvent
             {
-                ApplicationUserId = user.Id,
-                ApplicationUserPublicId = user.PublicId,
+                ApplicationUserId = appUser.Id,
+                ApplicationUserPublicId = appUser.PublicId,
                 CorrelationId = _contextManager.GetCorrelationId(),
-                Email = user.Email!,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
+                Email = appUser.Email!,
+                FirstName = appUser.FirstName,
+                LastName = appUser.LastName,
             });
         }
 
@@ -235,25 +235,25 @@ public class IdentityService : IIdentityService
 
     public async Task<Result> ChangePasswordAsync(Guid applicationUserPublicId, string password, string newPassword)
     {
-        var user = await _userManager.FindByPublicIdAsync(applicationUserPublicId);
+        var appUser = await _userManager.FindByPublicIdAsync(applicationUserPublicId);
 
-        if (user == null || user.IsActive == false)
+        if (appUser == null || appUser.IsActive == false)
         {
             return Result.Failure(new[] { "user not found" });
         }
 
-        var result = await _userManager.ChangePasswordAsync(user, password, newPassword);
+        var result = await _userManager.ChangePasswordAsync(appUser, password, newPassword);
 
         if (result.Succeeded)
         {
             await _mediator.Publish(new UserPasswordUpdateEvent
             {
-                ApplicationUserId = user.Id,
-                ApplicationUserPublicId = user.PublicId,
+                ApplicationUserId = appUser.Id,
+                ApplicationUserPublicId = appUser.PublicId,
                 CorrelationId = _contextManager.GetCorrelationId(),
-                Email = user.Email!,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
+                Email = appUser.Email!,
+                FirstName = appUser.FirstName,
+                LastName = appUser.LastName,
             });
         }
 
@@ -262,19 +262,19 @@ public class IdentityService : IIdentityService
 
     public async Task<Result<AuthToken>> SignInAsync(string email, string password)
     {
-        var user = await _userManager.FindByEmailAsync(email);
+        var appUser = await _userManager.FindByEmailAsync(email);
 
-        if (user == null || user.IsActive == false)
+        if (appUser == null || appUser.IsActive == false)
         {
             return Result<AuthToken>.Failure(new[] { "user not found" }, null);
         }
 
-        if (!await _userManager.IsEmailConfirmedAsync(user))
+        if (!await _userManager.IsEmailConfirmedAsync(appUser))
         {
             return Result<AuthToken>.Failure(new[] { "account not confirmed yet" }, null);
         }
 
-        var isPasswordValid = await _userManager.CheckPasswordAsync(user, password!);
+        var isPasswordValid = await _userManager.CheckPasswordAsync(appUser, password!);
 
         if (!isPasswordValid)
         {
@@ -282,7 +282,7 @@ public class IdentityService : IIdentityService
         }
 
         // Generate access and refresh tokens
-        return await ManageTokensAsync(user, true);
+        return await ManageTokensAsync(appUser, true);
     }
 
     public async Task<Result<AuthToken>> RefreshTokenAsync(string accessToken, string refreshToken)
@@ -295,53 +295,53 @@ public class IdentityService : IIdentityService
 
         string? email = principal.FindFirstValue(ClaimTypes.Email);
 
-        var user = await _userManager.FindByEmailAsync(email!);
+        var appUser = await _userManager.FindByEmailAsync(email!);
 
-        if (user == null || user.RefreshToken != refreshToken || (user.RefreshTokenExpiryTime.HasValue && user.RefreshTokenExpiryTime.Value <= DateTimeOffset.UtcNow))
+        if (appUser == null || appUser.RefreshToken != refreshToken || (appUser.RefreshTokenExpiryTime.HasValue && appUser.RefreshTokenExpiryTime.Value <= DateTimeOffset.UtcNow))
         {
             return Result<AuthToken>.Failure(new[] { "Invalid access token or refresh token" }, null);
         }
 
         //refresh token remains same for specified days
-        return await ManageTokensAsync(user, false);
+        return await ManageTokensAsync(appUser, false);
     }
 
     public async Task<string?> GetUserNameAsync(Guid applicationUserPublicId)
     {
-        var user = await _userManager.FindByPublicIdAsync(applicationUserPublicId);
+        var appUser = await _userManager.FindByPublicIdAsync(applicationUserPublicId);
 
-        return user?.UserName;
+        return appUser?.UserName;
     }
 
     public async Task<bool> IsInRoleAsync(Guid applicationUserPublicId, string role)
     {
-        var user = await _userManager.FindByPublicIdAsync(applicationUserPublicId);
+        var appUser = await _userManager.FindByPublicIdAsync(applicationUserPublicId);
 
-        return user != null && await _userManager.IsInRoleAsync(user, role);
+        return appUser != null && await _userManager.IsInRoleAsync(appUser, role);
     }
 
     public async Task<Result<(Guid ApplicationUserPublicId, string FirstName, string LastName, string Email)>> GetUserAsync(Guid applicationUserPublicId)
     {
-        var user = await _userManager.FindByPublicIdAsync(applicationUserPublicId);
+        var appUser = await _userManager.FindByPublicIdAsync(applicationUserPublicId);
 
-        if (user == null || user.Email == null)
+        if (appUser == null || appUser.Email == null)
         {
             return Result<(Guid, string, string, string)>.Failure(new[] { "user not found" }, default);
         }
 
-        return Result<(Guid ApplicationUserPublicId, string FirstName, string LastName, string Email)>.Success((user.PublicId, user.FirstName, user.LastName, user.Email));
+        return Result<(Guid ApplicationUserPublicId, string FirstName, string LastName, string Email)>.Success((appUser.PublicId, appUser.FirstName, appUser.LastName, appUser.Email));
     }
 
     public async Task<bool> AuthorizeAsync(Guid applicationUserPublicId, string policyName)
     {
-        var user = await _userManager.FindByPublicIdAsync(applicationUserPublicId);
+        var appUser = await _userManager.FindByPublicIdAsync(applicationUserPublicId);
 
-        if (user == null || !user.IsActive || !user.EmailConfirmed)
+        if (appUser == null || !appUser.IsActive || !appUser.EmailConfirmed)
         {
             return false;
         }
 
-        var principal = await _userClaimsPrincipalFactory.CreateAsync(user);
+        var principal = await _userClaimsPrincipalFactory.CreateAsync(appUser);
         var result = await _authorizationService.AuthorizeAsync(principal, policyName);
 
         return result.Succeeded;
@@ -349,14 +349,14 @@ public class IdentityService : IIdentityService
 
     public async Task<Result> RevokeAsync(string email)
     {
-        var user = await _userManager.FindByEmailAsync(email);
-        if (user == null)
+        var appUser = await _userManager.FindByEmailAsync(email);
+        if (appUser == null)
         {
             return Result.Failure(new[] { "user not found" });
         }
 
-        user.RefreshToken = null;
-        await _userManager.UpdateAsync(user);
+        appUser.RefreshToken = null;
+        await _userManager.UpdateAsync(appUser);
 
         return Result.Success();
     }
@@ -396,7 +396,7 @@ public class IdentityService : IIdentityService
 
     private async Task<(Result<ApplicationUser> Result, string ConfirmationToken)> CreateApplicationUserAsync(string email, string password, string firstName, string lastName, string? jobTitle, string? phoneNumber, string? mobile, string? timeZone, string? locale, bool requireEmailConfirmation, string[] roles)
     {
-        var user = new ApplicationUser
+        var appUser = new ApplicationUser
         {
             UserName = email,
             Email = email,
@@ -412,54 +412,54 @@ public class IdentityService : IIdentityService
             Preferences = "{}" // Default preferences, can be updated later,
         };
 
-        var result = await _userManager.CreateAsync(user, password);
+        var result = await _userManager.CreateAsync(appUser, password);
 
         if (result.Succeeded)
         {
             if (roles.Any())
             {
-                // Add user to specified roles
-                await _userManager.AddToRolesAsync(user, roles);
+                // Add appUser to specified roles
+                await _userManager.AddToRolesAsync(appUser, roles);
             }
 
             string confirmationToken = string.Empty;
             if (requireEmailConfirmation)
             {
-                confirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                confirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(appUser);
             }
 
             await _mediator.Publish(new UserCreatedEvent
             {
-                ApplicationUserId = user.Id,
-                ApplicationUserPublicId = user.PublicId,
+                ApplicationUserId = appUser.Id,
+                ApplicationUserPublicId = appUser.PublicId,
                 CorrelationId = _contextManager.GetCorrelationId(),
-                Email = user.Email,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                JobTitle = user.JobTitle,
-                PhoneNumber = user.PhoneNumber,
-                Mobile = user.Mobile,
-                TimeZone = user.TimeZone,
-                Locale = user.Locale,
-                EmailConfirmed = user.EmailConfirmed,
+                Email = appUser.Email,
+                FirstName = appUser.FirstName,
+                LastName = appUser.LastName,
+                JobTitle = appUser.JobTitle,
+                PhoneNumber = appUser.PhoneNumber,
+                Mobile = appUser.Mobile,
+                TimeZone = appUser.TimeZone,
+                Locale = appUser.Locale,
+                EmailConfirmed = appUser.EmailConfirmed,
                 ConfirmationToken = confirmationToken
             });
 
-            return (Result<ApplicationUser>.Success(user), confirmationToken);
+            return (Result<ApplicationUser>.Success(appUser), confirmationToken);
         }
 
-        return (result.ToApplicationResult(user), string.Empty);
+        return (result.ToApplicationResult(appUser), string.Empty);
     }
 
-    private async Task JoinTenantInternalAsync(ApplicationUser user, int tenantId, string[] roles, int? invitedBy)
+    private async Task JoinTenantInternalAsync(ApplicationUser appUser, int tenantId, string[] roles, int? invitedBy)
     {
         var tenantUser = new TenantUser
         {
-            ApplicationUserId = user.Id,
+            ApplicationUserId = appUser.Id,
             TenantId = tenantId,
             InvitedBy = invitedBy,
             EntityStatus = EntityStatus.Active,
-            CreatedBy = invitedBy ?? user.Id,
+            CreatedBy = invitedBy ?? appUser.Id,
             JoinedAt = DateTimeOffset.UtcNow,
             Status = TenantUserStatus.Active
         };
@@ -477,8 +477,8 @@ public class IdentityService : IIdentityService
                 TenantUserId = tenantUser.Id,
                 RoleName = role,
                 AssignedAt = DateTimeOffset.UtcNow,
-                AssignedBy = invitedBy ?? user.Id,
-                CreatedBy = invitedBy ?? user.Id
+                AssignedBy = invitedBy ?? appUser.Id,
+                CreatedBy = invitedBy ?? appUser.Id
             };
 
             _context.TenantUserRoles.Add(tenantUserRole);
@@ -487,10 +487,10 @@ public class IdentityService : IIdentityService
         await _context.SaveChangesAsync();
     }
 
-    private async Task<Result<AuthToken>> ManageTokensAsync(ApplicationUser user, bool generateNewRefreshToken)
+    private async Task<Result<AuthToken>> ManageTokensAsync(ApplicationUser appUser, bool generateNewRefreshToken)
     {
-        var accessTokenResult = await _authTokenService.CreateAccessTokenAsync(user);
-        var refreshToken = user.RefreshToken ?? string.Empty;
+        var accessTokenResult = await _authTokenService.CreateAccessTokenAsync(appUser);
+        var refreshToken = appUser.RefreshToken ?? string.Empty;
 
         if (generateNewRefreshToken)
         {
@@ -498,14 +498,14 @@ public class IdentityService : IIdentityService
 
             refreshToken = refreshTokenResult.RefreshToken;
 
-            user.RefreshToken = refreshTokenResult.RefreshToken;
-            user.RefreshTokenExpiryTime = refreshTokenResult.Expiry;
+            appUser.RefreshToken = refreshTokenResult.RefreshToken;
+            appUser.RefreshTokenExpiryTime = refreshTokenResult.Expiry;
         }
 
-        user.LastLoginAt = DateTimeOffset.UtcNow;
-        await _userManager.UpdateAsync(user);
+        appUser.LastLoginAt = DateTimeOffset.UtcNow;
+        await _userManager.UpdateAsync(appUser);
 
-        AuthToken authToken = new() { ApplicationUserPublicId = user.PublicId, Email = user.Email!, ExpiresIn = accessTokenResult.ExpiresInMinutes * 60, AccessToken = accessTokenResult.AccessToken, RefreshToken = refreshToken };
+        AuthToken authToken = new() { ApplicationUserPublicId = appUser.PublicId, Email = appUser.Email!, ExpiresIn = accessTokenResult.ExpiresInMinutes * 60, AccessToken = accessTokenResult.AccessToken, RefreshToken = refreshToken };
 
         return Result<AuthToken>.Success(authToken);
     }

@@ -21,9 +21,9 @@ public class AuthTokenService : IAuthTokenService
         _userManager = userManager;
     }
 
-    public async Task<(string AccessToken, int ExpiresInMinutes)> CreateAccessTokenAsync(ApplicationUser user)
+    public async Task<(string AccessToken, int ExpiresInMinutes)> CreateAccessTokenAsync(ApplicationUser appUser)
     {
-        var userRoles = await _userManager.GetRolesAsync(user);
+        var userRoles = await _userManager.GetRolesAsync(appUser);
 
         // Use a consistent DateTimeOffset for all time-related operations
         // Get the current UTC time as the basis for all time calculations
@@ -37,13 +37,13 @@ public class AuthTokenService : IAuthTokenService
 
         var claims = new List<Claim>
         {
-                new Claim(JwtRegisteredClaimNames.Sub, user.PublicId.ToString()),
+                new Claim(JwtRegisteredClaimNames.Sub, appUser.PublicId.ToString()),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(JwtRegisteredClaimNames.Iat, unixTimeSeconds.ToString(), ClaimValueTypes.Integer64),
-                new Claim(ClaimTypes.NameIdentifier, user.PublicId.ToString()),
-                new Claim(ClaimTypes.Name, user.UserName!),
-                new Claim(ClaimTypes.Email, user.Email!),
-                new Claim(ClaimTypes.Sid, user.Id.ToString()),
+                new Claim(ClaimTypes.NameIdentifier, appUser.PublicId.ToString()),
+                new Claim(ClaimTypes.Name, appUser.UserName!),
+                new Claim(ClaimTypes.Email, appUser.Email!),
+                new Claim(ClaimTypes.Sid, appUser.Id.ToString()),
                 new Claim(ClaimTypes.Role, string.Join(",", userRoles))
         };
 

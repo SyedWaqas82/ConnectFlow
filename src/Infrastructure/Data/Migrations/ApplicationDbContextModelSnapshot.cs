@@ -556,6 +556,9 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("ApplicationUserId")
+                        .HasColumnType("integer");
+
                     b.Property<DateTimeOffset>("Created")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
@@ -601,10 +604,9 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                     b.Property<int>("TenantId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
+
+                    b.HasIndex("ApplicationUserId");
 
                     b.HasIndex("CreatedBy");
 
@@ -615,9 +617,7 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("TenantId", "UserId")
+                    b.HasIndex("TenantId", "ApplicationUserId")
                         .IsUnique();
 
                     b.ToTable("TenantUsers");
@@ -1102,6 +1102,12 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
             modelBuilder.Entity("ConnectFlow.Domain.Entities.TenantUser", b =>
                 {
                     b.HasOne("ConnectFlow.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany("TenantUsers")
+                        .HasForeignKey("ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ConnectFlow.Infrastructure.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("CreatedBy")
                         .OnDelete(DeleteBehavior.SetNull);
@@ -1114,12 +1120,6 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                     b.HasOne("ConnectFlow.Domain.Entities.Tenant", "Tenant")
                         .WithMany("TenantUsers")
                         .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ConnectFlow.Infrastructure.Identity.ApplicationUser", null)
-                        .WithMany("TenantUsers")
-                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

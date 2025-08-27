@@ -40,19 +40,19 @@ public class UnifiedContextService : IContextManager
         ClearContext();
 
         // Set user context from database
-        var user = await _userManager.FindByIdAsync(applicationUserId.ToString());
-        if (user != null)
+        var appUser = await _userManager.FindByIdAsync(applicationUserId.ToString());
+        if (appUser != null)
         {
-            _applicationUserId = user.Id;
-            _applicationUserPublicId = user.PublicId;
-            _userName = user.UserName;
+            _applicationUserId = appUser.Id;
+            _applicationUserPublicId = appUser.PublicId;
+            _userName = appUser.UserName;
 
             // Get roles
-            var roles = await _userManager.GetRolesAsync(user);
+            var roles = await _userManager.GetRolesAsync(appUser);
             _roles = roles.ToList();
             _isSuperAdmin = roles.Contains(Roles.SuperAdmin);
 
-            _logger.LogDebug("Set user context: AppId={AppId}, PublicId={PublicId}, IsSuperAdmin={IsSuperAdmin}", user.Id, user.PublicId, _isSuperAdmin);
+            _logger.LogDebug("Set user context: AppId={AppId}, PublicId={PublicId}, IsSuperAdmin={IsSuperAdmin}", appUser.Id, appUser.PublicId, _isSuperAdmin);
 
             // Set tenant context
             if (tenantId.HasValue)

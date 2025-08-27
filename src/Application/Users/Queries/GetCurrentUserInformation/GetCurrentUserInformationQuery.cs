@@ -37,14 +37,14 @@ public class GetCurrentUserInformationQueryHandler : IRequestHandler<GetCurrentU
             throw new Exception($"User not found.");
         }
 
-        var user = userResult.Data;
+        var appUserData = userResult.Data;
 
         return new UserInformationDto
         {
-            ApplicationUserPublicId = user.ApplicationUserPublicId,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            Email = user.Email,
+            ApplicationUserPublicId = appUserData.ApplicationUserPublicId,
+            FirstName = appUserData.FirstName,
+            LastName = appUserData.LastName,
+            Email = appUserData.Email,
             Tenants = await _dbContext.Tenants.AsNoTracking()
                 .Where(t => t.TenantUsers.Any(u => u.ApplicationUserId == applicationUserId && u.Status == TenantUserStatus.Active)).ProjectTo<TenantDto>(_mapper.ConfigurationProvider)
                 .ToListAsync(cancellationToken)
