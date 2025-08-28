@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using ConnectFlow.Application.Common.Interfaces;
 using ConnectFlow.Application.Common.Models;
 using ConnectFlow.Domain.Constants;
 using ConnectFlow.Domain.Events.Mediator.Tenants;
@@ -20,6 +21,7 @@ public class IdentityService : IIdentityService
     private readonly IAuthTokenService _authTokenService;
     private readonly IUserClaimsPrincipalFactory<ApplicationUser> _userClaimsPrincipalFactory;
     private readonly IAuthorizationService _authorizationService;
+    private readonly IPaymentService _paymentService;
 
     public IdentityService(
         IApplicationDbContext context,
@@ -28,7 +30,8 @@ public class IdentityService : IIdentityService
         IContextManager contextManager,
         IAuthTokenService authTokenService,
         IUserClaimsPrincipalFactory<ApplicationUser> userClaimsPrincipalFactory,
-        IAuthorizationService authorizationService)
+        IAuthorizationService authorizationService,
+        IPaymentService paymentService)
     {
         _context = context;
         _userManager = userManager;
@@ -37,6 +40,7 @@ public class IdentityService : IIdentityService
         _authTokenService = authTokenService;
         _userClaimsPrincipalFactory = userClaimsPrincipalFactory;
         _authorizationService = authorizationService;
+        _paymentService = paymentService;
     }
 
     #region User and Tenant Management
@@ -381,26 +385,112 @@ public class IdentityService : IIdentityService
         return Result.Success();
     }
 
+    /// <summary>
+    /// Creates a Stripe customer for an existing tenant that doesn't have one.
+    /// This is useful for migrating existing tenants to Stripe integration.
+    /// </summary>
+    public async Task<Result> CreateStripeCustomerForExistingTenantAsync(int tenantId)
+    {
+        try
+        {
+            var tenant = await _context.Tenants.FirstOrDefaultAsync(t => t.Id == tenantId);
+            if (tenant == null)
+            {
+                return Result.Failure(new[] { "Tenant not found" });
+            }
+
+            if (!string.IsNullOrEmpty(tenant.PaymentProviderCustomerId))
+            {
+                return Result.Failure(new[] { "Tenant already has a Stripe customer" });
+            }
+
+            // Get tenant admin user for customer creation
+            var tenantAdminId = await _context.TenantUsers
+                .Where(tu => tu.TenantId == tenantId && tu.Status == TenantUserStatus.Active)
+                .Join(_context.TenantUserRoles, tu => tu.Id, tur => tur.TenantUserId, (tu, tur) => new { tu, tur })
+                .Where(x => x.tur.RoleName == Roles.TenantAdmin)
+                .Select(x => x.tu.ApplicationUserId)
+                .FirstOrDefaultAsync();
+
+            if (tenantAdminId == 0)
+            {
+                return Result.Failure(new[] { "No active tenant admin found" });
+            }
+
+            var tenantAdmin = await _userManager.FindByIdAsync(tenantAdminId.ToString());
+            if (tenantAdmin == null)
+            {
+                return Result.Failure(new[] { "Tenant admin user not found" });
+            }
+
+            // Create Stripe customer
+            var stripeCustomer = await _paymentService.CreateCustomerAsync(
+                tenant.Email,
+                tenant.Name,
+                new Dictionary<string, string>
+                {
+                    { "tenant_id", tenant.Id.ToString() },
+                    { "tenant_name", tenant.Name },
+                    { "admin_user_id", tenantAdmin.Id.ToString() },
+                    { "admin_user_public_id", tenantAdmin.PublicId.ToString() },
+                    { "migration", "true" }
+                });
+
+            // Update tenant with Stripe customer ID
+            tenant.PaymentProviderCustomerId = stripeCustomer.Id;
+            await _context.SaveChangesAsync();
+
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            return Result.Failure(new[] { $"Failed to create Stripe customer for tenant: {ex.Message}" });
+        }
+    }
+
     #endregion
 
     #region Private Methods
 
     private async Task<Result<Tenant>> CreateTenant(string name, ApplicationUser adminUser)
     {
-        var tenant = new Tenant
+        try
         {
-            Name = name,
-            Email = adminUser.Email!,
-            Settings = "{}",
-            CreatedBy = _contextManager.GetCurrentApplicationUserId() ?? adminUser.Id
-        };
+            var tenant = new Tenant
+            {
+                Name = name,
+                Email = adminUser.Email!,
+                Settings = "{}",
+                CreatedBy = _contextManager.GetCurrentApplicationUserId() ?? adminUser.Id
+            };
 
-        tenant.AddDomainEvent(new TenantCreatedEvent(tenant.Id, adminUser.Id));
+            tenant.AddDomainEvent(new TenantCreatedEvent(tenant.Id, adminUser.Id));
 
-        _context.Tenants.Add(tenant);
-        await _context.SaveChangesAsync();
+            _context.Tenants.Add(tenant);
+            await _context.SaveChangesAsync();
 
-        return Result<Tenant>.Success(tenant);
+            // Create Stripe customer first
+            var stripeCustomer = await _paymentService.CreateCustomerAsync(
+                adminUser.Email!,
+                $"{adminUser.FirstName} {adminUser.LastName}",
+                new Dictionary<string, string>
+                {
+                    { "tenant_id", tenant.Id.ToString() },
+                    { "tenant_name", name },
+                    { "admin_user_id", adminUser.Id.ToString() },
+                    { "admin_user_public_id", adminUser.PublicId.ToString() }
+                });
+
+            tenant.PaymentProviderCustomerId = stripeCustomer.Id;
+            await _context.SaveChangesAsync();
+
+            return Result<Tenant>.Success(tenant);
+        }
+        catch (Exception ex)
+        {
+            // Log the error and return failure
+            return Result<Tenant>.Failure(new[] { $"Failed to create tenant with Stripe customer: {ex.Message}" }, null);
+        }
     }
 
     private async Task<(Result<ApplicationUser> Result, string ConfirmationToken)> CreateApplicationUserAsync(string email, string password, string firstName, string lastName, string? jobTitle, string? phoneNumber, string? mobile, string? timeZone, string? locale, bool requireEmailConfirmation, string[] roles)

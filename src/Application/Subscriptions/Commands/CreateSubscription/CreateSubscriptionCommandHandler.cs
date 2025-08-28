@@ -21,6 +21,7 @@ public class CreateSubscriptionCommandHandler : IRequestHandler<CreateSubscripti
         // Get the tenant with Stripe customer ID
         var tenant = await _context.Tenants.FirstOrDefaultAsync(t => t.Id == tenantId.Value, cancellationToken);
         Guard.Against.Null(tenant, nameof(tenant), "Tenant not found");
+        Guard.Against.NullOrEmpty(tenant.PaymentProviderCustomerId, nameof(tenant.PaymentProviderCustomerId), "Tenant does not have a Stripe customer ID");
 
         // Verify the plan exists and is active
         var plan = await _context.Plans.FirstOrDefaultAsync(p => p.Id == request.PlanId && p.IsActive, cancellationToken);

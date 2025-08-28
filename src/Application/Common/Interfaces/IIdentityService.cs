@@ -21,4 +21,5 @@ public interface IIdentityService
     Task<bool> AuthorizeAsync(Guid applicationUserPublicId, string policyName);
     Task<Result> RevokeAsync(string email);
     Task<Result> RevokeAllAsync();
+    Task<Result> CreateStripeCustomerForExistingTenantAsync(int tenantId);
 }
