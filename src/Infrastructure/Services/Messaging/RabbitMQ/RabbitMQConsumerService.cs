@@ -218,7 +218,7 @@ public abstract class RabbitMQConsumerService<T> : BackgroundService, IMessageCo
         try
         {
             message.RetryCount++;
-            message.Timestamp = DateTime.UtcNow;
+            message.Timestamp = DateTimeOffset.UtcNow;
 
             var retryQueueName = _retryQueue.Name;
             var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message, new JsonSerializerOptions

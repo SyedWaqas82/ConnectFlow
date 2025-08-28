@@ -15,7 +15,7 @@ public class DataCleanupJob : BaseJob
 
     protected override async Task ExecuteJobAsync(IJobExecutionContext context)
     {
-        Logger.LogInformation("Starting data cleanup job at {StartTime}", DateTimeOffset.Now);
+        Logger.LogInformation("Starting data cleanup job at {StartTime}", DateTimeOffset.UtcNow);
 
         try
         {

@@ -15,7 +15,7 @@ public class LongRunningJob : BaseJob
 
     protected override async Task ExecuteJobAsync(IJobExecutionContext context)
     {
-        Logger.LogInformation("LongRunningJob started at: {Time}", DateTimeOffset.Now);
+        Logger.LogInformation("LongRunningJob started at: {Time}", DateTimeOffset.UtcNow);
 
         try
         {

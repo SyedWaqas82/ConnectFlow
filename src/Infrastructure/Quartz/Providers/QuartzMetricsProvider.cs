@@ -307,7 +307,7 @@ public class QuartzMetricsProvider
             if (!nextFireTime.HasValue)
                 return -1;
 
-            var timeToNext = nextFireTime.Value.ToLocalTime() - DateTimeOffset.Now;
+            var timeToNext = nextFireTime.Value.ToLocalTime() - DateTimeOffset.UtcNow;
             return Math.Max(0, timeToNext.TotalSeconds);
         }
         catch (Exception ex)

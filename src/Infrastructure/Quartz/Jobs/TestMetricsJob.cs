@@ -14,7 +14,7 @@ public class TestMetricsJob : BaseJob
 
     protected override async Task ExecuteJobAsync(IJobExecutionContext context)
     {
-        Logger.LogInformation("TestMetricsJob executed at: {Time}", DateTimeOffset.Now);
+        Logger.LogInformation("TestMetricsJob executed at: {Time}", DateTimeOffset.UtcNow);
 
         try
         {

@@ -3,7 +3,7 @@
     var reason = Model["reason"]?.ToString() ?? "Subscription cancelled";
     var subscriptionId = Model["subscriptionId"];
     var planName = Model["planName"]?.ToString() ?? "Current Plan";
-    var cancelledAt = Model["cancelledAt"]?.ToString() ?? DateTime.UtcNow.ToString("MMMM dd, yyyy");
+    var cancelledAt = Model["cancelledAt"]?.ToString() ?? DateTimeOffset.UtcNow.ToString("MMMM dd, yyyy");
     var isImmediate = Model["isImmediate"]?.ToString() == "True";
 }
 

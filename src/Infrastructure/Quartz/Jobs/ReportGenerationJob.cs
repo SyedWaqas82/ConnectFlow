@@ -17,7 +17,7 @@ public class ReportGenerationJob : BaseJob
     {
         var reportType = context.MergedJobDataMap.GetString("ReportType") ?? "System";
 
-        Logger.LogInformation("Starting {ReportType} report generation at {StartTime}", reportType, DateTimeOffset.Now);
+        Logger.LogInformation("Starting {ReportType} report generation at {StartTime}", reportType, DateTimeOffset.UtcNow);
 
         try
         {

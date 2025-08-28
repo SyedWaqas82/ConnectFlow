@@ -4,7 +4,7 @@
     var restorationReason = Model["RestorationReason"]?.ToString() ?? "Issue resolved";
     var loginUrl = Model["LoginUrl"]?.ToString() ?? "#";
     var supportEmail = Model["SupportEmail"]?.ToString() ?? "support@connectflow.com";
-    var today = DateTime.UtcNow.ToString("MMMM dd, yyyy");
+    var today = DateTimeOffset.UtcNow.ToString("MMMM dd, yyyy");
 }
 
 <!DOCTYPE html>

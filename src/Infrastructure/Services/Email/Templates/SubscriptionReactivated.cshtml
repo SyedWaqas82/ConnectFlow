@@ -3,7 +3,7 @@
     var reason = Model["reason"]?.ToString() ?? "Subscription reactivated";
     var subscriptionId = Model["subscriptionId"];
     var planName = Model["planName"]?.ToString() ?? "Current Plan";
-    var reactivatedAt = Model["reactivatedAt"]?.ToString() ?? DateTime.UtcNow.ToString("MMMM dd, yyyy");
+    var reactivatedAt = Model["reactivatedAt"]?.ToString() ?? DateTimeOffset.UtcNow.ToString("MMMM dd, yyyy");
 }
 
 <!DOCTYPE html>

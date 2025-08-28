@@ -7,7 +7,7 @@ public abstract class BaseMessageEvent
     public int ApplicationUserId { get; }
     public Guid? ApplicationUserPublicId { get; init; }
     public int TenantId { get; }
-    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    public DateTimeOffset Timestamp { get; set; } = DateTimeOffset.UtcNow;
     public int RetryCount { get; set; }
     public Dictionary<string, object> Headers { get; init; } = new();
     public abstract string MessageType { get; }
