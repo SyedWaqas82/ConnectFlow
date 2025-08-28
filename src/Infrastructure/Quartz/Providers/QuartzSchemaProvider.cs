@@ -1,7 +1,7 @@
 using ConnectFlow.Infrastructure.Common.Models;
 using Npgsql;
 
-namespace ConnectFlow.Infrastructure.Common.Providers;
+namespace ConnectFlow.Infrastructure.Quartz.Providers;
 
 /// <summary>
 /// Handles the creation of Quartz schema tables in PostgreSQL

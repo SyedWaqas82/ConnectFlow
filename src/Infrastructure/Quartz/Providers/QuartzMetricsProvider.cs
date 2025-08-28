@@ -4,7 +4,7 @@ using Quartz.Impl.Matchers;
 using System.Collections.Concurrent;
 using ConnectFlow.Infrastructure.Common.Models;
 
-namespace ConnectFlow.Infrastructure.Common.Providers;
+namespace ConnectFlow.Infrastructure.Quartz.Providers;
 
 /// <summary>
 /// Provider for Quartz job metrics that integrates with OpenTelemetry

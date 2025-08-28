@@ -1,23 +1,21 @@
 using Quartz;
 
-namespace ConnectFlow.Infrastructure.Common.Jobs;
+namespace ConnectFlow.Infrastructure.Quartz.Jobs;
 
 /// <summary>
 /// A job that simulates long-running processes that might cause misfires
 /// </summary>
 [DisallowConcurrentExecution]
-public class LongRunningJob : IJob
+public class LongRunningJob : BaseJob
 {
-    private readonly ILogger<LongRunningJob> _logger;
-
-    public LongRunningJob(ILogger<LongRunningJob> logger)
+    public LongRunningJob(ILogger<LongRunningJob> logger, IContextManager contextManager)
+        : base(logger, contextManager)
     {
-        _logger = logger;
     }
 
-    public async Task Execute(IJobExecutionContext context)
+    protected override async Task ExecuteJobAsync(IJobExecutionContext context)
     {
-        _logger.LogInformation("LongRunningJob started at: {Time}", DateTimeOffset.Now);
+        Logger.LogInformation("LongRunningJob started at: {Time}", DateTimeOffset.Now);
 
         try
         {
@@ -25,21 +23,21 @@ public class LongRunningJob : IJob
             // Make it very likely to take longer than the trigger interval (5s), causing misfires
             var duration = new Random().Next(4, 15);
 
-            _logger.LogInformation("LongRunningJob will execute for {Duration} seconds", duration);
+            Logger.LogInformation("LongRunningJob will execute for {Duration} seconds", duration);
 
             // Simulate long-running work
             await Task.Delay(TimeSpan.FromSeconds(duration), context.CancellationToken);
 
-            _logger.LogInformation("LongRunningJob completed successfully");
+            Logger.LogInformation("LongRunningJob completed successfully");
         }
         catch (TaskCanceledException)
         {
-            _logger.LogWarning("LongRunningJob was interrupted");
+            Logger.LogWarning("LongRunningJob was interrupted");
             throw; // Let Quartz know the job was interrupted
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "LongRunningJob failed with error");
+            Logger.LogError(ex, "LongRunningJob failed with error");
             throw; // Rethrow for Quartz to handle the error
         }
     }

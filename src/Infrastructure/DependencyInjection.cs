@@ -22,6 +22,7 @@ using ConnectFlow.Infrastructure.Services.Messaging.RabbitMQ.Consumers;
 using ConnectFlow.Application.Common.Messaging.Handlers;
 using ConnectFlow.Infrastructure.Services.Payment.Configuration;
 using ConnectFlow.Infrastructure.Services.Payment;
+using ConnectFlow.Infrastructure.Quartz;
 
 namespace Microsoft.Extensions.DependencyInjection;
 

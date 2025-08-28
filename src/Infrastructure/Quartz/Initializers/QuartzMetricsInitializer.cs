@@ -1,7 +1,7 @@
-using ConnectFlow.Infrastructure.Common.Providers;
+using ConnectFlow.Infrastructure.Quartz.Providers;
 using Microsoft.Extensions.Hosting;
 
-namespace ConnectFlow.Infrastructure.Common.Initializers;
+namespace ConnectFlow.Infrastructure.Quartz.Initializers;
 
 /// <summary>
 /// Simple hosted service that initializes Quartz metrics once at application startup

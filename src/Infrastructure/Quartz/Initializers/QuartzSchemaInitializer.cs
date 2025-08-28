@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Hosting;
-using ConnectFlow.Infrastructure.Common.Providers;
 using ConnectFlow.Infrastructure.Common.Models;
+using ConnectFlow.Infrastructure.Quartz.Providers;
 
-namespace ConnectFlow.Infrastructure.Common.Initializers;
+namespace ConnectFlow.Infrastructure.Quartz.Initializers;
 
 /// <summary>
 /// Hosted service responsible for initializing Quartz schema tables

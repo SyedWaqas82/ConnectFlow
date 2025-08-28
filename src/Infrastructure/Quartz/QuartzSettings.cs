@@ -1,4 +1,4 @@
-namespace ConnectFlow.Infrastructure.Common.Models;
+namespace ConnectFlow.Infrastructure.Quartz;
 
 /// <summary>
 /// Settings for Quartz.NET configuration

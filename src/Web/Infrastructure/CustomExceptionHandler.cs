@@ -18,6 +18,8 @@ public class CustomExceptionHandler : IExceptionHandler
                 { typeof(UnauthorizedAccessException), HandleUnauthorizedAccessException },
                 { typeof(TenantNotFoundException), HandleTenantNotFoundException },
                 { typeof(ForbiddenAccessException), HandleForbiddenAccessException },
+                { typeof(SubscriptionRequiredException), HandleSubscriptionRequiredException },
+                { typeof(SubscriptionLimitExceededException), HandleSubscriptionLimitExceededException }
             };
     }
 
@@ -94,6 +96,30 @@ public class CustomExceptionHandler : IExceptionHandler
         {
             Status = StatusCodes.Status403Forbidden,
             Title = "Forbidden",
+            Type = "https://tools.ietf.org/html/rfc7231#section-6.5.3"
+        });
+    }
+
+    private async Task HandleSubscriptionRequiredException(HttpContext httpContext, Exception ex)
+    {
+        httpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
+
+        await httpContext.Response.WriteAsJsonAsync(new ProblemDetails
+        {
+            Status = StatusCodes.Status403Forbidden,
+            Title = "Subscription Required",
+            Type = "https://tools.ietf.org/html/rfc7231#section-6.5.3"
+        });
+    }
+
+    private async Task HandleSubscriptionLimitExceededException(HttpContext httpContext, Exception ex)
+    {
+        httpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
+
+        await httpContext.Response.WriteAsJsonAsync(new ProblemDetails
+        {
+            Status = StatusCodes.Status403Forbidden,
+            Title = "Subscription Limit Exceeded",
             Type = "https://tools.ietf.org/html/rfc7231#section-6.5.3"
         });
     }

@@ -1,23 +1,20 @@
 using Quartz;
 
-namespace ConnectFlow.Infrastructure.Common.Jobs;
+namespace ConnectFlow.Infrastructure.Quartz.Jobs;
 
 /// <summary>
 /// A simple test job that runs every minute to generate metrics
 /// </summary>
 [DisallowConcurrentExecution]
-public class TestMetricsJob : IJob
+public class TestMetricsJob : BaseJob
 {
-    private readonly ILogger<TestMetricsJob> _logger;
-
-    public TestMetricsJob(ILogger<TestMetricsJob> logger)
+    public TestMetricsJob(ILogger<TestMetricsJob> logger, IContextManager contextManager) : base(logger, contextManager)
     {
-        _logger = logger;
     }
 
-    public async Task Execute(IJobExecutionContext context)
+    protected override async Task ExecuteJobAsync(IJobExecutionContext context)
     {
-        _logger.LogInformation("TestMetricsJob executed at: {Time}", DateTimeOffset.Now);
+        Logger.LogInformation("TestMetricsJob executed at: {Time}", DateTimeOffset.Now);
 
         try
         {
@@ -27,7 +24,7 @@ public class TestMetricsJob : IJob
             var fireTime = context.FireTimeUtc;
             var nextFireTime = context.NextFireTimeUtc;
 
-            _logger.LogInformation(
+            Logger.LogInformation(
                 "Job {JobKey} executing (Fire time: {FireTime}, Next fire time: {NextFireTime})",
                 jobName, fireTime, nextFireTime);
 
@@ -41,11 +38,11 @@ public class TestMetricsJob : IJob
             var duration = new Random().Next(1, 4);
             await Task.Delay(TimeSpan.FromSeconds(duration), context.CancellationToken);
 
-            _logger.LogInformation("TestMetricsJob completed successfully in {Duration}s", duration);
+            Logger.LogInformation("TestMetricsJob completed successfully in {Duration}s", duration);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "TestMetricsJob failed with error");
+            Logger.LogError(ex, "TestMetricsJob failed with error");
             throw; // Rethrow to let Quartz handle it as a failed job
         }
     }
