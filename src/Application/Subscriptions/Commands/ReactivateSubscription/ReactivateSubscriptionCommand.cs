@@ -3,7 +3,7 @@ using ConnectFlow.Domain.Constants;
 
 namespace ConnectFlow.Application.Subscriptions.Commands.ReactivateSubscription;
 
-[AuthorizeTenantSubscription(false, Roles.TenantAdmin)]
+[AuthorizeTenant(false, false, Roles.TenantAdmin)]
 public record ReactivateSubscriptionCommand : IRequest<ReactivateSubscriptionResult>;
 
 public record ReactivateSubscriptionResult

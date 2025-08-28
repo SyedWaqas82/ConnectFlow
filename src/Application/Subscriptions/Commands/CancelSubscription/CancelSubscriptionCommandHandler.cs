@@ -22,6 +22,20 @@ public class CancelSubscriptionCommandHandler : IRequestHandler<CancelSubscripti
         var currentSubscription = await _subscriptionManagementService.GetActiveSubscriptionAsync(tenantId.Value, cancellationToken);
         Guard.Against.Null(currentSubscription, nameof(currentSubscription));
 
+        //check if its a free subscription
+        if (currentSubscription.Plan.Type == PlanType.Free)
+        {
+            // If it's a free subscription, just return a success result
+            return new CancelSubscriptionResult
+            {
+                SubscriptionId = currentSubscription.Id,
+                Status = "cant cancel a free subscription",
+                Message = "Free subscriptions cannot be cancelled.",
+                CancelledAt = null,
+                EffectiveDate = null
+            };
+        }
+
         // Cancel subscription in Stripe - this will trigger a webhook that updates local state
         var stripeSubscription = await _paymentService.CancelSubscriptionAsync(currentSubscription.PaymentProviderSubscriptionId, request.CancelImmediately, cancellationToken);
 

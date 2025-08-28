@@ -99,7 +99,7 @@ public class SubscriptionGracePeriodJob : BaseJob
         // First, try to cancel the subscription in Stripe to maintain consistency
         try
         {
-            if (!string.IsNullOrEmpty(subscription.PaymentProviderSubscriptionId) && !subscription.PaymentProviderSubscriptionId.StartsWith("free_"))
+            if (!string.IsNullOrEmpty(subscription.PaymentProviderSubscriptionId) && subscription.Plan.Type != PlanType.Free)
             {
                 await _paymentService.CancelSubscriptionAsync(subscription.PaymentProviderSubscriptionId, cancelImmediately: true, cancellationToken);
                 Logger.LogInformation("Successfully canceled subscription {SubscriptionId} in Stripe", subscription.Id);

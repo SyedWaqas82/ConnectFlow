@@ -3,7 +3,7 @@ using ConnectFlow.Domain.Constants;
 
 namespace ConnectFlow.Application.Subscriptions.Commands.CancelSubscription;
 
-[AuthorizeTenantSubscription(true, Roles.TenantAdmin)]
+[AuthorizeTenant(true, true, Roles.TenantAdmin)]
 public record CancelSubscriptionCommand : IRequest<CancelSubscriptionResult>
 {
     public bool CancelImmediately { get; init; } = false;

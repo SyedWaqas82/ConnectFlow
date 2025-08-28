@@ -41,7 +41,7 @@ public class SubscriptionManagementService : ISubscriptionManagementService
 
     #region Current Context Operations
 
-    public async Task<bool> IsCurrentUserFromCurrentTenantHasActiveSubscriptionAsync(bool allowSuperAdmin = true, CancellationToken cancellationToken = default)
+    public async Task<bool> IsCurrentUserFromCurrentTenantAsync(bool allowSuperAdmin = true, bool checkActiveSubscription = true, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -57,7 +57,14 @@ public class SubscriptionManagementService : ISubscriptionManagementService
             if (!isTenantUser)
                 return false;
 
-            return await HasActiveSubscriptionAsync(tenantId, cancellationToken);
+            if (checkActiveSubscription)
+            {
+                return await HasActiveSubscriptionAsync(tenantId, cancellationToken);
+            }
+            else
+            {
+                return true;
+            }
         }
         catch (Exception ex)
         {
@@ -77,7 +84,7 @@ public class SubscriptionManagementService : ISubscriptionManagementService
                 return true;
 
             // Tenant User suspension check is made at query filter level
-            return await _context.TenantUserRoles.Include(tur => tur.TenantUser).AnyAsync(tur => tur.TenantUser.ApplicationUserId == applicationUserId && tur.TenantUser.Status == TenantUserStatus.Active && tur.TenantUser.TenantId == tenantId && tur.RoleName == role);
+            return await _context.TenantUserRoles.Include(tur => tur.TenantUser).AnyAsync(tur => tur.TenantUser.ApplicationUserId == applicationUserId && tur.TenantUser.Status == TenantUserStatus.Active && tur.TenantUser.TenantId == tenantId && tur.RoleName == role, cancellationToken);
         }
         catch (Exception ex)
         {

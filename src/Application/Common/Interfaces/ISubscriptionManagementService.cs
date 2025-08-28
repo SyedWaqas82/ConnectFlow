@@ -39,9 +39,10 @@ public interface ISubscriptionManagementService
     /// Checks if the current user's tenant has an active subscription.
     /// </summary>
     /// <param name="allowSuperAdmin">Allow super admin to bypass check.</param>
+    /// <param name="checkActiveSubscription">Whether to check for active subscription.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>True if active; otherwise, false.</returns>
-    Task<bool> IsCurrentUserFromCurrentTenantHasActiveSubscriptionAsync(bool allowSuperAdmin = true, CancellationToken cancellationToken = default);
+    Task<bool> IsCurrentUserFromCurrentTenantAsync(bool allowSuperAdmin = true, bool checkActiveSubscription = true, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Checks if the current user has a specific role in the current tenant.

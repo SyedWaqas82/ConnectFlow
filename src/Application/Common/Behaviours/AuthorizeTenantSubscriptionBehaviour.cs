@@ -20,7 +20,7 @@ public class AuthorizeTenantSubscriptionBehaviour<TRequest, TResponse> : IPipeli
 
     public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
     {
-        var attribute = request.GetType().GetCustomAttribute<AuthorizeTenantSubscriptionAttribute>();
+        var attribute = request.GetType().GetCustomAttribute<AuthorizeTenantAttribute>();
 
         if (attribute != null)
         {
@@ -35,14 +35,14 @@ public class AuthorizeTenantSubscriptionBehaviour<TRequest, TResponse> : IPipeli
                 throw new TenantNotFoundException();
             }
 
-            var hasActiveSubscription = await _subscriptionManagementService.IsCurrentUserFromCurrentTenantHasActiveSubscriptionAsync(attribute.AllowSuperAdmin);
+            var hasActiveSubscription = await _subscriptionManagementService.IsCurrentUserFromCurrentTenantAsync(attribute.AllowSuperAdmin, attribute.CheckActiveSubscription, cancellationToken);
 
             if (!hasActiveSubscription)
                 throw new SubscriptionRequiredException("This operation requires an active subscription.");
 
             if (attribute.Roles != null && attribute.Roles.Count > 0)
             {
-                var authorized = await AuthorizeAsync(attribute.Roles.ToArray(), attribute.AllowSuperAdmin);
+                var authorized = await AuthorizeAsync(attribute.Roles.ToArray(), attribute.AllowSuperAdmin, cancellationToken);
 
                 if (!authorized)
                     throw new ForbiddenAccessException();
@@ -52,11 +52,11 @@ public class AuthorizeTenantSubscriptionBehaviour<TRequest, TResponse> : IPipeli
         return await next();
     }
 
-    private async Task<bool> AuthorizeAsync(string[] roles, bool allowSuperAdmin)
+    private async Task<bool> AuthorizeAsync(string[] roles, bool allowSuperAdmin, CancellationToken cancellationToken)
     {
         foreach (var role in roles)
         {
-            if (await _subscriptionManagementService.IsCurrentUserFromCurrentTenantHasRoleAsync(role, allowSuperAdmin))
+            if (await _subscriptionManagementService.IsCurrentUserFromCurrentTenantHasRoleAsync(role, allowSuperAdmin, cancellationToken))
                 return true;
         }
 

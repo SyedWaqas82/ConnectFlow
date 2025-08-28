@@ -3,7 +3,7 @@ using ConnectFlow.Domain.Constants;
 
 namespace ConnectFlow.Application.Subscriptions.Commands.UpdateSubscription;
 
-[AuthorizeTenantSubscription(false, Roles.TenantAdmin)]
+[AuthorizeTenant(false, true, Roles.TenantAdmin)]
 public record UpdateSubscriptionCommand : IRequest<UpdateSubscriptionResult>
 {
     public int NewPlanId { get; init; }
