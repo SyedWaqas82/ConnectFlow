@@ -8,7 +8,7 @@ public interface IContextManager
     /// <summary>
     /// Initialize context with user and tenant information
     /// </summary>
-    Task InitializeContextAsync(int applicationUserId, int tenantId);
+    Task InitializeContextAsync(int tenantId, int applicationUserId);
 
     /// <summary>
     /// Initialize context with default tenant for a user
@@ -16,9 +16,14 @@ public interface IContextManager
     Task InitializeContextWithDefaultTenantAsync(int applicationUserId);
 
     /// <summary>
+    /// Initialize context with default admin user for a tenant
+    /// </summary>
+    Task InitializeContextWithDefaultAdminAsync(int tenantId);
+
+    /// <summary>
     /// Manually set context for background jobs or non-HTTP contexts
     /// </summary>
-    void SetContext(int? applicationUserId, Guid? applicationUserPublicId, string? userName, List<string>? roles, bool isSuperAdmin, int? tenantId);
+    void SetContext(int? tenantId, int? applicationUserId, Guid? applicationUserPublicId, string? userName, List<string>? roles, bool isSuperAdmin);
 
     /// <summary>
     /// Clear all context information

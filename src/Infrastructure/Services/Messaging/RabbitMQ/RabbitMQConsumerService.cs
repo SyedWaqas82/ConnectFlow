@@ -132,7 +132,7 @@ public abstract class RabbitMQConsumerService<T> : BackgroundService, IMessageCo
                 //set current context
                 var contextManager = scope.ServiceProvider.GetRequiredService<IContextManager>();
 
-                await contextManager.InitializeContextAsync(message.ApplicationUserId, message.TenantId);
+                await contextManager.InitializeContextAsync(message.TenantId, message.ApplicationUserId);
 
                 await handler.HandleAsync(message, CancellationToken.None);
 

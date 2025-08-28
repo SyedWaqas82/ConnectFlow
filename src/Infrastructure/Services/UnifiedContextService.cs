@@ -32,12 +32,19 @@ public class UnifiedContextService : IContextManager
         _dbContext = dbContext;
     }
 
-    public async Task InitializeContextAsync(int applicationUserId, int tenantId)
+    public async Task InitializeContextAsync(int tenantId, int applicationUserId)
     {
         _logger.LogInformation("Initializing context for application user ID {ApplicationUserId} and tenant ID {TenantId}", applicationUserId, tenantId);
 
         // Clear existing context
         ClearContext();
+
+        // If applicationUserId is 0 or default, initialize with default admin for the tenant
+        if (applicationUserId == 0 || applicationUserId == default)
+        {
+            await InitializeContextWithDefaultAdminAsync(tenantId);
+            return;
+        }
 
         // Set user context from database
         var appUser = await _userManager.FindByIdAsync(applicationUserId.ToString());
@@ -118,7 +125,61 @@ public class UnifiedContextService : IContextManager
         }
     }
 
-    public void SetContext(int? applicationUserId, Guid? applicationUserPublicId, string? userName, List<string>? roles, bool isSuperAdmin, int? tenantId)
+    public async Task InitializeContextWithDefaultAdminAsync(int tenantId)
+    {
+        _logger.LogInformation("Initializing context with default admin for tenant ID {TenantId}", tenantId);
+
+        // Clear existing context
+        ClearContext();
+
+        // Set tenant context first
+        if (tenantId != default)
+        {
+            _currentTenantId = tenantId;
+            _logger.LogDebug("Set tenant context: TenantId={TenantId}", tenantId);
+
+            // Find the tenant admin user for this tenant
+            var tenantAdminUser = await _dbContext.TenantUsers
+                .Include(tu => tu.TenantUserRoles)
+                .Where(tu => tu.TenantId == tenantId && tu.Status == TenantUserStatus.Active && tu.TenantUserRoles.Any(r => r.RoleName == Roles.TenantAdmin))
+                .OrderByDescending(tu => tu.JoinedAt) // Get the most recent admin
+                .FirstOrDefaultAsync();
+
+            if (tenantAdminUser != null)
+            {
+                // Get the application user details
+                var appUser = await _userManager.FindByIdAsync(tenantAdminUser.ApplicationUserId.ToString());
+                if (appUser != null)
+                {
+                    _applicationUserId = appUser.Id;
+                    _applicationUserPublicId = appUser.PublicId;
+                    _userName = appUser.UserName;
+
+                    // Get roles
+                    var roles = await _userManager.GetRolesAsync(appUser);
+                    _roles = roles.ToList();
+                    _isSuperAdmin = roles.Contains(Roles.SuperAdmin);
+
+                    _logger.LogDebug("Set default admin context: AppId={AppId}, PublicId={PublicId}, UserName={UserName}, IsSuperAdmin={IsSuperAdmin}",
+                        appUser.Id, appUser.PublicId, appUser.UserName, _isSuperAdmin);
+                }
+                else
+                {
+                    _logger.LogWarning("Failed to find application user for tenant admin user ID {ApplicationUserId}", tenantAdminUser.ApplicationUserId);
+                }
+            }
+            else
+            {
+                _logger.LogWarning("No tenant admin user found for tenant ID {TenantId}", tenantId);
+            }
+        }
+        else
+        {
+            _logger.LogWarning("Invalid tenant ID provided for default admin initialization: {TenantId}", tenantId);
+        }
+    }
+
+    public void SetContext(int? tenantId, int? applicationUserId, Guid? applicationUserPublicId, string? userName, List<string>? roles, bool isSuperAdmin)
     {
         _logger.LogInformation("Manually setting context: AppUserId={AppUserId}, ApplicationUserPublicId={ApplicationUserPublicId}, UserName={UserName}, " + "IsSuperAdmin={IsSuperAdmin}, TenantId={TenantId}", applicationUserId, applicationUserPublicId, userName, isSuperAdmin, tenantId);
 

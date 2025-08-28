@@ -42,7 +42,7 @@ namespace ConnectFlow.Web.Common
         public List<string> GetCurrentUserRoles() => new();
         public bool IsSuperAdmin() => false;
 
-        public Task InitializeContextAsync(int applicationUserId, int tenantId)
+        public Task InitializeContextAsync(int tenantId, int applicationUserId)
         {
             throw new NotImplementedException();
         }
@@ -52,7 +52,12 @@ namespace ConnectFlow.Web.Common
             throw new NotImplementedException();
         }
 
-        public void SetContext(int? applicationUserId, Guid? applicationUserPublicId, string? userName, List<string>? roles, bool isSuperAdmin, int? tenantId)
+        public Task InitializeContextWithDefaultAdminAsync(int tenantId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SetContext(int? tenantId, int? applicationUserId, Guid? applicationUserPublicId, string? userName, List<string>? roles, bool isSuperAdmin)
         {
             throw new NotImplementedException();
         }
