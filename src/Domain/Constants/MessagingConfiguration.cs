@@ -87,9 +87,10 @@ public static class MessagingConfiguration
     {
         None,
         Email,
+        Subscription
     }
 
-    private static readonly Exchange _exchange = new Exchange("domain-events-exchange", "dead-letter-exchange", "retry-exchange").AddQueues("email", QueueDomain.Email);
+    private static readonly Exchange _exchange = new Exchange("domain-events-exchange", "dead-letter-exchange", "retry-exchange").AddQueues("email", QueueDomain.Email).AddQueues("subscription", QueueDomain.Subscription);
 
     public static Exchange GetExchange() => _exchange;
 

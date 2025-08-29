@@ -6,7 +6,11 @@ namespace ConnectFlow.Infrastructure.Services.Messaging.RabbitMQ.Consumers;
 
 public class EmailConsumer : RabbitMQConsumerService<EmailSendMessageEvent>
 {
-    public EmailConsumer(IRabbitMQConnectionManager connectionManager, IOptions<RabbitMQSettings> settings, IServiceProvider serviceProvider, ILogger<EmailConsumer> logger) : base(connectionManager, settings, serviceProvider, logger, MessagingConfiguration.GetQueueByTypeAndDomain(MessagingConfiguration.QueueType.Default, MessagingConfiguration.QueueDomain.Email), MessagingConfiguration.GetQueueByTypeAndDomain(MessagingConfiguration.QueueType.Retry, MessagingConfiguration.QueueDomain.Email))
+    private static readonly MessagingConfiguration.Queue _defaultQueue = MessagingConfiguration.GetQueueByTypeAndDomain(MessagingConfiguration.QueueType.Default, MessagingConfiguration.QueueDomain.Email);
+    private static readonly MessagingConfiguration.Queue _retryQueue = MessagingConfiguration.GetQueueByTypeAndDomain(MessagingConfiguration.QueueType.Retry, MessagingConfiguration.QueueDomain.Email);
+
+    public EmailConsumer(IRabbitMQConnectionManager connectionManager, IOptions<RabbitMQSettings> settings, IServiceProvider serviceProvider, ILogger<EmailConsumer> logger)
+        : base(connectionManager, settings, serviceProvider, logger, _defaultQueue, _retryQueue)
     {
 
     }

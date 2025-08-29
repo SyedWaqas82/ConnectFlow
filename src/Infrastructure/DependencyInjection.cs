@@ -215,9 +215,6 @@ public static class DependencyInjection
         // Add RabbitMQ metrics
         builder.Services.AddSingleton<RabbitMQMetrics>();
 
-        // Message handlers
-        builder.Services.AddScoped<IMessageHandler<EmailSendMessageEvent>, EmailSendMessageEventHandler>();
-
         // Consumers as hosted services
         builder.Services.AddHostedService<EmailConsumer>();
 

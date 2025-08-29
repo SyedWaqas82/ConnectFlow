@@ -109,24 +109,28 @@ public class SubscriptionStatusEventHandler : INotificationHandler<SubscriptionS
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Updated subscription {SubscriptionId} for action {Action}",
-            subscription.Id, notification.Action);
+        _logger.LogInformation("Updated subscription {SubscriptionId} for action {Action}", subscription.Id, notification.Action);
     }
 
     private async Task HandleSubscriptionLimitsAsync(Subscription subscription, SubscriptionStatusEvent notification, CancellationToken cancellationToken)
     {
         try
         {
-            // Use the subscription management service to sync entities with their limits
-            await _subscriptionManagementService.SyncEntitiesWithLimitsAsync(subscription.TenantId, cancellationToken);
+            // Create a subscription message event to sync entities with plan limits
+            var subscriptionEvent = new SubscriptionMessageEvent(notification.TenantId, notification.ApplicationUserId)
+            {
+                CorrelationId = notification.CorrelationId,
+                ApplicationUserPublicId = notification.ApplicationUserPublicId,
+            };
 
-            _logger.LogInformation("Successfully synced entities with limits for action {Action} - Subscription {SubscriptionId}",
-                notification.Action, subscription.Id);
+            var queue = MessagingConfiguration.GetQueueByTypeAndDomain(MessagingConfiguration.QueueType.Default, MessagingConfiguration.QueueDomain.Subscription);
+            await _messagePublisher.PublishAsync(subscriptionEvent, queue.RoutingKey, cancellationToken);
+
+            _logger.LogInformation("Successfully published subscription message event for tenant {TenantId} to sync entities", notification.TenantId);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to sync entities with limits for action {Action} - Subscription {SubscriptionId}",
-                notification.Action, subscription.Id);
+            _logger.LogError(ex, "Failed to sync entities with limits for action {Action} - Subscription {SubscriptionId}", notification.Action, subscription.Id);
             // Don't throw - this shouldn't fail the main subscription status update
         }
     }
@@ -166,8 +170,7 @@ public class SubscriptionStatusEventHandler : INotificationHandler<SubscriptionS
             var queue = MessagingConfiguration.GetQueueByTypeAndDomain(MessagingConfiguration.QueueType.Default, MessagingConfiguration.QueueDomain.Email);
             await _messagePublisher.PublishAsync(emailEvent, queue.RoutingKey, cancellationToken);
 
-            _logger.LogInformation("Queued {Action} email notification for tenant {TenantEmail} for subscription {SubscriptionId}",
-                notification.Action, subscription.Tenant.Email, subscription.Id);
+            _logger.LogInformation("Queued {Action} email notification for tenant {TenantEmail} for subscription {SubscriptionId}", notification.Action, subscription.Tenant.Email, subscription.Id);
         }
         catch (Exception ex)
         {
