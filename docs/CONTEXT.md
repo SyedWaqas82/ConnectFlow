@@ -14,15 +14,13 @@ ConnectFlow uses a unified context management system that works seamlessly in bo
 
 ## Key Components
 
-### Interfaces
+### Interface
 
-- **ICurrentUserService**: Access user identity information
-- **ICurrentTenantService**: Access tenant information
-- **IContextManager**: Initialize and manage context state
+- **IContextManager**: Comprehensive context service that combines user and tenant operations
 
 ### Implementation
 
-All interfaces are implemented by the `UnifiedContextService` class, providing a cohesive approach to context management.
+The interface is implemented by the `UnifiedContextService` class, providing a unified approach to context management that works seamlessly in both HTTP and non-HTTP contexts.
 
 ## Setting Context
 
@@ -31,14 +29,8 @@ All interfaces are implemented by the `UnifiedContextService` class, providing a
 HTTP context is automatically initialized by the `ContextMiddleware` which:
 
 1. Extracts user identity from authentication claims
-2. Extracts tenant information from headers or claims
+2. Extracts tenant information from headers
 3. Makes this information available throughout the request lifecycle
-
-The middleware is registered in the application pipeline:
-
-```csharp
-app.UseMiddleware<ContextMiddleware>();
-```
 
 **HTTP Headers for Context**:
 
@@ -55,14 +47,17 @@ await _contextManager.InitializeContextAsync(applicationUserId, tenantId);
 // Option 2: Initialize with user ID and default tenant
 await _contextManager.InitializeContextWithDefaultTenantAsync(applicationUserId);
 
-// Option 3: Manually set specific context values
+// Option 3: Initialize with default admin for a tenant
+await _contextManager.InitializeContextWithDefaultAdminAsync(tenantId);
+
+// Option 4: Manually set specific context values
 _contextManager.SetContext(
+    tenantId: 456,
     applicationUserId: 123, 
     applicationUserPublicId: Guid.Parse("..."), 
     userName: "username", 
     roles: new List<string> { "Admin" }, 
-    isSuperAdmin: false, 
-    tenantId: 456
+    isSuperAdmin: false
 );
 ```
 
@@ -70,12 +65,6 @@ _contextManager.SetContext(
 
 ```csharp
 _contextManager.ClearContext();
-```
-
-Or use the async version:
-
-```csharp
-await _contextManager.ClearContextAsync();
 ```
 
 ### In Message Handlers and RabbitMQ Consumers
@@ -132,46 +121,36 @@ public async Task HandleAsync(TMessage message, CancellationToken cancellationTo
 
 ## Accessing Context
 
-### User Information
+### User and Tenant Information
 
 ```csharp
 // Through dependency injection
 public class MyService 
 {
-    private readonly ICurrentUserService _currentUserService;
+    private readonly IContextManager _contextManager;
 
-    public MyService(ICurrentUserService currentUserService)
+    public MyService(IContextManager contextManager)
     {
-        _currentUserService = currentUserService;
+        _contextManager = contextManager;
     }
 
     public void DoSomething()
     {
-        var appicationPublicUserId = _currentUserService.GetCurrentApplicationUserId();
-        var applicationUserId = _currentUserService.GetCurrentApplicationUserId();
-        var username = _currentUserService.GetCurrentUserName();
-        var roles = _currentUserService.GetCurrentUserRoles();
-        var isSuperAdmin = _currentUserService.IsSuperAdmin();
-    }
-}
-```
-
-### Tenant Information
-
-```csharp
-// Through dependency injection
-public class MyService 
-{
-    private readonly ICurrentTenantService _tenantService;
-
-    public MyService(ICurrentTenantService tenantService)
-    {
-        _tenantService = tenantService;
-    }
-
-    public void DoSomething()
-    {
-        var tenantId = _tenantService.GetCurrentTenantId();
+        // User information
+        var applicationUserId = _contextManager.GetCurrentApplicationUserId();
+        var applicationUserPublicId = _contextManager.GetCurrentApplicationUserPublicId();
+        var username = _contextManager.GetCurrentUserName();
+        var roles = _contextManager.GetCurrentUserRoles();
+        var isSuperAdmin = _contextManager.IsSuperAdmin();
+        
+        // Tenant information
+        var tenantId = _contextManager.GetCurrentTenantId();
+        
+        // Role checking
+        var isAdmin = _contextManager.IsInRole("TenantAdmin");
+        
+        // Correlation tracking
+        var correlationId = _contextManager.GetCorrelationId();
     }
 }
 ```
