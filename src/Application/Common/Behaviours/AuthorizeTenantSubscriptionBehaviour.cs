@@ -45,7 +45,7 @@ public class AuthorizeTenantSubscriptionBehaviour<TRequest, TResponse> : IPipeli
                 var authorized = await AuthorizeAsync(attribute.Roles.ToArray(), attribute.AllowSuperAdmin, cancellationToken);
 
                 if (!authorized)
-                    throw new ForbiddenAccessException();
+                    throw new ForbiddenAccessException("User does not have the required role to access this resource");
             }
         }
 

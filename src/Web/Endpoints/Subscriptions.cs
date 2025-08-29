@@ -4,6 +4,7 @@ using ConnectFlow.Application.Subscriptions.Commands.ProcessWebhook;
 using ConnectFlow.Application.Subscriptions.Commands.ReactivateSubscription;
 using ConnectFlow.Application.Subscriptions.Commands.UpdateSubscription;
 using ConnectFlow.Application.Subscriptions.Queries.GetAvailablePlans;
+using ConnectFlow.Application.Subscriptions.Queries.GetCheckoutSession;
 using ConnectFlow.Application.Subscriptions.Queries.GetSubscription;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -17,6 +18,7 @@ public class Subscriptions : EndpointGroupBase
 
         group.MapGet(GetSubscription, "GetSubscription");
         group.AllowAnonymous().MapGet(GetAvailablePlans, "GetAvailablePlans");
+        group.MapGet(GetCheckoutSession, "GetCheckoutSession/{sessionId}");
         group.MapPost(CreateSubscription, "CreateSubscription");
         group.MapPut(UpdateSubscription, "UpdateSubscription");
         group.MapPost(CancelSubscription, "CancelSubscription");
@@ -33,6 +35,13 @@ public class Subscriptions : EndpointGroupBase
     public async Task<IResult> GetAvailablePlans(ISender sender)
     {
         var result = await sender.Send(new GetAvailablePlansQuery());
+        return TypedResults.Ok(result);
+    }
+
+    public async Task<Ok<CheckoutSessionStatusDto>> GetCheckoutSession(ISender sender, string sessionId)
+    {
+        var query = new GetCheckoutSessionQuery { SessionId = sessionId };
+        var result = await sender.Send(query);
         return TypedResults.Ok(result);
     }
 
