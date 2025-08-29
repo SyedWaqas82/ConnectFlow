@@ -4,7 +4,7 @@ using RabbitMQ.Client;
 using ConnectFlow.Infrastructure.Services.Messaging.RabbitMQ;
 using ConnectFlow.Infrastructure.Common.Models;
 
-namespace ConnectFlow.Infrastructure.Metrics;
+namespace ConnectFlow.Infrastructure.Common.Metrics;
 
 public class RabbitMQMetrics : IDisposable
 {

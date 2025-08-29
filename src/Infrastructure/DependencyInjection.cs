@@ -14,10 +14,9 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using ConnectFlow.Infrastructure.Common.Models;
 using ConnectFlow.Application.Common.Messaging;
-using ConnectFlow.Infrastructure.Metrics;
+using ConnectFlow.Infrastructure.Common.Metrics;
 using ConnectFlow.Infrastructure.Services.Email;
 using ConnectFlow.Infrastructure.Services.Messaging.RabbitMQ;
-using ConnectFlow.Domain.Events.Messaging;
 using ConnectFlow.Infrastructure.Services.Messaging.RabbitMQ.Consumers;
 using ConnectFlow.Application.Common.Messaging.Handlers;
 using ConnectFlow.Infrastructure.Services.Payment.Configuration;
@@ -85,13 +84,11 @@ public static class DependencyInjection
         // This should be after RabbitMQ and Identity services to ensure all dependencies are available
         builder.AddEmailServices();
 
+        // Configure payment services (Stripe integration)
+        builder.AddPaymentServices();
+
         // Configure context services
         builder.AddContextServices();
-
-        // Register payment and subscription services
-        builder.Services.AddScoped<IPaymentService, StripeService>();
-        builder.Services.AddScoped<ISubscriptionManagementService, SubscriptionManagementService>();
-        builder.Services.AddScoped<IPaymentWebhookEventHandlerService, StripeWebhookEventHandlerService>();
 
         // Register IIdentityService after all dependencies are registered
         builder.Services.AddTransient<IIdentityService, IdentityService>();
@@ -247,6 +244,17 @@ public static class DependencyInjection
         builder.Services.AddSingleton<IEmailTemplateRenderer, RazorEmailTemplateRenderer>();
         builder.Services.AddTransient<IEmailSender, SmtpEmailSender>();
         builder.Services.AddTransient<IEmailService, EmailService>();
+    }
+
+    private static void AddPaymentServices(this IHostApplicationBuilder builder)
+    {
+        // Add payment metrics
+        builder.Services.AddSingleton<PaymentMetrics>();
+
+        // Add payment service implementation
+        builder.Services.AddScoped<IPaymentService, StripeService>();
+        builder.Services.AddScoped<IPaymentWebhookEventHandlerService, StripeWebhookEventHandlerService>();
+        builder.Services.AddScoped<ISubscriptionManagementService, SubscriptionManagementService>();
     }
 
     private static void AddContextServices(this IHostApplicationBuilder builder)

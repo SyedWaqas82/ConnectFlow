@@ -1,6 +1,6 @@
 using System.Diagnostics.Metrics;
 
-namespace ConnectFlow.Infrastructure.Metrics;
+namespace ConnectFlow.Infrastructure.Common.Metrics;
 
 /// <summary>
 /// Provides metrics tracking for email service operations

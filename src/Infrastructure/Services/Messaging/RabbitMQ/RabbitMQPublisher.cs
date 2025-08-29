@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using ConnectFlow.Application.Common.Messaging;
 using ConnectFlow.Domain.Constants;
+using ConnectFlow.Infrastructure.Common.Metrics;
 using RabbitMQ.Client;
 
 namespace ConnectFlow.Infrastructure.Services.Messaging.RabbitMQ;
@@ -10,12 +11,12 @@ public class RabbitMQPublisher : IMessagePublisher, IDisposable
 {
     private readonly IRabbitMQConnectionManager _connectionManager;
     private readonly ILogger<RabbitMQPublisher> _logger;
-    private readonly Metrics.RabbitMQMetrics _metrics;
+    private readonly RabbitMQMetrics _metrics;
     private IChannel? _channel;
     private bool _disposed;
     private readonly string _exchangeName = string.Empty;
 
-    public RabbitMQPublisher(IRabbitMQConnectionManager connectionManager, ILogger<RabbitMQPublisher> logger, Metrics.RabbitMQMetrics metrics)
+    public RabbitMQPublisher(IRabbitMQConnectionManager connectionManager, ILogger<RabbitMQPublisher> logger, RabbitMQMetrics metrics)
     {
         _connectionManager = connectionManager;
         _logger = logger;

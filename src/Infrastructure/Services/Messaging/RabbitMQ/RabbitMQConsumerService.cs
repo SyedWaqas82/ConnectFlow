@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using ConnectFlow.Application.Common.Messaging;
 using ConnectFlow.Domain.Constants;
+using ConnectFlow.Infrastructure.Common.Metrics;
 using ConnectFlow.Infrastructure.Common.Models;
 using Microsoft.Extensions.Hosting;
 using RabbitMQ.Client;
@@ -18,7 +19,7 @@ public abstract class RabbitMQConsumerService<T> : BackgroundService, IMessageCo
     private readonly MessagingConfiguration.Queue _queue;
     private readonly MessagingConfiguration.Queue _retryQueue;
     private readonly SemaphoreSlim _semaphore;
-    private readonly Metrics.RabbitMQMetrics? _metrics;
+    private readonly RabbitMQMetrics? _metrics;
     private IChannel? _channel;
     private AsyncEventingBasicConsumer? _consumer;
 
@@ -31,7 +32,7 @@ public abstract class RabbitMQConsumerService<T> : BackgroundService, IMessageCo
         _queue = queue;
         _retryQueue = retryQueue;
         _semaphore = new SemaphoreSlim(_settings.MaxConcurrentConsumers, _settings.MaxConcurrentConsumers);
-        _metrics = serviceProvider.GetService<Metrics.RabbitMQMetrics>();
+        _metrics = serviceProvider.GetService<RabbitMQMetrics>();
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)

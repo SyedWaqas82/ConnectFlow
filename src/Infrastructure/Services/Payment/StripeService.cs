@@ -1,6 +1,8 @@
 using ConnectFlow.Application.Common.Models;
+using ConnectFlow.Infrastructure.Common.Metrics;
 using ConnectFlow.Infrastructure.Services.Payment.Configuration;
 using Stripe;
+using System.Diagnostics;
 using StripeSubscription = Stripe.Subscription;
 using StripeCustomer = Stripe.Customer;
 using StripeInvoice = Stripe.Invoice;
@@ -20,19 +22,29 @@ public class StripeService : IPaymentService
 {
     private readonly ILogger<StripeService> _logger;
     private readonly StripeSettings _stripeSettings;
+    private readonly PaymentMetrics _paymentMetrics;
 
-    public StripeService(ILogger<StripeService> logger, IOptions<StripeSettings> stripeSettings)
+    public StripeService(ILogger<StripeService> logger, IOptions<StripeSettings> stripeSettings, PaymentMetrics paymentMetrics)
     {
         _logger = logger;
         _stripeSettings = stripeSettings.Value;
+        _paymentMetrics = paymentMetrics;
         StripeConfiguration.ApiKey = _stripeSettings.SecretKey;
     }
 
     public Task<PaymentEventDto> ProcessWebhookAsync(string body, string signature, CancellationToken cancellationToken = default)
     {
+        var stopwatch = Stopwatch.StartNew();
+        string? eventType = null;
+
         try
         {
             var stripeEvent = EventUtility.ConstructEvent(body, signature, _stripeSettings.WebhookSecret);
+            eventType = stripeEvent.Type;
+
+            // Record webhook received
+            _paymentMetrics.WebhookReceived(eventType);
+
             _logger.LogInformation("Processed Stripe webhook event {EventId} of type {EventType}", stripeEvent.Id, stripeEvent.Type);
 
             var eventDto = new PaymentEventDto
@@ -43,21 +55,42 @@ public class StripeService : IPaymentService
                 Data = stripeEvent.Data.RawObject as Dictionary<string, object> ?? new Dictionary<string, object>()
             };
 
+            // Record successful webhook processing
+            _paymentMetrics.WebhookProcessed(eventType, stopwatch.Elapsed.TotalSeconds);
+
             return Task.FromResult(eventDto);
         }
         catch (StripeException ex) when (ex.StripeError?.Type == "invalid_request_error")
         {
             _logger.LogWarning(ex, "Invalid Stripe webhook request - signature validation failed");
+
+            if (eventType != null)
+            {
+                _paymentMetrics.WebhookFailed(eventType, "invalid_signature");
+            }
+
             throw new ArgumentException("Invalid webhook signature or request format", ex);
         }
         catch (StripeException ex)
         {
             _logger.LogError(ex, "Failed to process Stripe webhook");
+
+            if (eventType != null)
+            {
+                _paymentMetrics.WebhookFailed(eventType, "stripe_error");
+            }
+
             throw;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error processing Stripe webhook");
+
+            if (eventType != null)
+            {
+                _paymentMetrics.WebhookFailed(eventType, "unexpected_error");
+            }
+
             throw;
         }
     }
@@ -66,6 +99,8 @@ public class StripeService : IPaymentService
 
     public async Task<PaymentCustomerDto> CreateCustomerAsync(string email, string name, Dictionary<string, string>? metadata = null, CancellationToken cancellationToken = default)
     {
+        var stopwatch = Stopwatch.StartNew();
+
         try
         {
             var options = new CustomerCreateOptions
@@ -80,11 +115,27 @@ public class StripeService : IPaymentService
 
             _logger.LogInformation("Created Stripe customer {CustomerId} for {Email}", customer.Id, email);
 
+            // Record metrics
+            _paymentMetrics.RecordStripeApiCall("create_customer", true, stopwatch.Elapsed.TotalSeconds);
+
+            // Extract tenant ID from metadata if available
+            var tenantId = metadata?.GetValueOrDefault("tenant_id");
+            if (int.TryParse(tenantId, out var parsedTenantId))
+            {
+                _paymentMetrics.CustomerCreated(parsedTenantId);
+            }
+            else
+            {
+                _paymentMetrics.CustomerCreated();
+            }
+
             return MapToCustomerDto(customer);
         }
         catch (StripeException ex)
         {
             _logger.LogError(ex, "Failed to create Stripe customer for {Email}", email);
+            _paymentMetrics.RecordStripeApiCall("create_customer", false, stopwatch.Elapsed.TotalSeconds);
+            _paymentMetrics.RecordStripeApiError("create_customer", ex.StripeError?.Type ?? "unknown");
             throw;
         }
     }
@@ -301,6 +352,8 @@ public class StripeService : IPaymentService
 
     public async Task<PaymentCheckoutSessionDto> CreateCheckoutSessionAsync(string customerId, string priceId, string successUrl, string cancelUrl, Dictionary<string, string>? metadata = null, CancellationToken cancellationToken = default)
     {
+        var stopwatch = Stopwatch.StartNew();
+
         try
         {
             var options = new StripeCheckoutSessionCreateOptions
@@ -328,11 +381,20 @@ public class StripeService : IPaymentService
 
             _logger.LogInformation("Created Stripe checkout session {SessionId} for customer {CustomerId}", session.Id, customerId);
 
+            // Record metrics
+            _paymentMetrics.RecordStripeApiCall("create_checkout_session", true, stopwatch.Elapsed.TotalSeconds);
+
+            // Extract plan type from metadata for better tracking
+            var planType = metadata?.GetValueOrDefault("plan_id") ?? "unknown";
+            _paymentMetrics.CheckoutSessionCreated(planType);
+
             return MapToCheckoutSessionDto(session);
         }
         catch (StripeException ex)
         {
             _logger.LogError(ex, "Failed to create Stripe checkout session for customer {CustomerId}", customerId);
+            _paymentMetrics.RecordStripeApiCall("create_checkout_session", false, stopwatch.Elapsed.TotalSeconds);
+            _paymentMetrics.RecordStripeApiError("create_checkout_session", ex.StripeError?.Type ?? "unknown");
             throw;
         }
     }

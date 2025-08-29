@@ -1,5 +1,5 @@
 using ConnectFlow.Application.Common.Models;
-using ConnectFlow.Infrastructure.Metrics;
+using ConnectFlow.Infrastructure.Common.Metrics;
 
 namespace ConnectFlow.Infrastructure.Services.Email;
 

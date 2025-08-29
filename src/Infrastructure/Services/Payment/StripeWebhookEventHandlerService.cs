@@ -1,4 +1,5 @@
 using ConnectFlow.Application.Common.Models;
+using ConnectFlow.Infrastructure.Common.Metrics;
 
 namespace ConnectFlow.Infrastructure.Services.Payment;
 
@@ -11,13 +12,15 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
     private readonly IApplicationDbContext _context;
     private readonly SubscriptionSettings _subscriptionSettings;
     private readonly ILogger<StripeWebhookEventHandlerService> _logger;
+    private readonly PaymentMetrics _paymentMetrics;
 
-    public StripeWebhookEventHandlerService(IPaymentService paymentService, IApplicationDbContext context, IOptions<SubscriptionSettings> subscriptionSettings, ILogger<StripeWebhookEventHandlerService> logger)
+    public StripeWebhookEventHandlerService(IPaymentService paymentService, IApplicationDbContext context, IOptions<SubscriptionSettings> subscriptionSettings, ILogger<StripeWebhookEventHandlerService> logger, PaymentMetrics paymentMetrics)
     {
         _paymentService = paymentService;
         _context = context;
         _subscriptionSettings = subscriptionSettings.Value;
         _logger = logger;
+        _paymentMetrics = paymentMetrics;
     }
 
     public async Task<bool> HandleSubscriptionCreatedAsync(PaymentEventDto paymentEvent, CancellationToken cancellationToken)
@@ -350,6 +353,9 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
 
         await _context.SaveChangesAsync(cancellationToken);
 
+        // Record metrics
+        _paymentMetrics.SubscriptionCreated(plan.Type.ToString(), plan.Price);
+
         _logger.LogInformation("Created subscription {SubscriptionId} for tenant {TenantId}", newSubscription.Id, tenant.Id);
         return true;
     }
@@ -495,6 +501,10 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
     {
         var wasScheduledForCancellation = existingSubscription.CancelAtPeriodEnd;
 
+        // Track subscription cancellation metric
+        var cancellationType = wasScheduledForCancellation ? "at_period_end" : "immediate";
+        _paymentMetrics.SubscriptionCanceled(cancellationType, existingSubscription.Plan?.Type.ToString() ?? "Unknown");
+
         // Update cancellation timestamps (keep data synchronization)
         // Note: Status change will be handled by event handler
         existingSubscription.CanceledAt = DateTimeOffset.UtcNow; // When it was actually canceled
@@ -521,6 +531,9 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
         // Create or update invoice record
         await CreateOrUpdateInvoiceAsync(stripeInvoiceId, existingSubscription.Id, amountPaid, currency, "paid", cancellationToken);
 
+        // Track payment success metric
+        _paymentMetrics.PaymentSuccessful(amountPaid, currency);
+
         // Add PaymentStatusEvent domain event for payment success
         // The PaymentStatusEventHandler will handle status updates and retry tracking reset
         var paymentEvent = new PaymentStatusEvent(existingSubscription.TenantId, default, existingSubscription.Id, PaymentAction.Success, "Payment succeeded", amount: amountPaid, sendEmailNotification: true);
@@ -538,6 +551,9 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
     {
         // Create or update invoice record
         await CreateOrUpdateInvoiceAsync(stripeInvoiceId, existingSubscription.Id, amountDue, currency, "payment_failed", cancellationToken);
+
+        // Track payment failure metric
+        _paymentMetrics.PaymentFailed(amountDue, $"Payment attempt {attemptCount} failed", currency);
 
         // Check if max retries reached - this info is passed to PaymentStatusEvent
         var hasReachedMaxRetries = attemptCount >= _subscriptionSettings.MaxPaymentRetries;
