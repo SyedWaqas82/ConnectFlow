@@ -12,15 +12,19 @@ public class CustomExceptionHandler : IExceptionHandler
     {
         // Register known exception types and handlers.
         _exceptionHandlers = new()
-            {
-                { typeof(ValidationException), HandleValidationException },
-                { typeof(NotFoundException), HandleNotFoundException },
-                { typeof(UnauthorizedAccessException), HandleUnauthorizedAccessException },
-                { typeof(TenantNotFoundException), HandleTenantNotFoundException },
-                { typeof(ForbiddenAccessException), HandleForbiddenAccessException },
-                { typeof(SubscriptionRequiredException), HandleSubscriptionRequiredException },
-                { typeof(SubscriptionLimitExceededException), HandleSubscriptionLimitExceededException }
-            };
+        {
+            { typeof(ForbiddenAccessException), HandleForbiddenAccessException },
+            { typeof(SubscriptionRequiredException), HandleSubscriptionRequiredException },
+            { typeof(SubscriptionLimitExceededException), HandleSubscriptionLimitExceededException },
+            { typeof(SubscriptionNotFoundException), HandleSubscriptionNotFoundException },
+            { typeof(PlanNotFoundException), HandlePlanNotFoundException },
+            { typeof(TenantNotFoundException), HandleTenantNotFoundException },
+            { typeof(ValidationException), HandleValidationException },
+            { typeof(NotFoundException), HandleNotFoundException },
+            { typeof(UnauthorizedAccessException), HandleUnauthorizedAccessException },
+            { typeof(InvalidOperationException), HandleInvalidOperationException },
+            { typeof(ArgumentException), HandleArgumentException },
+        };
     }
 
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
@@ -34,6 +38,78 @@ public class CustomExceptionHandler : IExceptionHandler
         }
 
         return false;
+    }
+
+    private async Task HandleForbiddenAccessException(HttpContext httpContext, Exception ex)
+    {
+        httpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
+
+        await httpContext.Response.WriteAsJsonAsync(new ProblemDetails
+        {
+            Status = StatusCodes.Status403Forbidden,
+            Title = ex.Message ?? "Forbidden",
+            Type = "https://tools.ietf.org/html/rfc7231#section-6.5.3"
+        });
+    }
+
+    private async Task HandleSubscriptionRequiredException(HttpContext httpContext, Exception ex)
+    {
+        httpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
+
+        await httpContext.Response.WriteAsJsonAsync(new ProblemDetails
+        {
+            Status = StatusCodes.Status403Forbidden,
+            Title = ex.Message ?? "Subscription Required",
+            Type = "https://tools.ietf.org/html/rfc7231#section-6.5.3"
+        });
+    }
+
+    private async Task HandleSubscriptionLimitExceededException(HttpContext httpContext, Exception ex)
+    {
+        httpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
+
+        await httpContext.Response.WriteAsJsonAsync(new ProblemDetails
+        {
+            Status = StatusCodes.Status403Forbidden,
+            Title = ex.Message ?? "Subscription Limit Exceeded",
+            Type = "https://tools.ietf.org/html/rfc7231#section-6.5.3"
+        });
+    }
+
+    private async Task HandleSubscriptionNotFoundException(HttpContext httpContext, Exception ex)
+    {
+        httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
+
+        await httpContext.Response.WriteAsJsonAsync(new ProblemDetails
+        {
+            Status = StatusCodes.Status404NotFound,
+            Title = ex.Message ?? "Subscription Not Found",
+            Type = "https://tools.ietf.org/html/rfc7231#section-6.5.4"
+        });
+    }
+
+    private async Task HandlePlanNotFoundException(HttpContext httpContext, Exception ex)
+    {
+        httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
+
+        await httpContext.Response.WriteAsJsonAsync(new ProblemDetails
+        {
+            Status = StatusCodes.Status404NotFound,
+            Title = ex.Message ?? "Plan Not Found",
+            Type = "https://tools.ietf.org/html/rfc7231#section-6.5.4"
+        });
+    }
+
+    private async Task HandleTenantNotFoundException(HttpContext httpContext, Exception ex)
+    {
+        httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
+
+        await httpContext.Response.WriteAsJsonAsync(new ProblemDetails
+        {
+            Status = StatusCodes.Status404NotFound,
+            Title = ex.Message ?? "Tenant Not Found or Invalid",
+            Type = "https://tools.ietf.org/html/rfc7231#section-6.5.4"
+        });
     }
 
     private async Task HandleValidationException(HttpContext httpContext, Exception ex)
@@ -76,51 +152,27 @@ public class CustomExceptionHandler : IExceptionHandler
         });
     }
 
-    private async Task HandleTenantNotFoundException(HttpContext httpContext, Exception ex)
+    private async Task HandleInvalidOperationException(HttpContext httpContext, Exception ex)
     {
-        httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
+        httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
 
         await httpContext.Response.WriteAsJsonAsync(new ProblemDetails
         {
-            Status = StatusCodes.Status404NotFound,
-            Title = "Tenant Not Found or Invalid",
-            Type = "https://tools.ietf.org/html/rfc7231#section-6.5.4"
+            Status = StatusCodes.Status400BadRequest,
+            Title = ex.Message ?? "Invalid Operation",
+            Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1"
         });
     }
 
-    private async Task HandleForbiddenAccessException(HttpContext httpContext, Exception ex)
+    private async Task HandleArgumentException(HttpContext httpContext, Exception ex)
     {
-        httpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
+        httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
 
         await httpContext.Response.WriteAsJsonAsync(new ProblemDetails
         {
-            Status = StatusCodes.Status403Forbidden,
-            Title = "Forbidden",
-            Type = "https://tools.ietf.org/html/rfc7231#section-6.5.3"
-        });
-    }
-
-    private async Task HandleSubscriptionRequiredException(HttpContext httpContext, Exception ex)
-    {
-        httpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
-
-        await httpContext.Response.WriteAsJsonAsync(new ProblemDetails
-        {
-            Status = StatusCodes.Status403Forbidden,
-            Title = "Subscription Required",
-            Type = "https://tools.ietf.org/html/rfc7231#section-6.5.3"
-        });
-    }
-
-    private async Task HandleSubscriptionLimitExceededException(HttpContext httpContext, Exception ex)
-    {
-        httpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
-
-        await httpContext.Response.WriteAsJsonAsync(new ProblemDetails
-        {
-            Status = StatusCodes.Status403Forbidden,
-            Title = "Subscription Limit Exceeded",
-            Type = "https://tools.ietf.org/html/rfc7231#section-6.5.3"
+            Status = StatusCodes.Status400BadRequest,
+            Title = ex.Message ?? "Invalid Argument",
+            Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1"
         });
     }
 }

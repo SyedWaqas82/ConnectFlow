@@ -52,7 +52,7 @@ public class IdentityService : IIdentityService
 
         if (!userCreationResult.Result.Succeeded || userCreationResult.Result.Data == null)
         {
-            return Result<UserToken>.Failure(userCreationResult.Result.Errors, null);
+            return Result<UserToken>.Failure(null, userCreationResult.Result.Errors);
         }
 
         var newUser = userCreationResult.Result.Data;
@@ -61,7 +61,7 @@ public class IdentityService : IIdentityService
 
         if (!tenantResult.Succeeded || tenantResult.Data == null)
         {
-            return Result<UserToken>.Failure(tenantResult.Errors, null);
+            return Result<UserToken>.Failure(null, tenantResult.Errors);
         }
 
         var tenant = tenantResult.Data;
@@ -124,7 +124,7 @@ public class IdentityService : IIdentityService
             return Result<UserToken>.Success(new UserToken() { ApplicationUserPublicId = result.Result.Data.PublicId, Token = result.ConfirmationToken });
         }
 
-        return Result<UserToken>.Failure(result.Result.Errors, null);
+        return Result<UserToken>.Failure(null, result.Result.Errors);
     }
 
     public async Task<Result> JoinTenantAsExistingUserAsync(string email, string[] roles, int tenantId)
@@ -189,7 +189,7 @@ public class IdentityService : IIdentityService
 
         if (appUser == null || appUser.IsActive == false)
         {
-            return Result<UserToken>.Failure(new[] { "user not found" }, null);
+            return Result<UserToken>.Failure(null, new[] { "user not found" });
         }
 
         string resetPasswordToken = await _userManager.GeneratePasswordResetTokenAsync(appUser);
@@ -265,7 +265,7 @@ public class IdentityService : IIdentityService
 
         if (appUser == null || appUser.IsActive == false)
         {
-            return Result<AuthToken>.Failure(new[] { "user not found" }, null);
+            return Result<AuthToken>.Failure(null, new[] { "user not found" });
         }
 
         // if (!await _userManager.IsEmailConfirmedAsync(appUser))
@@ -277,7 +277,7 @@ public class IdentityService : IIdentityService
 
         if (!isPasswordValid)
         {
-            return Result<AuthToken>.Failure(new[] { "failed to authenticate" }, null);
+            return Result<AuthToken>.Failure(null, new[] { "failed to authenticate" });
         }
 
         // Generate access and refresh tokens
@@ -289,7 +289,7 @@ public class IdentityService : IIdentityService
         var principal = _authTokenService.GetPrincipalFromExpiredToken(accessToken);
         if (principal == null)
         {
-            return Result<AuthToken>.Failure(new[] { "Invalid access token or refresh token" }, null);
+            return Result<AuthToken>.Failure(null, new[] { "Invalid access token or refresh token" });
         }
 
         string? email = principal.FindFirstValue(ClaimTypes.Email);
@@ -298,7 +298,7 @@ public class IdentityService : IIdentityService
 
         if (appUser == null || appUser.RefreshToken != refreshToken || (appUser.RefreshTokenExpiryTime.HasValue && appUser.RefreshTokenExpiryTime.Value <= DateTimeOffset.UtcNow))
         {
-            return Result<AuthToken>.Failure(new[] { "Invalid access token or refresh token" }, null);
+            return Result<AuthToken>.Failure(null, new[] { "Invalid access token or refresh token" });
         }
 
         //refresh token remains same for specified days
@@ -325,7 +325,7 @@ public class IdentityService : IIdentityService
 
         if (appUser == null || appUser.Email == null)
         {
-            return Result<(Guid, string, string, string)>.Failure(new[] { "user not found" }, default);
+            return Result<(Guid, string, string, string)>.Failure(default, new[] { "user not found" });
         }
 
         return Result<(Guid ApplicationUserPublicId, string FirstName, string LastName, string Email)>.Success((appUser.PublicId, appUser.FirstName, appUser.LastName, appUser.Email));
@@ -337,7 +337,7 @@ public class IdentityService : IIdentityService
 
         if (appUser == null || appUser.Email == null)
         {
-            return Result<(Guid, string, string, string)>.Failure(new[] { "user not found" }, default);
+            return Result<(Guid, string, string, string)>.Failure(default, new[] { "user not found" });
         }
 
         return Result<(Guid ApplicationUserPublicId, string FirstName, string LastName, string Email)>.Success((appUser.PublicId, appUser.FirstName, appUser.LastName, appUser.Email));
@@ -464,7 +464,7 @@ public class IdentityService : IIdentityService
                 CreatedBy = _contextManager.GetCurrentApplicationUserId() ?? adminUser.Id
             };
 
-            tenant.AddDomainEvent(new TenantCreatedEvent(tenant.Id, adminUser.Id));
+            tenant.AddDomainEvent(new TenantCreatedEvent(tenant, adminUser.Id));
 
             _context.Tenants.Add(tenant);
             await _context.SaveChangesAsync();
@@ -489,7 +489,7 @@ public class IdentityService : IIdentityService
         catch (Exception ex)
         {
             // Log the error and return failure
-            return Result<Tenant>.Failure(new[] { $"Failed to create tenant with Stripe customer: {ex.Message}" }, null);
+            return Result<Tenant>.Failure(null, new[] { $"Failed to create tenant with Stripe customer: {ex.Message}" });
         }
     }
 
@@ -562,7 +562,7 @@ public class IdentityService : IIdentityService
             Status = TenantUserStatus.Active
         };
 
-        tenantUser.AddDomainEvent(new TenantUserJoinedEvent(tenantId, appUser.Id));
+        tenantUser.AddDomainEvent(new TenantUserJoinedEvent(tenantUser, appUser.Id));
 
         _context.TenantUsers.Add(tenantUser);
         await _context.SaveChangesAsync();

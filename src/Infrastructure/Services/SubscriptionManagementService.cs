@@ -267,7 +267,7 @@ public class SubscriptionManagementService : ISubscriptionManagementService
             {
                 tenantUser.EntityStatus = EntityStatus.Suspended;
                 tenantUser.SuspendedAt = DateTimeOffset.UtcNow;
-                tenantUser.AddDomainEvent(new TenantUserSuspendedEvent(tenantId, tenantUser.ApplicationUserId, tenantUser.Id));
+                tenantUser.AddDomainEvent(new TenantUserSuspendedEvent(tenantUser, tenantUser.ApplicationUserId));
             }
 
             await _context.SaveChangesAsync(cancellationToken);
@@ -284,7 +284,7 @@ public class SubscriptionManagementService : ISubscriptionManagementService
             {
                 tenantUser.EntityStatus = EntityStatus.Active;
                 tenantUser.ResumedAt = DateTimeOffset.UtcNow;
-                tenantUser.AddDomainEvent(new TenantUserRestoredEvent(tenantId, tenantUser.ApplicationUserId, tenantUser.Id));
+                tenantUser.AddDomainEvent(new TenantUserRestoredEvent(tenantUser, tenantUser.ApplicationUserId));
             }
 
             await _context.SaveChangesAsync(cancellationToken);
@@ -328,7 +328,7 @@ public class SubscriptionManagementService : ISubscriptionManagementService
             {
                 channel.EntityStatus = EntityStatus.Suspended;
                 channel.SuspendedAt = DateTimeOffset.UtcNow;
-                channel.AddDomainEvent(new ChannelAccountSuspendedEvent(tenantId, default, channel.Id));
+                channel.AddDomainEvent(new ChannelAccountSuspendedEvent(tenantId, default, channel));
             }
 
             await _context.SaveChangesAsync(cancellationToken);
@@ -348,7 +348,7 @@ public class SubscriptionManagementService : ISubscriptionManagementService
             {
                 channel.EntityStatus = EntityStatus.Active;
                 channel.ResumedAt = DateTimeOffset.UtcNow;
-                channel.AddDomainEvent(new ChannelAccountRestoredEvent(tenantId, default, channel.Id));
+                channel.AddDomainEvent(new ChannelAccountRestoredEvent(tenantId, default, channel));
             }
 
             await _context.SaveChangesAsync(cancellationToken);
@@ -371,11 +371,11 @@ public class SubscriptionManagementService : ISubscriptionManagementService
         // query filter will filter out suspended users
         var activeUsers = await _context.TenantUsers.Where(tu => tu.TenantId == tenantId && tu.EntityStatus == EntityStatus.Active).ToListAsync(cancellationToken);
 
-        foreach (var user in activeUsers)
+        foreach (var tenantUser in activeUsers)
         {
-            user.EntityStatus = EntityStatus.Suspended;
-            user.SuspendedAt = DateTimeOffset.UtcNow;
-            user.AddDomainEvent(new TenantUserSuspendedEvent(tenantId, user.ApplicationUserId, user.Id));
+            tenantUser.EntityStatus = EntityStatus.Suspended;
+            tenantUser.SuspendedAt = DateTimeOffset.UtcNow;
+            tenantUser.AddDomainEvent(new TenantUserSuspendedEvent(tenantUser, tenantUser.ApplicationUserId));
         }
 
         // ignore query filters and manually include active channels and non deleted ones
@@ -388,7 +388,7 @@ public class SubscriptionManagementService : ISubscriptionManagementService
         {
             channel.EntityStatus = EntityStatus.Suspended;
             channel.SuspendedAt = DateTimeOffset.UtcNow;
-            channel.AddDomainEvent(new ChannelAccountSuspendedEvent(tenantId, default, channel.Id));
+            channel.AddDomainEvent(new ChannelAccountSuspendedEvent(tenantId, default, channel));
         }
 
         await _context.SaveChangesAsync(cancellationToken);

@@ -2,7 +2,10 @@ namespace ConnectFlow.Domain.Events.Mediator.Tenants;
 
 public class TenantCreatedEvent : BaseEvent
 {
-    public TenantCreatedEvent(int tenantId, int applicationUserId) : base(tenantId, applicationUserId)
+    public Tenant Tenant { get; }
+
+    public TenantCreatedEvent(Tenant tenant, int applicationUserId) : base(tenant.Id, applicationUserId)
     {
+        Tenant = tenant;
     }
 }

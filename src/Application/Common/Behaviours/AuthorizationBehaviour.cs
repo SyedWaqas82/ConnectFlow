@@ -24,7 +24,7 @@ public class AuthorizationBehaviour<TRequest, TResponse> : IPipelineBehavior<TRe
             // Must be authenticated user
             if (_contextManager.GetCurrentApplicationUserPublicId().HasValue == false)
             {
-                throw new UnauthorizedAccessException();
+                throw new UnauthorizedAccessException("User is not authenticated");
             }
 
             // Role-based authorization

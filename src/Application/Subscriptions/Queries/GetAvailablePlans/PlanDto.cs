@@ -4,7 +4,10 @@ public record PlanDto
 {
     public int Id { get; init; }
     public string Name { get; init; } = string.Empty;
-    public string PaymentProviderPriceId { get; init; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public string Currency { get; set; } = string.Empty;
+    public string PaymentProviderProductId { get; set; } = string.Empty;
+    public string PaymentProviderPriceId { get; set; } = string.Empty;
     public decimal Price { get; init; }
     public string Type { get; init; } = string.Empty;
     public string BillingCycle { get; init; } = string.Empty;

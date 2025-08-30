@@ -27,12 +27,12 @@ public class AuthorizeTenantSubscriptionBehaviour<TRequest, TResponse> : IPipeli
             // Must be authenticated user
             if (_contextManager.GetCurrentApplicationUserPublicId().HasValue == false)
             {
-                throw new UnauthorizedAccessException();
+                throw new UnauthorizedAccessException("User is not authenticated");
             }
 
             if (_contextManager.GetCurrentTenantId().HasValue == false)
             {
-                throw new TenantNotFoundException();
+                throw new TenantNotFoundException("Tenant not found");
             }
 
             var hasActiveSubscription = await _subscriptionManagementService.IsCurrentUserFromCurrentTenantAsync(attribute.AllowSuperAdmin, attribute.CheckActiveSubscription, cancellationToken);

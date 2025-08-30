@@ -5,7 +5,7 @@ namespace ConnectFlow.Domain.Events.Mediator.Subscriptions;
 /// </summary>
 public class PaymentStatusEvent : BaseEvent
 {
-    public int SubscriptionId { get; }
+    public Subscription Subscription { get; }
     public PaymentAction Action { get; }
     public string Reason { get; }
     public decimal? Amount { get; }
@@ -13,9 +13,9 @@ public class PaymentStatusEvent : BaseEvent
     public int FailureCount { get; }
     public DateTimeOffset Timestamp { get; }
 
-    public PaymentStatusEvent(int tenantId, int applicationUserId, int subscriptionId, PaymentAction action, string reason, decimal? amount = null, bool sendEmailNotification = true, int failureCount = 0) : base(tenantId, applicationUserId)
+    public PaymentStatusEvent(int tenantId, int applicationUserId, Subscription subscription, PaymentAction action, string reason, decimal? amount = null, bool sendEmailNotification = true, int failureCount = 0) : base(tenantId, applicationUserId)
     {
-        SubscriptionId = subscriptionId;
+        Subscription = subscription;
         Action = action;
         Reason = reason;
         Amount = amount;

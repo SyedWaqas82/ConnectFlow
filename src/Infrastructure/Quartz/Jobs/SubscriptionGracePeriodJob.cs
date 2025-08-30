@@ -133,7 +133,7 @@ public class SubscriptionGracePeriodJob : BaseJob
                 subscription.HasReachedMaxRetries = false;
 
                 // Add cancellation event for the current subscription
-                subscription.AddDomainEvent(new SubscriptionStatusEvent(subscription.TenantId, default, subscription.Id, SubscriptionAction.Cancel, "Subscription canceled due to grace period expiration - auto-downgrading to free plan", sendEmailNotification: true, suspendLimitsImmediately: true));     // Grace period expiration cancellation suspends limits immediately
+                subscription.AddDomainEvent(new SubscriptionStatusEvent(subscription.TenantId, default, subscription, SubscriptionAction.Cancel, "Subscription canceled due to grace period expiration - auto-downgrading to free plan", sendEmailNotification: true, suspendLimitsImmediately: true));     // Grace period expiration cancellation suspends limits immediately
 
                 // Create new free subscription
                 var freeSubscription = new Subscription
@@ -151,7 +151,7 @@ public class SubscriptionGracePeriodJob : BaseJob
 
                 // Add event for new free subscription creation
                 freeSubscription.AddDomainEvent(new SubscriptionStatusEvent(subscription.TenantId, default,
-                    freeSubscription.Id,
+                    freeSubscription,
                     SubscriptionAction.Create,
                     $"Auto-downgraded from {currentPlan.Name} to {freePlan.Name} after grace period expiration",
                     sendEmailNotification: true));
@@ -170,7 +170,7 @@ public class SubscriptionGracePeriodJob : BaseJob
                 subscription.CancellationRequestedAt = subscription.CancellationRequestedAt ?? DateTimeOffset.UtcNow;
 
                 // Add cancellation event
-                subscription.AddDomainEvent(new SubscriptionStatusEvent(subscription.TenantId, default, subscription.Id, SubscriptionAction.Cancel, "Subscription canceled due to grace period expiration - free plan not available", sendEmailNotification: true, suspendLimitsImmediately: true)); // Grace period expiration cancellation suspends limits immediately
+                subscription.AddDomainEvent(new SubscriptionStatusEvent(subscription.TenantId, default, subscription, SubscriptionAction.Cancel, "Subscription canceled due to grace period expiration - free plan not available", sendEmailNotification: true, suspendLimitsImmediately: true)); // Grace period expiration cancellation suspends limits immediately
             }
         }
         else
@@ -181,10 +181,10 @@ public class SubscriptionGracePeriodJob : BaseJob
             subscription.CancellationRequestedAt = subscription.CancellationRequestedAt ?? DateTimeOffset.UtcNow;
 
             // Add cancellation event
-            subscription.AddDomainEvent(new SubscriptionStatusEvent(subscription.TenantId, default, subscription.Id, SubscriptionAction.Cancel, "Subscription canceled due to grace period expiration", sendEmailNotification: true, suspendLimitsImmediately: true)); // Grace period expiration cancellation suspends limits immediately
+            subscription.AddDomainEvent(new SubscriptionStatusEvent(subscription.TenantId, default, subscription, SubscriptionAction.Cancel, "Subscription canceled due to grace period expiration", sendEmailNotification: true, suspendLimitsImmediately: true)); // Grace period expiration cancellation suspends limits immediately
         }
 
         // Add grace period end event
-        subscription.AddDomainEvent(new SubscriptionStatusEvent(subscription.TenantId, default, subscription.Id, SubscriptionAction.GracePeriodEnd, $"Grace period ended for {currentPlan.Name} plan", sendEmailNotification: true));
+        subscription.AddDomainEvent(new SubscriptionStatusEvent(subscription.TenantId, default, subscription, SubscriptionAction.GracePeriodEnd, $"Grace period ended for {currentPlan.Name} plan", sendEmailNotification: true));
     }
 }

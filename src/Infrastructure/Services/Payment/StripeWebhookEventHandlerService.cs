@@ -345,7 +345,7 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
         }
 
         // Add domain event for subscription creation
-        var subscriptionEvent = new SubscriptionStatusEvent(tenant.Id, default, newSubscription.Id, SubscriptionAction.Create, "Subscription created via Stripe webhook", sendEmailNotification: true);
+        var subscriptionEvent = new SubscriptionStatusEvent(tenant.Id, default, newSubscription, SubscriptionAction.Create, "Subscription created via Stripe webhook", sendEmailNotification: true);
 
         newSubscription.AddDomainEvent(subscriptionEvent);
 
@@ -430,7 +430,7 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
         // Add appropriate domain events before database save
         if (hasPlansChanged)
         {
-            var planChangeEvent = new SubscriptionStatusEvent(existingSubscription.TenantId, default, existingSubscription.Id, SubscriptionAction.PlanChanged,
+            var planChangeEvent = new SubscriptionStatusEvent(existingSubscription.TenantId, default, existingSubscription, SubscriptionAction.PlanChanged,
                 $"Plan changed from {currentPlan.Name} to {newPlan.Name}", sendEmailNotification: true, suspendLimitsImmediately: true, // Plan changes are immediate
                 previousPlanId: currentPlan.Id, newPlanId: newPlan.Id);
 
@@ -455,7 +455,7 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
 
             if (action != SubscriptionAction.StatusUpdate)
             {
-                var statusEvent = new SubscriptionStatusEvent(existingSubscription.TenantId, default, existingSubscription.Id, action, $"Status changed from {previousStatus} to {newStatus}",
+                var statusEvent = new SubscriptionStatusEvent(existingSubscription.TenantId, default, existingSubscription, action, $"Status changed from {previousStatus} to {newStatus}",
                     sendEmailNotification: true, suspendLimitsImmediately: action == SubscriptionAction.Cancel); // Cancellations via status change are immediate
 
                 existingSubscription.AddDomainEvent(statusEvent);
@@ -473,7 +473,7 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
         {
             if (subscription.CancelAtPeriodEnd && !previousCancelAtPeriodEnd && !cancellationEventAdded)
             {
-                var cancelEvent = new SubscriptionStatusEvent(existingSubscription.TenantId, default, existingSubscription.Id, SubscriptionAction.Cancel, "Subscription set to cancel at period end", sendEmailNotification: true, suspendLimitsImmediately: false); // Period-end cancellation is not immediate
+                var cancelEvent = new SubscriptionStatusEvent(existingSubscription.TenantId, default, existingSubscription, SubscriptionAction.Cancel, "Subscription set to cancel at period end", sendEmailNotification: true, suspendLimitsImmediately: false); // Period-end cancellation is not immediate
 
                 existingSubscription.AddDomainEvent(cancelEvent);
 
@@ -482,7 +482,7 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
             }
             else if (!subscription.CancelAtPeriodEnd && previousCancelAtPeriodEnd)
             {
-                var reactivateEvent = new SubscriptionStatusEvent(existingSubscription.TenantId, default, existingSubscription.Id, SubscriptionAction.Reactivate, "Cancellation reversed - subscription reactivated", sendEmailNotification: true);
+                var reactivateEvent = new SubscriptionStatusEvent(existingSubscription.TenantId, default, existingSubscription, SubscriptionAction.Reactivate, "Cancellation reversed - subscription reactivated", sendEmailNotification: true);
 
                 existingSubscription.AddDomainEvent(reactivateEvent);
 
@@ -514,7 +514,7 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
             existingSubscription.Id, wasScheduledForCancellation);
 
         // Add cancellation domain event
-        var cancelEvent = new SubscriptionStatusEvent(existingSubscription.TenantId, default, existingSubscription.Id, SubscriptionAction.Cancel, wasScheduledForCancellation ? "Subscription reached period end and was canceled as scheduled" : "Subscription was canceled immediately",
+        var cancelEvent = new SubscriptionStatusEvent(existingSubscription.TenantId, default, existingSubscription, SubscriptionAction.Cancel, wasScheduledForCancellation ? "Subscription reached period end and was canceled as scheduled" : "Subscription was canceled immediately",
             sendEmailNotification: true, suspendLimitsImmediately: true); // Always suspend limits immediately when subscription is actually deleted
 
         existingSubscription.AddDomainEvent(cancelEvent);
@@ -536,7 +536,7 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
 
         // Add PaymentStatusEvent domain event for payment success
         // The PaymentStatusEventHandler will handle status updates and retry tracking reset
-        var paymentEvent = new PaymentStatusEvent(existingSubscription.TenantId, default, existingSubscription.Id, PaymentAction.Success, "Payment succeeded", amount: amountPaid, sendEmailNotification: true);
+        var paymentEvent = new PaymentStatusEvent(existingSubscription.TenantId, default, existingSubscription, PaymentAction.Success, "Payment succeeded", amount: amountPaid, sendEmailNotification: true);
 
         existingSubscription.AddDomainEvent(paymentEvent);
 
@@ -565,7 +565,7 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
         // Add PaymentStatusEvent domain event for payment failure
         // The PaymentStatusEventHandler will handle suspension logic when SuspendOnFailure=true
         // The PaymentStatusEventHandler will handle retry tracking and grace period logic
-        var paymentEvent = new PaymentStatusEvent(existingSubscription.TenantId, default, existingSubscription.Id, PaymentAction.Failed, $"Payment attempt {attemptCount} failed", amount: amountDue, sendEmailNotification: true, failureCount: attemptCount);
+        var paymentEvent = new PaymentStatusEvent(existingSubscription.TenantId, default, existingSubscription, PaymentAction.Failed, $"Payment attempt {attemptCount} failed", amount: amountDue, sendEmailNotification: true, failureCount: attemptCount);
 
         existingSubscription.AddDomainEvent(paymentEvent);
 

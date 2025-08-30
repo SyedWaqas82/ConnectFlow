@@ -2,5 +2,5 @@
 
 public class ForbiddenAccessException : Exception
 {
-    public ForbiddenAccessException(string message) : base(message) { }
+    public ForbiddenAccessException(string message = null!) : base(message ?? "Forbidden access") { }
 }

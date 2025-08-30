@@ -5,7 +5,7 @@ namespace ConnectFlow.Domain.Events.Mediator.Subscriptions;
 /// </summary>
 public class SubscriptionStatusEvent : BaseEvent
 {
-    public int SubscriptionId { get; }
+    public Subscription Subscription { get; }
     public SubscriptionAction Action { get; }
     public string Reason { get; }
     public bool SendEmailNotification { get; }
@@ -14,9 +14,9 @@ public class SubscriptionStatusEvent : BaseEvent
     public int? PreviousPlanId { get; }
     public int? NewPlanId { get; }
 
-    public SubscriptionStatusEvent(int tenantId, int applicationUserId, int subscriptionId, SubscriptionAction action, string reason, bool sendEmailNotification = true, bool suspendLimitsImmediately = false, int? previousPlanId = null, int? newPlanId = null) : base(tenantId, applicationUserId)
+    public SubscriptionStatusEvent(int tenantId, int applicationUserId, Subscription subscription, SubscriptionAction action, string reason, bool sendEmailNotification = true, bool suspendLimitsImmediately = false, int? previousPlanId = null, int? newPlanId = null) : base(tenantId, applicationUserId)
     {
-        SubscriptionId = subscriptionId;
+        Subscription = subscription;
         Action = action;
         Reason = reason;
         SendEmailNotification = sendEmailNotification;

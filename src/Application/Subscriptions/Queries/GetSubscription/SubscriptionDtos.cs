@@ -12,6 +12,13 @@ public record SubscriptionDto
     public DateTimeOffset CurrentPeriodEnd { get; init; }
     public bool CancelAtPeriodEnd { get; init; }
     public DateTimeOffset? CanceledAt { get; init; }
+    public DateTimeOffset? GracePeriodEndsAt { get; init; }
+    public bool IsInGracePeriod { get; init; }
+    public DateTimeOffset? LastPaymentFailedAt { get; init; }
+    public int PaymentRetryCount { get; init; }
+    public DateTimeOffset? FirstPaymentFailureAt { get; init; }
+    public DateTimeOffset? NextRetryAt { get; init; }
+    public bool HasReachedMaxRetries { get; init; }
 
     public PlanLimitsDto Limits { get; init; } = new();
     public UsageDto Usage { get; init; } = new();

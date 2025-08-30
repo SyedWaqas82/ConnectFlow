@@ -25,17 +25,11 @@ public class PaymentStatusEventHandler : INotificationHandler<PaymentStatusEvent
     public async Task Handle(PaymentStatusEvent notification, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Processing payment status event: {Action} for subscription {SubscriptionId}",
-            notification.Action, notification.SubscriptionId);
+            notification.Action, notification.Subscription.Id);
 
         try
         {
-            var subscription = await _context.Subscriptions.Include(s => s.Tenant).Include(s => s.Plan).FirstOrDefaultAsync(s => s.Id == notification.SubscriptionId, cancellationToken);
-
-            if (subscription == null)
-            {
-                _logger.LogWarning("Subscription {SubscriptionId} not found", notification.SubscriptionId);
-                return;
-            }
+            var subscription = notification.Subscription;
 
             // Update payment tracking and handle payment actions
             await UpdatePaymentTrackingAsync(subscription, notification, cancellationToken);
@@ -46,12 +40,12 @@ public class PaymentStatusEventHandler : INotificationHandler<PaymentStatusEvent
                 await SendEmailNotificationAsync(subscription, notification, cancellationToken);
             }
 
-            _logger.LogInformation("Successfully processed payment status event for {SubscriptionId}", notification.SubscriptionId);
+            _logger.LogInformation("Successfully processed payment status event for {SubscriptionId}", notification.Subscription.Id);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to process payment status event for {SubscriptionId}",
-                notification.SubscriptionId);
+                notification.Subscription.Id);
             throw;
         }
     }
@@ -132,7 +126,7 @@ public class PaymentStatusEventHandler : INotificationHandler<PaymentStatusEvent
 
     private void TriggerSubscriptionSuspensionAsync(Subscription subscription, string reason)
     {
-        var suspensionEvent = new SubscriptionStatusEvent(subscription.TenantId, default, subscription.Id, SubscriptionAction.Suspend, reason, sendEmailNotification: true);
+        var suspensionEvent = new SubscriptionStatusEvent(subscription.TenantId, default, subscription, SubscriptionAction.Suspend, reason, sendEmailNotification: true);
 
         subscription.AddDomainEvent(suspensionEvent);
 
@@ -141,16 +135,16 @@ public class PaymentStatusEventHandler : INotificationHandler<PaymentStatusEvent
 
     private void TriggerSubscriptionReactivationAsync(Subscription subscription, string reason)
     {
-        var reactivationEvent = new SubscriptionStatusEvent(subscription.TenantId, default, subscription.Id, SubscriptionAction.Reactivate, reason, sendEmailNotification: true);
+        var reactivationEvent = new SubscriptionStatusEvent(subscription.TenantId, default, subscription, SubscriptionAction.Reactivate, reason, sendEmailNotification: true);
 
         subscription.AddDomainEvent(reactivationEvent);
 
-        _logger.LogInformation("Triggered reactivation for subscription {SubscriptionId}", subscription.Id);
+        _logger.LogInformation("Triggered reactivation for subscription {SubscriptionId}", subscription);
     }
 
     private void TriggerGracePeriodStartAsync(Subscription subscription, string reason)
     {
-        var gracePeriodEvent = new SubscriptionStatusEvent(subscription.TenantId, default, subscription.Id, SubscriptionAction.GracePeriodStart, reason, sendEmailNotification: true, suspendLimitsImmediately: false);
+        var gracePeriodEvent = new SubscriptionStatusEvent(subscription.TenantId, default, subscription, SubscriptionAction.GracePeriodStart, reason, sendEmailNotification: true, suspendLimitsImmediately: false);
 
         subscription.AddDomainEvent(gracePeriodEvent);
 

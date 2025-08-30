@@ -2,15 +2,7 @@ namespace ConnectFlow.Application.Common.Exceptions;
 
 public class SubscriptionRequiredException : Exception
 {
-    public SubscriptionRequiredException() : base("This operation requires an active subscription")
-    {
-    }
-
-    public SubscriptionRequiredException(string message) : base(message)
-    {
-    }
-
-    public SubscriptionRequiredException(string message, Exception innerException) : base(message, innerException)
+    public SubscriptionRequiredException(string message = null!) : base(message ?? "This operation requires an active subscription")
     {
     }
 }
@@ -31,30 +23,14 @@ public class SubscriptionLimitExceededException : Exception
 
 public class SubscriptionNotFoundException : Exception
 {
-    public SubscriptionNotFoundException() : base("Subscription not found")
-    {
-    }
-
-    public SubscriptionNotFoundException(string message) : base(message)
-    {
-    }
-
-    public SubscriptionNotFoundException(string message, Exception innerException) : base(message, innerException)
+    public SubscriptionNotFoundException(string message = null!) : base(message ?? "Subscription not found")
     {
     }
 }
 
 public class PlanNotFoundException : Exception
 {
-    public PlanNotFoundException() : base("Plan not found")
-    {
-    }
-
-    public PlanNotFoundException(string message) : base(message)
-    {
-    }
-
-    public PlanNotFoundException(string message, Exception innerException) : base(message, innerException)
+    public PlanNotFoundException(string message = null!) : base(message ?? "Plan not found")
     {
     }
 }

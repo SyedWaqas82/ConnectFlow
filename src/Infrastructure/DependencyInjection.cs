@@ -214,6 +214,7 @@ public static class DependencyInjection
 
         // Consumers as hosted services
         builder.Services.AddHostedService<EmailConsumer>();
+        builder.Services.AddHostedService<SubscriptionConsumer>();
 
         // Setup service
         builder.Services.AddHostedService<RabbitMQSetupHostedService>();

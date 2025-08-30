@@ -2,10 +2,10 @@ namespace ConnectFlow.Domain.Events.Mediator.TenantUsers;
 
 public class TenantUserRestoredEvent : BaseEvent
 {
-    public int TenantUserId { get; }
+    public TenantUser TenantUser { get; }
 
-    public TenantUserRestoredEvent(int tenantId, int applicationUserId, int tenantUserId) : base(tenantId, applicationUserId)
+    public TenantUserRestoredEvent(TenantUser tenantUser, int applicationUserId) : base(tenantUser.TenantId, applicationUserId)
     {
-        TenantUserId = tenantUserId;
+        TenantUser = tenantUser;
     }
 }

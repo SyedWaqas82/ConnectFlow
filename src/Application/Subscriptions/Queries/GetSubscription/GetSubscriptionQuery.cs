@@ -1,9 +1,10 @@
+using ConnectFlow.Application.Common.Exceptions;
 using ConnectFlow.Application.Common.Security;
 using ConnectFlow.Domain.Constants;
 
 namespace ConnectFlow.Application.Subscriptions.Queries.GetSubscription;
 
-[AuthorizeTenant(true, false, Roles.TenantAdmin)]
+[AuthorizeTenant(true, true, Roles.TenantAdmin)]
 public record GetSubscriptionQuery : IRequest<SubscriptionDto>;
 
 public class GetSubscriptionQueryHandler : IRequestHandler<GetSubscriptionQuery, SubscriptionDto>
@@ -22,13 +23,12 @@ public class GetSubscriptionQueryHandler : IRequestHandler<GetSubscriptionQuery,
     public async Task<SubscriptionDto> Handle(GetSubscriptionQuery request, CancellationToken cancellationToken)
     {
         var tenantId = _contextManager.GetCurrentTenantId();
-
-        Guard.Against.Null(tenantId, nameof(tenantId));
+        if (tenantId == null) throw new TenantNotFoundException();
 
         var subscription = await _subscriptionManagementService.GetActiveSubscriptionAsync(tenantId.Value, cancellationToken);
-        var usage = await _subscriptionManagementService.GetUsageStatisticsAsync(tenantId.Value, cancellationToken);
+        if (subscription == null) throw new SubscriptionRequiredException("No active subscription found for the tenant.");
 
-        Guard.Against.Null(subscription, message: "Subscription not found");
+        var usage = await _subscriptionManagementService.GetUsageStatisticsAsync(tenantId.Value, cancellationToken);
 
         // Map subscription to DTO using AutoMapper
         var subscriptionDto = _mapper.Map<SubscriptionDto>(subscription);

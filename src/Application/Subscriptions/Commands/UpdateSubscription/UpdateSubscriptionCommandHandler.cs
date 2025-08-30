@@ -1,3 +1,5 @@
+using ConnectFlow.Application.Common.Exceptions;
+
 namespace ConnectFlow.Application.Subscriptions.Commands.UpdateSubscription;
 
 public class UpdateSubscriptionCommandHandler : IRequestHandler<UpdateSubscriptionCommand, UpdateSubscriptionResult>
@@ -18,15 +20,15 @@ public class UpdateSubscriptionCommandHandler : IRequestHandler<UpdateSubscripti
     public async Task<UpdateSubscriptionResult> Handle(UpdateSubscriptionCommand request, CancellationToken cancellationToken)
     {
         var tenantId = _contextManager.GetCurrentTenantId();
-        Guard.Against.Null(tenantId, nameof(tenantId));
+        Guard.Against.Null(tenantId, nameof(tenantId), "Tenant ID not found", () => new TenantNotFoundException("Tenant ID not found"));
 
         // Get current active subscription
         var currentSubscription = await _subscriptionManagementService.GetActiveSubscriptionAsync(tenantId.Value, cancellationToken);
-        Guard.Against.Null(currentSubscription, nameof(currentSubscription));
+        Guard.Against.Null(currentSubscription, nameof(currentSubscription), "Current subscription not found", () => new SubscriptionNotFoundException("Current subscription not found"));
 
         // Get the new plan
         var newPlan = await _context.Plans.FirstOrDefaultAsync(p => p.Id == request.NewPlanId && p.IsActive, cancellationToken);
-        Guard.Against.Null(newPlan, nameof(newPlan), $"Plan {request.NewPlanId} not found or inactive");
+        Guard.Against.Null(newPlan, nameof(newPlan), $"Plan {request.NewPlanId} not found or inactive", () => new PlanNotFoundException($"Plan {request.NewPlanId} not found or inactive"));
 
         var currentPlan = currentSubscription.Plan;
 

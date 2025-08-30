@@ -2,10 +2,10 @@ namespace ConnectFlow.Domain.Events.Mediator.ChannelAccounts;
 
 public class ChannelAccountSuspendedEvent : BaseEvent
 {
-    public int ChannelAccountId { get; }
+    public ChannelAccount ChannelAccount { get; }
 
-    public ChannelAccountSuspendedEvent(int tenantId, int applicationUserId, int channelAccountId) : base(tenantId, applicationUserId)
+    public ChannelAccountSuspendedEvent(int tenantId, int applicationUserId, ChannelAccount channelAccount) : base(tenantId, applicationUserId)
     {
-        ChannelAccountId = channelAccountId;
+        ChannelAccount = channelAccount;
     }
 }

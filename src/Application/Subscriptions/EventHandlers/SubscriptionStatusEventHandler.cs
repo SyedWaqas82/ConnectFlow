@@ -12,32 +12,24 @@ public class SubscriptionStatusEventHandler : INotificationHandler<SubscriptionS
     private readonly ILogger<SubscriptionStatusEventHandler> _logger;
     private readonly IApplicationDbContext _context;
     private readonly IMessagePublisher _messagePublisher;
-    private readonly ISubscriptionManagementService _subscriptionManagementService;
     private readonly SubscriptionSettings _subscriptionSettings;
 
-    public SubscriptionStatusEventHandler(ILogger<SubscriptionStatusEventHandler> logger, IApplicationDbContext context, IMessagePublisher messagePublisher, ISubscriptionManagementService subscriptionManagementService, IOptions<SubscriptionSettings> subscriptionSettings)
+    public SubscriptionStatusEventHandler(ILogger<SubscriptionStatusEventHandler> logger, IApplicationDbContext context, IMessagePublisher messagePublisher, IOptions<SubscriptionSettings> subscriptionSettings)
     {
         _logger = logger;
         _context = context;
         _messagePublisher = messagePublisher;
-        _subscriptionManagementService = subscriptionManagementService;
         _subscriptionSettings = subscriptionSettings.Value;
     }
 
     public async Task Handle(SubscriptionStatusEvent notification, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Processing subscription status event: {Action} for subscription {SubscriptionId} (Immediate: {SuspendLimitsImmediately})",
-            notification.Action, notification.SubscriptionId, notification.SuspendLimitsImmediately);
+            notification.Action, notification.Subscription.Id, notification.SuspendLimitsImmediately);
 
         try
         {
-            var subscription = await _context.Subscriptions.Include(s => s.Tenant).Include(s => s.Plan).FirstOrDefaultAsync(s => s.Id == notification.SubscriptionId, cancellationToken);
-
-            if (subscription == null)
-            {
-                _logger.LogWarning("Subscription {SubscriptionId} not found", notification.SubscriptionId);
-                return;
-            }
+            var subscription = notification.Subscription;
 
             // Update subscription status
             await UpdateSubscriptionStatusAsync(subscription, notification, cancellationToken);
@@ -52,12 +44,12 @@ public class SubscriptionStatusEventHandler : INotificationHandler<SubscriptionS
             }
 
             _logger.LogInformation("Successfully processed subscription status event for {SubscriptionId}",
-                notification.SubscriptionId);
+                notification.Subscription.Id);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to process subscription status event for {SubscriptionId}",
-                notification.SubscriptionId);
+                notification.Subscription.Id);
             throw;
         }
     }

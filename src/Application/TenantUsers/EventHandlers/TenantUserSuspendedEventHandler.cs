@@ -21,18 +21,12 @@ public class TenantUserSuspendedEventHandler : INotificationHandler<TenantUserSu
 
     public async Task Handle(TenantUserSuspendedEvent notification, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("ConnectFlow Domain Event: {DomainEvent} for TenantUserId: {TenantUserId}", notification.GetType().Name, notification.TenantUserId);
+        _logger.LogInformation("ConnectFlow Domain Event: {DomainEvent} for TenantUserId: {TenantUserId}", notification.GetType().Name, notification.TenantUser.Id);
 
         try
         {
             // Get the tenant user information, ignoring query filters to get even suspended users
-            var tenantUser = await _dbContext.TenantUsers.IgnoreQueryFilters().Include(tu => tu.Tenant).FirstOrDefaultAsync(tu => tu.Id == notification.TenantUserId, cancellationToken);
-
-            if (tenantUser == null)
-            {
-                _logger.LogWarning("TenantUser with ID {TenantUserId} not found", notification.TenantUserId);
-                return;
-            }
+            var tenantUser = notification.TenantUser;
 
             // Get the user information
             var userResult = await _identityService.GetUserAsync(tenantUser.ApplicationUserId);
@@ -77,7 +71,7 @@ public class TenantUserSuspendedEventHandler : INotificationHandler<TenantUserSu
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to process TenantUserSuspendedEvent for TenantUserId: {TenantUserId}", notification.TenantUserId);
+            _logger.LogError(ex, "Failed to process TenantUserSuspendedEvent for TenantUserId: {TenantUserId}", notification.TenantUser.Id);
             throw;
         }
     }

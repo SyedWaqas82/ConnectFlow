@@ -1,3 +1,4 @@
+using ConnectFlow.Application.Common.Models;
 using ConnectFlow.Application.Subscriptions.Commands.CancelSubscription;
 using ConnectFlow.Application.Subscriptions.Commands.CreateSubscription;
 using ConnectFlow.Application.Subscriptions.Commands.ProcessWebhook;
@@ -19,10 +20,10 @@ public class Subscriptions : EndpointGroupBase
         group.MapGet(GetSubscription, "GetSubscription");
         group.AllowAnonymous().MapGet(GetAvailablePlans, "GetAvailablePlans");
         group.MapGet(GetCheckoutSession, "GetCheckoutSession/{sessionId}");
-        group.MapPost(CreateSubscription, "CreateSubscription");
-        group.MapPut(UpdateSubscription, "UpdateSubscription");
-        group.MapPost(CancelSubscription, "CancelSubscription");
-        group.MapPost(ReactivateSubscription, "ReactivateSubscription");
+        group.MapPost(CreateSubscription, "Create");
+        group.MapPut(UpdateSubscription, "Update");
+        group.MapPost(CancelSubscription, "Cancel");
+        group.MapPost(ReactivateSubscription, "Reactivate");
         group.AllowAnonymous().MapPost(ProcessWebhook, "ProcessWebhook");
     }
 
@@ -45,7 +46,7 @@ public class Subscriptions : EndpointGroupBase
         return TypedResults.Ok(result);
     }
 
-    public async Task<Ok<CreateSubscriptionResult>> CreateSubscription(ISender sender, CreateSubscriptionCommand command)
+    public async Task<Ok<Result<CreateSubscriptionResult>>> CreateSubscription(ISender sender, CreateSubscriptionCommand command)
     {
         var result = await sender.Send(command);
         return TypedResults.Ok(result);
