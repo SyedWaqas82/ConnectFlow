@@ -88,6 +88,7 @@ public static class ObservabilityConfiguration
             })
             .AddMeter("ConnectFlow.Metrics") // Collects application metrics including Quartz
             .AddMeter("ConnectFlow.Email") // Collects email metrics
+            .AddMeter("ConnectFlow.Payment") // Collects payment and Stripe metrics
             .AddMeter("Quartz"); // Collects built-in Quartz metrics if available
     }
 }
