@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Asp.Versioning;
-using Microsoft.AspNetCore.Http;
 
 namespace ConnectFlow.Web.Infrastructure;
 

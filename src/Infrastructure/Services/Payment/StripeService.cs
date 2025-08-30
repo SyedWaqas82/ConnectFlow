@@ -2,7 +2,6 @@ using ConnectFlow.Application.Common.Models;
 using ConnectFlow.Infrastructure.Common.Metrics;
 using ConnectFlow.Infrastructure.Services.Payment.Configuration;
 using Stripe;
-using System.Diagnostics;
 using StripeSubscription = Stripe.Subscription;
 using StripeCustomer = Stripe.Customer;
 using StripeInvoice = Stripe.Invoice;

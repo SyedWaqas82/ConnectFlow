@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ConnectFlow.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250827124135_InitialCreate")]
+    [Migration("20250830102131_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -207,6 +207,14 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                     b.Property<int?>("CreatedBy")
                         .HasColumnType("integer");
 
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
@@ -246,6 +254,10 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<string>("PaymentProviderProductId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
@@ -274,6 +286,8 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                             Id = 1,
                             BillingCycle = 1,
                             Created = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Currency = "USD",
+                            Description = "Basic plan with limited features",
                             IsActive = true,
                             LastModified = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             MaxChannels = 1,
@@ -284,6 +298,7 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                             MaxWhatsAppChannels = 1,
                             Name = "Free",
                             PaymentProviderPriceId = "price_free",
+                            PaymentProviderProductId = "",
                             Price = 0m,
                             PublicId = new Guid("00000000-0000-0000-0000-000000000000"),
                             Type = 1
@@ -293,6 +308,8 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                             Id = 2,
                             BillingCycle = 1,
                             Created = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Currency = "USD",
+                            Description = "Starter plan with basic features",
                             IsActive = true,
                             LastModified = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             MaxChannels = 3,
@@ -301,8 +318,9 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                             MaxTelegramChannels = 1,
                             MaxUsers = 5,
                             MaxWhatsAppChannels = 2,
-                            Name = "Starter",
-                            PaymentProviderPriceId = "price_starter_monthly",
+                            Name = "Starter Plan - Monthly",
+                            PaymentProviderPriceId = "price_1S1lFgDVRyfs46JiBJyvA5eu",
+                            PaymentProviderProductId = "prod_SxgcF8F4u3unNk",
                             Price = 29.99m,
                             PublicId = new Guid("00000000-0000-0000-0000-000000000000"),
                             Type = 2
@@ -310,8 +328,32 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         new
                         {
                             Id = 3,
+                            BillingCycle = 2,
+                            Created = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Currency = "USD",
+                            Description = "Starter plan with basic features",
+                            IsActive = true,
+                            LastModified = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            MaxChannels = 3,
+                            MaxFacebookChannels = 1,
+                            MaxInstagramChannels = 1,
+                            MaxTelegramChannels = 1,
+                            MaxUsers = 5,
+                            MaxWhatsAppChannels = 2,
+                            Name = "Starter Plan - Yearly",
+                            PaymentProviderPriceId = "price_1S1lHtDVRyfs46JizuWqnOp2",
+                            PaymentProviderProductId = "prod_Sxgf0MdFfTzUXR",
+                            Price = 299.99m,
+                            PublicId = new Guid("00000000-0000-0000-0000-000000000000"),
+                            Type = 2
+                        },
+                        new
+                        {
+                            Id = 4,
                             BillingCycle = 1,
                             Created = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Currency = "USD",
+                            Description = "Professional plan with advanced features",
                             IsActive = true,
                             LastModified = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             MaxChannels = 10,
@@ -320,17 +362,42 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                             MaxTelegramChannels = 3,
                             MaxUsers = 25,
                             MaxWhatsAppChannels = 5,
-                            Name = "Professional",
-                            PaymentProviderPriceId = "price_pro_monthly",
+                            Name = "Professional Plan - Monthly",
+                            PaymentProviderPriceId = "price_1S1lIXDVRyfs46Jirxqm0dz6",
+                            PaymentProviderProductId = "prod_SxgfAcz4HHgFcY",
                             Price = 99.99m,
                             PublicId = new Guid("00000000-0000-0000-0000-000000000000"),
                             Type = 4
                         },
                         new
                         {
-                            Id = 4,
+                            Id = 5,
+                            BillingCycle = 2,
+                            Created = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Currency = "USD",
+                            Description = "Professional plan with advanced features",
+                            IsActive = true,
+                            LastModified = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            MaxChannels = 10,
+                            MaxFacebookChannels = 3,
+                            MaxInstagramChannels = 3,
+                            MaxTelegramChannels = 3,
+                            MaxUsers = 25,
+                            MaxWhatsAppChannels = 5,
+                            Name = "Professional Plan - Yearly",
+                            PaymentProviderPriceId = "price_1S1lJ3DVRyfs46Ji40RP91Sk",
+                            PaymentProviderProductId = "prod_SxggEc36SZchwA",
+                            Price = 999.99m,
+                            PublicId = new Guid("00000000-0000-0000-0000-000000000000"),
+                            Type = 4
+                        },
+                        new
+                        {
+                            Id = 6,
                             BillingCycle = 1,
                             Created = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Currency = "USD",
+                            Description = "Enterprise plan with all features",
                             IsActive = true,
                             LastModified = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             MaxChannels = 50,
@@ -339,9 +406,32 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                             MaxTelegramChannels = 15,
                             MaxUsers = 100,
                             MaxWhatsAppChannels = 20,
-                            Name = "Enterprise",
-                            PaymentProviderPriceId = "price_enterprise_monthly",
+                            Name = "Enterprise Plan - Monthly",
+                            PaymentProviderPriceId = "price_1S1lJgDVRyfs46JidlIn73va",
+                            PaymentProviderProductId = "prod_Sxgh4Ucpw7IxSG",
                             Price = 299.99m,
+                            PublicId = new Guid("00000000-0000-0000-0000-000000000000"),
+                            Type = 5
+                        },
+                        new
+                        {
+                            Id = 7,
+                            BillingCycle = 2,
+                            Created = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Currency = "USD",
+                            Description = "Enterprise plan with all features",
+                            IsActive = true,
+                            LastModified = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            MaxChannels = 50,
+                            MaxFacebookChannels = 15,
+                            MaxInstagramChannels = 15,
+                            MaxTelegramChannels = 15,
+                            MaxUsers = 100,
+                            MaxWhatsAppChannels = 20,
+                            Name = "Enterprise Plan - Yearly",
+                            PaymentProviderPriceId = "price_1S1lKVDVRyfs46Ji1DJXRhHp",
+                            PaymentProviderProductId = "prod_SxghGjm7I9Ugag",
+                            Price = 2999.99m,
                             PublicId = new Guid("00000000-0000-0000-0000-000000000000"),
                             Type = 5
                         });

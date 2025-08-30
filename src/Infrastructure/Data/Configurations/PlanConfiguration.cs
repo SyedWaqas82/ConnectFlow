@@ -28,7 +28,9 @@ public class PlanConfiguration : BaseAuditableConfiguration<Plan>
             {
                 Id = 1,
                 Name = "Free",
-                PaymentProviderPriceId = "price_free", // Replace with actual payment provider price ID
+                Description = "Basic plan with limited features",
+                Currency = "USD",
+                PaymentProviderPriceId = "price_free",
                 Price = 0,
                 Type = PlanType.Free,
                 BillingCycle = BillingCycle.Monthly,
@@ -43,8 +45,11 @@ public class PlanConfiguration : BaseAuditableConfiguration<Plan>
             new Plan
             {
                 Id = 2,
-                Name = "Starter",
-                PaymentProviderPriceId = "price_starter_monthly", // Replace with actual payment provider price ID
+                Name = "Starter Plan - Monthly",
+                Description = "Starter plan with basic features",
+                Currency = "USD",
+                PaymentProviderProductId = "prod_SxgcF8F4u3unNk",
+                PaymentProviderPriceId = "price_1S1lFgDVRyfs46JiBJyvA5eu",
                 Price = 29.99m,
                 Type = PlanType.Starter,
                 BillingCycle = BillingCycle.Monthly,
@@ -59,8 +64,30 @@ public class PlanConfiguration : BaseAuditableConfiguration<Plan>
             new Plan
             {
                 Id = 3,
-                Name = "Professional",
-                PaymentProviderPriceId = "price_pro_monthly", // Replace with actual payment provider price ID
+                Name = "Starter Plan - Yearly",
+                Description = "Starter plan with basic features",
+                Currency = "USD",
+                PaymentProviderProductId = "prod_Sxgf0MdFfTzUXR",
+                PaymentProviderPriceId = "price_1S1lHtDVRyfs46JizuWqnOp2",
+                Price = 299.99m,
+                Type = PlanType.Starter,
+                BillingCycle = BillingCycle.Yearly,
+                MaxUsers = 5,
+                MaxChannels = 3,
+                MaxWhatsAppChannels = 2,
+                MaxFacebookChannels = 1,
+                MaxInstagramChannels = 1,
+                MaxTelegramChannels = 1,
+                IsActive = true
+            },
+            new Plan
+            {
+                Id = 4,
+                Name = "Professional Plan - Monthly",
+                Description = "Professional plan with advanced features",
+                Currency = "USD",
+                PaymentProviderProductId = "prod_SxgfAcz4HHgFcY",
+                PaymentProviderPriceId = "price_1S1lIXDVRyfs46Jirxqm0dz6",
                 Price = 99.99m,
                 Type = PlanType.Pro,
                 BillingCycle = BillingCycle.Monthly,
@@ -74,12 +101,53 @@ public class PlanConfiguration : BaseAuditableConfiguration<Plan>
             },
             new Plan
             {
-                Id = 4,
-                Name = "Enterprise",
-                PaymentProviderPriceId = "price_enterprise_monthly", // Replace with actual payment provider price ID
+                Id = 5,
+                Name = "Professional Plan - Yearly",
+                Description = "Professional plan with advanced features",
+                Currency = "USD",
+                PaymentProviderProductId = "prod_SxggEc36SZchwA",
+                PaymentProviderPriceId = "price_1S1lJ3DVRyfs46Ji40RP91Sk",
+                Price = 999.99m,
+                Type = PlanType.Pro,
+                BillingCycle = BillingCycle.Yearly,
+                MaxUsers = 25,
+                MaxChannels = 10,
+                MaxWhatsAppChannels = 5,
+                MaxFacebookChannels = 3,
+                MaxInstagramChannels = 3,
+                MaxTelegramChannels = 3,
+                IsActive = true
+            },
+            new Plan
+            {
+                Id = 6,
+                Name = "Enterprise Plan - Monthly",
+                Description = "Enterprise plan with all features",
+                Currency = "USD",
+                PaymentProviderProductId = "prod_Sxgh4Ucpw7IxSG",
+                PaymentProviderPriceId = "price_1S1lJgDVRyfs46JidlIn73va",
                 Price = 299.99m,
                 Type = PlanType.Enterprise,
                 BillingCycle = BillingCycle.Monthly,
+                MaxUsers = 100,
+                MaxChannels = 50,
+                MaxWhatsAppChannels = 20,
+                MaxFacebookChannels = 15,
+                MaxInstagramChannels = 15,
+                MaxTelegramChannels = 15,
+                IsActive = true
+            },
+            new Plan
+            {
+                Id = 7,
+                Name = "Enterprise Plan - Yearly",
+                Description = "Enterprise plan with all features",
+                Currency = "USD",
+                PaymentProviderProductId = "prod_SxghGjm7I9Ugag",
+                PaymentProviderPriceId = "price_1S1lKVDVRyfs46Ji1DJXRhHp",
+                Price = 2999.99m,
+                Type = PlanType.Enterprise,
+                BillingCycle = BillingCycle.Yearly,
                 MaxUsers = 100,
                 MaxChannels = 50,
                 MaxWhatsAppChannels = 20,

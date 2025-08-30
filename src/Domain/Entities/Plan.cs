@@ -3,6 +3,9 @@ namespace ConnectFlow.Domain.Entities;
 public class Plan : BaseAuditableEntity
 {
     public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public string Currency { get; set; } = "USD";
+    public string PaymentProviderProductId { get; set; } = string.Empty;
     public string PaymentProviderPriceId { get; set; } = string.Empty;
     public decimal Price { get; set; }
     public PlanType Type { get; set; }

@@ -186,6 +186,9 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: false),
+                    Currency = table.Column<string>(type: "text", nullable: false),
+                    PaymentProviderProductId = table.Column<string>(type: "text", nullable: false),
                     PaymentProviderPriceId = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     Price = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
                     Type = table.Column<int>(type: "integer", nullable: false),
@@ -524,13 +527,16 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
 
             migrationBuilder.InsertData(
                 table: "Plans",
-                columns: new[] { "Id", "BillingCycle", "CreatedBy", "IsActive", "LastModifiedBy", "MaxChannels", "MaxFacebookChannels", "MaxInstagramChannels", "MaxTelegramChannels", "MaxUsers", "MaxWhatsAppChannels", "Name", "PaymentProviderPriceId", "Price", "Type" },
+                columns: new[] { "Id", "BillingCycle", "CreatedBy", "Currency", "Description", "IsActive", "LastModifiedBy", "MaxChannels", "MaxFacebookChannels", "MaxInstagramChannels", "MaxTelegramChannels", "MaxUsers", "MaxWhatsAppChannels", "Name", "PaymentProviderPriceId", "PaymentProviderProductId", "Price", "Type" },
                 values: new object[,]
                 {
-                    { 1, 1, null, true, null, 1, 0, 0, 0, 2, 1, "Free", "price_free", 0m, 1 },
-                    { 2, 1, null, true, null, 3, 1, 1, 1, 5, 2, "Starter", "price_starter_monthly", 29.99m, 2 },
-                    { 3, 1, null, true, null, 10, 3, 3, 3, 25, 5, "Professional", "price_pro_monthly", 99.99m, 4 },
-                    { 4, 1, null, true, null, 50, 15, 15, 15, 100, 20, "Enterprise", "price_enterprise_monthly", 299.99m, 5 }
+                    { 1, 1, null, "USD", "Basic plan with limited features", true, null, 1, 0, 0, 0, 2, 1, "Free", "price_free", "", 0m, 1 },
+                    { 2, 1, null, "USD", "Starter plan with basic features", true, null, 3, 1, 1, 1, 5, 2, "Starter Plan - Monthly", "price_1S1lFgDVRyfs46JiBJyvA5eu", "prod_SxgcF8F4u3unNk", 29.99m, 2 },
+                    { 3, 2, null, "USD", "Starter plan with basic features", true, null, 3, 1, 1, 1, 5, 2, "Starter Plan - Yearly", "price_1S1lHtDVRyfs46JizuWqnOp2", "prod_Sxgf0MdFfTzUXR", 299.99m, 2 },
+                    { 4, 1, null, "USD", "Professional plan with advanced features", true, null, 10, 3, 3, 3, 25, 5, "Professional Plan - Monthly", "price_1S1lIXDVRyfs46Jirxqm0dz6", "prod_SxgfAcz4HHgFcY", 99.99m, 4 },
+                    { 5, 2, null, "USD", "Professional plan with advanced features", true, null, 10, 3, 3, 3, 25, 5, "Professional Plan - Yearly", "price_1S1lJ3DVRyfs46Ji40RP91Sk", "prod_SxggEc36SZchwA", 999.99m, 4 },
+                    { 6, 1, null, "USD", "Enterprise plan with all features", true, null, 50, 15, 15, 15, 100, 20, "Enterprise Plan - Monthly", "price_1S1lJgDVRyfs46JidlIn73va", "prod_Sxgh4Ucpw7IxSG", 299.99m, 5 },
+                    { 7, 2, null, "USD", "Enterprise plan with all features", true, null, 50, 15, 15, 15, 100, 20, "Enterprise Plan - Yearly", "price_1S1lKVDVRyfs46Ji1DJXRhHp", "prod_SxghGjm7I9Ugag", 2999.99m, 5 }
                 });
 
             migrationBuilder.CreateIndex(

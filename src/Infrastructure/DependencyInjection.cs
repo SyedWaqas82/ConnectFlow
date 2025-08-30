@@ -137,7 +137,7 @@ public static class DependencyInjection
             options.Password.RequiredUniqueChars = 1;
 
             // SignIn settings.
-            options.SignIn.RequireConfirmedEmail = true;
+            options.SignIn.RequireConfirmedEmail = false;
             options.SignIn.RequireConfirmedPhoneNumber = false;
 
             // User settings.

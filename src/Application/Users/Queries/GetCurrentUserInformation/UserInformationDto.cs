@@ -20,6 +20,7 @@ public record TenantDto
 
     public int Id { get; init; }
     public Guid PublicId { get; init; }
+    public string PaymentProviderCustomerId { get; init; } = string.Empty;
     public string Name { get; init; } = string.Empty;
     public IReadOnlyCollection<string> Roles { get; init; }
     public IReadOnlyCollection<SubscriptionDto> Subscriptions { get; init; }

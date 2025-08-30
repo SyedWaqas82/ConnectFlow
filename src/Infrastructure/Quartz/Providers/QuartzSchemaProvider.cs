@@ -1,4 +1,3 @@
-using ConnectFlow.Infrastructure.Common.Models;
 using Npgsql;
 
 namespace ConnectFlow.Infrastructure.Quartz.Providers;

@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Hosting;
-using ConnectFlow.Infrastructure.Common.Models;
 using ConnectFlow.Infrastructure.Quartz.Providers;
 
 namespace ConnectFlow.Infrastructure.Quartz.Initializers;

@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using ConnectFlow.Application.Common.Interfaces;
 using ConnectFlow.Application.Common.Models;
 using ConnectFlow.Domain.Constants;
 using ConnectFlow.Domain.Events.Mediator.Tenants;
@@ -269,10 +268,10 @@ public class IdentityService : IIdentityService
             return Result<AuthToken>.Failure(new[] { "user not found" }, null);
         }
 
-        if (!await _userManager.IsEmailConfirmedAsync(appUser))
-        {
-            return Result<AuthToken>.Failure(new[] { "account not confirmed yet" }, null);
-        }
+        // if (!await _userManager.IsEmailConfirmedAsync(appUser))
+        // {
+        //     return Result<AuthToken>.Failure(new[] { "account not confirmed yet" }, null);
+        // }
 
         var isPasswordValid = await _userManager.CheckPasswordAsync(appUser, password!);
 
@@ -348,7 +347,8 @@ public class IdentityService : IIdentityService
     {
         var appUser = await _userManager.FindByPublicIdAsync(applicationUserPublicId);
 
-        if (appUser == null || !appUser.IsActive || !appUser.EmailConfirmed)
+        //if (appUser == null || !appUser.IsActive || !appUser.EmailConfirmed)
+        if (appUser == null || !appUser.IsActive)
         {
             return false;
         }

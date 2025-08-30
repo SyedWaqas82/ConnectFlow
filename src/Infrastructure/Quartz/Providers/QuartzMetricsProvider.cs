@@ -2,7 +2,6 @@ using System.Diagnostics.Metrics;
 using Quartz;
 using Quartz.Impl.Matchers;
 using System.Collections.Concurrent;
-using ConnectFlow.Infrastructure.Common.Models;
 
 namespace ConnectFlow.Infrastructure.Quartz.Providers;
 
