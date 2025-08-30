@@ -9,7 +9,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <UserSecretsId>ce180e1c-50a9-4312-ad9a-79d273dee5b9</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
