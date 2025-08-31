@@ -1,6 +1,9 @@
+using ConnectFlow.Application.Common.Exceptions;
+using ConnectFlow.Application.Common.Models;
+
 namespace ConnectFlow.Application.Subscriptions.Commands.CancelSubscription;
 
-public class CancelSubscriptionCommandHandler : IRequestHandler<CancelSubscriptionCommand, CancelSubscriptionResult>
+public class CancelSubscriptionCommandHandler : IRequestHandler<CancelSubscriptionCommand, Result<CancelSubscriptionResult>>
 {
     private readonly IPaymentService _paymentService;
     private readonly IContextManager _contextManager;
@@ -13,27 +16,26 @@ public class CancelSubscriptionCommandHandler : IRequestHandler<CancelSubscripti
         _subscriptionManagementService = subscriptionManagementService;
     }
 
-    public async Task<CancelSubscriptionResult> Handle(CancelSubscriptionCommand request, CancellationToken cancellationToken)
+    public async Task<Result<CancelSubscriptionResult>> Handle(CancelSubscriptionCommand request, CancellationToken cancellationToken)
     {
         var tenantId = _contextManager.GetCurrentTenantId();
-        Guard.Against.Null(tenantId, nameof(tenantId));
+        Guard.Against.Null(tenantId, nameof(tenantId), "Tenant ID not found", () => new TenantNotFoundException("Tenant ID not found"));
 
         // Get current active subscription
         var currentSubscription = await _subscriptionManagementService.GetActiveSubscriptionAsync(tenantId.Value, cancellationToken);
-        Guard.Against.Null(currentSubscription, nameof(currentSubscription));
+        Guard.Against.Null(currentSubscription, nameof(currentSubscription), "Current subscription not found", () => new SubscriptionNotFoundException("Current subscription not found"));
 
         //check if its a free subscription
         if (currentSubscription.Plan.Type == PlanType.Free)
         {
             // If it's a free subscription, just return a success result
-            return new CancelSubscriptionResult
+            return Result<CancelSubscriptionResult>.Success(new CancelSubscriptionResult
             {
                 SubscriptionId = currentSubscription.Id,
                 Status = "cant cancel a free subscription",
-                Message = "Free subscriptions cannot be cancelled.",
                 CancelledAt = null,
                 EffectiveDate = null
-            };
+            }, "Free subscriptions cannot be cancelled.");
         }
 
         // Cancel subscription in Stripe - this will trigger a webhook that updates local state
@@ -46,14 +48,12 @@ public class CancelSubscriptionCommandHandler : IRequestHandler<CancelSubscripti
 
         var effectiveDate = request.CancelImmediately ? DateTimeOffset.UtcNow : currentSubscription.CurrentPeriodEnd;
 
-        return new CancelSubscriptionResult
+        return Result<CancelSubscriptionResult>.Success(new CancelSubscriptionResult
         {
             SubscriptionId = currentSubscription.Id,
             Status = "cancellation_requested",
-            Message = message,
-            CancelledAt = request.CancelImmediately ? DateTimeOffset.UtcNow : (DateTimeOffset?)null,
+            CancelledAt = request.CancelImmediately ? effectiveDate : (DateTimeOffset?)null,
             EffectiveDate = effectiveDate
-        };
-
+        }, message);
     }
 }

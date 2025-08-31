@@ -58,7 +58,7 @@ public class Subscriptions : EndpointGroupBase
         return TypedResults.Ok(result);
     }
 
-    public async Task<Ok<CancelSubscriptionResult>> CancelSubscription(ISender sender, CancelSubscriptionCommand command)
+    public async Task<Ok<Result<CancelSubscriptionResult>>> CancelSubscription(ISender sender, CancelSubscriptionCommand command)
     {
         var result = await sender.Send(command);
         return TypedResults.Ok(result);
