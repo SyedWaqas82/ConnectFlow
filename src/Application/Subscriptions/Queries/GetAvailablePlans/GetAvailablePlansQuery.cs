@@ -1,3 +1,5 @@
+using ConnectFlow.Application.Common.Exceptions;
+
 namespace ConnectFlow.Application.Subscriptions.Queries.GetAvailablePlans;
 
 public record GetAvailablePlansQuery : IRequest<List<PlanDto>>;
@@ -22,13 +24,10 @@ public class GetAvailablePlansQueryHandler : IRequestHandler<GetAvailablePlansQu
     public async Task<List<PlanDto>> Handle(GetAvailablePlansQuery request, CancellationToken cancellationToken)
     {
         var tenantId = _contextManager.GetCurrentTenantId();
-        int? currentPlanId = null;
+        Guard.Against.Null(tenantId, nameof(tenantId), "Tenant ID is required.", () => new TenantNotFoundException("Tenant ID is required."));
 
-        if (tenantId.HasValue)
-        {
-            var currentSubscription = await _subscriptionManagementService.GetActiveSubscriptionAsync(tenantId.Value, cancellationToken);
-            currentPlanId = currentSubscription?.PlanId;
-        }
+        var currentSubscription = await _subscriptionManagementService.GetActiveSubscriptionAsync(tenantId.Value, cancellationToken);
+        int? currentPlanId = currentSubscription?.PlanId;
 
         var plans = await _context.Plans.AsNoTracking().Where(p => p.IsActive).OrderBy(p => p.Price).ProjectTo<PlanDto>(_mapper.ConfigurationProvider).ToListAsync(cancellationToken);
 

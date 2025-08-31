@@ -52,7 +52,7 @@ public class Subscriptions : EndpointGroupBase
         return TypedResults.Ok(result);
     }
 
-    public async Task<Ok<UpdateSubscriptionResult>> UpdateSubscription(ISender sender, UpdateSubscriptionCommand command)
+    public async Task<Ok<Result<UpdateSubscriptionResult>>> UpdateSubscription(ISender sender, UpdateSubscriptionCommand command)
     {
         var result = await sender.Send(command);
         return TypedResults.Ok(result);

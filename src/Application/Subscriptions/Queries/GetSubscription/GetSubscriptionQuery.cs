@@ -23,10 +23,10 @@ public class GetSubscriptionQueryHandler : IRequestHandler<GetSubscriptionQuery,
     public async Task<SubscriptionDto> Handle(GetSubscriptionQuery request, CancellationToken cancellationToken)
     {
         var tenantId = _contextManager.GetCurrentTenantId();
-        if (tenantId == null) throw new TenantNotFoundException();
+        Guard.Against.Null(tenantId, nameof(tenantId), "Tenant ID is required.", () => new TenantNotFoundException("Tenant ID is required."));
 
         var subscription = await _subscriptionManagementService.GetActiveSubscriptionAsync(tenantId.Value, cancellationToken);
-        if (subscription == null) throw new SubscriptionRequiredException("No active subscription found for the tenant.");
+        Guard.Against.Null(subscription, nameof(subscription), "No active subscription found for the tenant.", () => new SubscriptionRequiredException("No active subscription found for the tenant."));
 
         var usage = await _subscriptionManagementService.GetUsageStatisticsAsync(tenantId.Value, cancellationToken);
 

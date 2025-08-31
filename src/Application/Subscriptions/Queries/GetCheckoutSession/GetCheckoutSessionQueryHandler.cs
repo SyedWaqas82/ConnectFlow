@@ -18,14 +18,14 @@ public class GetCheckoutSessionQueryHandler : IRequestHandler<GetCheckoutSession
     public async Task<CheckoutSessionStatusDto> Handle(GetCheckoutSessionQuery request, CancellationToken cancellationToken)
     {
         var tenantId = _contextManager.GetCurrentTenantId();
-        Guard.Against.Null(tenantId, nameof(tenantId));
+        Guard.Against.Null(tenantId, nameof(tenantId), "Tenant ID is required.", () => new TenantNotFoundException("Tenant ID is required."));
 
         // Get the checkout session from Stripe
         var checkoutSession = await _paymentService.GetCheckoutSessionAsync(request.SessionId, cancellationToken);
 
         // Verify that this checkout session belongs to the current tenant's customer
         var tenant = await _context.Tenants.FirstOrDefaultAsync(t => t.Id == tenantId.Value, cancellationToken);
-        Guard.Against.Null(tenant, nameof(tenant), $"Tenant not found {tenantId.Value}");
+        Guard.Against.Null(tenant, nameof(tenant), $"Tenant not found {tenantId.Value}", () => new TenantNotFoundException($"Tenant not found {tenantId.Value}"));
 
         // Verify the customer ID matches the tenant's Stripe customer ID
         if (!string.IsNullOrEmpty(tenant.PaymentProviderCustomerId) && checkoutSession.CustomerId != tenant.PaymentProviderCustomerId)

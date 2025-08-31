@@ -31,14 +31,17 @@ public class CreateSubscriptionCommandHandler : IRequestHandler<CreateSubscripti
         Guard.Against.Null(tenant, nameof(tenant), "Tenant not found", () => new ForbiddenAccessException("Tenant not found"));
         Guard.Against.NullOrEmpty(tenant.PaymentProviderCustomerId, nameof(tenant.PaymentProviderCustomerId), "Tenant does not have a Stripe customer ID", () => new InvalidOperationException("Tenant does not have a Stripe customer ID"));
 
-        // Verify the tenant is not already subscribed to the plan, other wise throw an exception if its not null
-        var existingSubscription = await _subscriptionManagementService.GetActiveSubscriptionAsync(tenantId.Value, cancellationToken);
-        if (existingSubscription != null)
+        // Verify the tenant is not already subscribed to a paid plan, other wise throw an exception if its not null
+        var currentActiveSubscription = await _subscriptionManagementService.GetActiveSubscriptionAsync(tenantId.Value, cancellationToken);
+        if (currentActiveSubscription != null && currentActiveSubscription.Plan.Type != PlanType.Free)
             throw new InvalidOperationException("Tenant is already subscribed to a plan.");
 
         // Verify the plan exists and is active
         var plan = await _context.Plans.FirstOrDefaultAsync(p => p.Id == request.PlanId && p.IsActive, cancellationToken);
         Guard.Against.Null(plan, nameof(plan), $"Plan {request.PlanId} not found or inactive");
+
+        if (currentActiveSubscription != null && currentActiveSubscription.Plan.Id == plan.Id)
+            return Result<CreateSubscriptionResult>.Failure(null, "You are already subscribed to this plan.");
 
         if (plan.Type == PlanType.Free)
         {
@@ -60,23 +63,29 @@ public class CreateSubscriptionCommandHandler : IRequestHandler<CreateSubscripti
 
             await _context.SaveChangesAsync(cancellationToken);
 
-            return Result<CreateSubscriptionResult>.Success(new CreateSubscriptionResult(), new List<string>() { "Free subscription created successfully." });
+            return Result<CreateSubscriptionResult>.Success(new CreateSubscriptionResult(), "Free subscription created successfully.");
         }
         else
         {
+            if (currentActiveSubscription != null && currentActiveSubscription.Plan.Type == PlanType.Free)
+            {
+                _context.Subscriptions.Remove(currentActiveSubscription);
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+
             // Create Stripe checkout session
             var session = await _paymentService.CreateCheckoutSessionAsync(tenant.PaymentProviderCustomerId, plan.PaymentProviderPriceId, request.SuccessUrl, request.CancelUrl,
-                new Dictionary<string, string>
-                {
+            new Dictionary<string, string>
+            {
                 { "tenant_id", tenantId.Value.ToString() },
                 { "plan_id", plan.Id.ToString() }
-                }, cancellationToken);
+            }, cancellationToken);
 
             return Result<CreateSubscriptionResult>.Success(new CreateSubscriptionResult()
             {
                 SessionId = session.Id,
                 CheckoutUrl = session.Url
-            }, new List<string>() { "Checkout session created successfully." });
+            }, "Checkout session created successfully.");
         }
     }
 }

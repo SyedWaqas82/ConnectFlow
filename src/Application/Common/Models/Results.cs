@@ -14,18 +14,16 @@ public class Result
     public string[] Errors { get; init; }
     public string[] Messages { get; init; }
 
-    public static Result Success(List<string> messages = null!)
+    public static Result Success(params string[] messages)
     {
-        if (messages == null)
-            messages = new List<string>();
+        messages = messages ?? Array.Empty<string>();
 
         return new Result(true, Array.Empty<string>(), messages);
     }
 
-    public static Result Failure(IEnumerable<string> errors = null!)
+    public static Result Failure(params string[] errors)
     {
-        if (errors == null)
-            errors = new List<string>();
+        errors = errors ?? Array.Empty<string>();
 
         return new Result(false, errors, Array.Empty<string>());
     }
@@ -40,18 +38,15 @@ public class Result<T> : Result
         Data = data;
     }
 
-    public static Result<T> Success(T? data, IEnumerable<string> messages = null!)
+    public static Result<T> Success(T? data, params string[] messages)
     {
-        if (messages == null)
-            messages = new List<string>();
-
+        messages = messages ?? Array.Empty<string>();
         return new Result<T>(true, Array.Empty<string>(), messages, data);
     }
 
-    public static Result<T> Failure(T? data, IEnumerable<string> errors = null!)
+    public static Result<T> Failure(T? data, params string[] errors)
     {
-        if (errors == null)
-            errors = new List<string>();
+        errors = errors ?? Array.Empty<string>();
 
         return new Result<T>(false, errors, Array.Empty<string>(), data);
     }

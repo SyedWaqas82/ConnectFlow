@@ -1,8 +1,9 @@
 using ConnectFlow.Application.Common.Exceptions;
+using ConnectFlow.Application.Common.Models;
 
 namespace ConnectFlow.Application.Subscriptions.Commands.UpdateSubscription;
 
-public class UpdateSubscriptionCommandHandler : IRequestHandler<UpdateSubscriptionCommand, UpdateSubscriptionResult>
+public class UpdateSubscriptionCommandHandler : IRequestHandler<UpdateSubscriptionCommand, Result<UpdateSubscriptionResult>>
 {
     private readonly IApplicationDbContext _context;
     private readonly IPaymentService _paymentService;
@@ -17,23 +18,34 @@ public class UpdateSubscriptionCommandHandler : IRequestHandler<UpdateSubscripti
         _subscriptionManagementService = subscriptionManagementService;
     }
 
-    public async Task<UpdateSubscriptionResult> Handle(UpdateSubscriptionCommand request, CancellationToken cancellationToken)
+    public async Task<Result<UpdateSubscriptionResult>> Handle(UpdateSubscriptionCommand request, CancellationToken cancellationToken)
     {
         var tenantId = _contextManager.GetCurrentTenantId();
         Guard.Against.Null(tenantId, nameof(tenantId), "Tenant ID not found", () => new TenantNotFoundException("Tenant ID not found"));
 
         // Get current active subscription
-        var currentSubscription = await _subscriptionManagementService.GetActiveSubscriptionAsync(tenantId.Value, cancellationToken);
-        Guard.Against.Null(currentSubscription, nameof(currentSubscription), "Current subscription not found", () => new SubscriptionNotFoundException("Current subscription not found"));
+        var currentActiveSubscription = await _subscriptionManagementService.GetActiveSubscriptionAsync(tenantId.Value, cancellationToken);
+        Guard.Against.Null(currentActiveSubscription, nameof(currentActiveSubscription), "Current subscription not found", () => new SubscriptionNotFoundException("Current subscription not found"));
+
+        var currentPlan = currentActiveSubscription.Plan;
 
         // Get the new plan
         var newPlan = await _context.Plans.FirstOrDefaultAsync(p => p.Id == request.NewPlanId && p.IsActive, cancellationToken);
         Guard.Against.Null(newPlan, nameof(newPlan), $"Plan {request.NewPlanId} not found or inactive", () => new PlanNotFoundException($"Plan {request.NewPlanId} not found or inactive"));
 
-        var currentPlan = currentSubscription.Plan;
+        if (newPlan.Id == currentPlan.Id)
+            return Result<UpdateSubscriptionResult>.Failure(null, "You are already subscribed to this plan.");
+
+        if (newPlan.Type == PlanType.Free)
+            return Result<UpdateSubscriptionResult>.Failure(null, "Cannot switch to a free plan using this method. Please cancel the current subscription and create a new free subscription.");
+
+        if (currentPlan.Type == PlanType.Free)
+        {
+            return Result<UpdateSubscriptionResult>.Failure(null, "Cannot switch from a free plan using this method. Please create a new paid subscription.");
+        }
 
         // Update subscription in Stripe - this will trigger a webhook that updates local state
-        var stripeSubscription = await _paymentService.UpdateSubscriptionAsync(currentSubscription.PaymentProviderSubscriptionId, newPlan.PaymentProviderPriceId, metadata: new Dictionary<string, string>
+        var stripeSubscription = await _paymentService.UpdateSubscriptionAsync(currentActiveSubscription.PaymentProviderSubscriptionId, newPlan.PaymentProviderPriceId, metadata: new Dictionary<string, string>
                 {
                     { "tenant_id", tenantId.Value.ToString() },
                     { "plan_id", newPlan.Id.ToString() },
@@ -50,11 +62,10 @@ public class UpdateSubscriptionCommandHandler : IRequestHandler<UpdateSubscripti
                 ? "Subscription downgrade request sent to Stripe. Local state will be updated via webhook."
                 : "Subscription plan change request sent to Stripe. Local state will be updated via webhook.";
 
-        return new UpdateSubscriptionResult
+        return Result<UpdateSubscriptionResult>.Success(new UpdateSubscriptionResult
         {
-            SubscriptionId = currentSubscription.Id,
-            Status = "update_requested",
-            Message = message
-        };
+            SubscriptionId = currentActiveSubscription.Id,
+            Status = "update_requested"
+        }, message);
     }
 }

@@ -7,12 +7,12 @@ public static class IdentityResultExtensions
 {
     public static Result ToApplicationResult(this IdentityResult result)
     {
-        return result.Succeeded ? Result.Success() : Result.Failure(result.Errors.Select(e => e.Description));
+        return result.Succeeded ? Result.Success() : Result.Failure(result.Errors.Select(e => e.Description).ToArray());
     }
 
     public static Result<T> ToApplicationResult<T>(this IdentityResult result, T? data)
     {
-        return result.Succeeded ? Result<T>.Success(data) : Result<T>.Failure(data, result.Errors.Select(e => e.Description));
+        return result.Succeeded ? Result<T>.Success(data) : Result<T>.Failure(data, result.Errors.Select(e => e.Description).ToArray());
     }
 }
 
