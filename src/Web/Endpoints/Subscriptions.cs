@@ -64,7 +64,7 @@ public class Subscriptions : EndpointGroupBase
         return TypedResults.Ok(result);
     }
 
-    public async Task<Ok<ReactivateSubscriptionResult>> ReactivateSubscription(ISender sender)
+    public async Task<Ok<Result<ReactivateSubscriptionResult>>> ReactivateSubscription(ISender sender)
     {
         var result = await sender.Send(new ReactivateSubscriptionCommand());
         return TypedResults.Ok(result);
