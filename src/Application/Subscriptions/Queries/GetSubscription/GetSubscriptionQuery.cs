@@ -4,7 +4,7 @@ using ConnectFlow.Domain.Constants;
 
 namespace ConnectFlow.Application.Subscriptions.Queries.GetSubscription;
 
-[AuthorizeTenant(true, true, Roles.TenantAdmin)]
+[AuthorizeTenant(false, true, Roles.TenantAdmin)]
 public record GetSubscriptionQuery : IRequest<SubscriptionDto>;
 
 public class GetSubscriptionQueryHandler : IRequestHandler<GetSubscriptionQuery, SubscriptionDto>
