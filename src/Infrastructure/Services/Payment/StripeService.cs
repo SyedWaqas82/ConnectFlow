@@ -141,6 +141,8 @@ public class StripeService : IPaymentService
 
     public async Task<PaymentCustomerDto> UpdateCustomerAsync(string customerId, string? email = null, string? name = null, Dictionary<string, string>? metadata = null, CancellationToken cancellationToken = default)
     {
+        var stopwatch = Stopwatch.StartNew();
+
         try
         {
             var options = new CustomerUpdateOptions();
@@ -159,11 +161,16 @@ public class StripeService : IPaymentService
 
             _logger.LogInformation("Updated Stripe customer {CustomerId}", customerId);
 
+            // Record metrics
+            _paymentMetrics.RecordStripeApiCall("update_customer", true, stopwatch.Elapsed.TotalSeconds);
+
             return MapToCustomerDto(customer);
         }
         catch (StripeException ex)
         {
             _logger.LogError(ex, "Failed to update Stripe customer {CustomerId}", customerId);
+            _paymentMetrics.RecordStripeApiCall("update_customer", false, stopwatch.Elapsed.TotalSeconds);
+            _paymentMetrics.RecordStripeApiError("update_customer", ex.StripeError?.Type ?? "unknown");
             throw;
         }
     }
@@ -190,6 +197,8 @@ public class StripeService : IPaymentService
 
     public async Task<PaymentSubscriptionDto> CreateSubscriptionAsync(string customerId, string priceId, Dictionary<string, string>? metadata = null, CancellationToken cancellationToken = default)
     {
+        var stopwatch = Stopwatch.StartNew();
+
         try
         {
             var options = new SubscriptionCreateOptions
@@ -216,17 +225,24 @@ public class StripeService : IPaymentService
 
             _logger.LogInformation("Created Stripe subscription {SubscriptionId} for customer {CustomerId}", subscription.Id, customerId);
 
+            // Record metrics
+            _paymentMetrics.RecordStripeApiCall("create_subscription", true, stopwatch.Elapsed.TotalSeconds);
+
             return MapToSubscriptionDto(subscription);
         }
         catch (StripeException ex)
         {
             _logger.LogError(ex, "Failed to create Stripe subscription for customer {CustomerId}", customerId);
+            _paymentMetrics.RecordStripeApiCall("create_subscription", false, stopwatch.Elapsed.TotalSeconds);
+            _paymentMetrics.RecordStripeApiError("create_subscription", ex.StripeError?.Type ?? "unknown");
             throw;
         }
     }
 
     public async Task<PaymentSubscriptionDto> UpdateSubscriptionAsync(string subscriptionId, string? priceId = null, bool? cancelAtPeriodEnd = null, Dictionary<string, string>? metadata = null, CancellationToken cancellationToken = default)
     {
+        var stopwatch = Stopwatch.StartNew();
+
         try
         {
             var options = new SubscriptionUpdateOptions();
@@ -266,17 +282,29 @@ public class StripeService : IPaymentService
 
             _logger.LogInformation("Updated Stripe subscription {SubscriptionId}", subscriptionId);
 
+            // Record metrics
+            _paymentMetrics.RecordStripeApiCall("update_subscription", true, stopwatch.Elapsed.TotalSeconds);
+
+            // Determine change type for better metrics
+            var changeType = priceId != null ? "plan_change" :
+                           cancelAtPeriodEnd.HasValue ? "cancellation_setting" : "general_update";
+            _paymentMetrics.SubscriptionUpdated(changeType);
+
             return MapToSubscriptionDto(subscription);
         }
         catch (StripeException ex)
         {
             _logger.LogError(ex, "Failed to update Stripe subscription {SubscriptionId}", subscriptionId);
+            _paymentMetrics.RecordStripeApiCall("update_subscription", false, stopwatch.Elapsed.TotalSeconds);
+            _paymentMetrics.RecordStripeApiError("update_subscription", ex.StripeError?.Type ?? "unknown");
             throw;
         }
     }
 
     public async Task<PaymentSubscriptionDto> CancelSubscriptionAsync(string subscriptionId, bool cancelImmediately = false, CancellationToken cancellationToken = default)
     {
+        var stopwatch = Stopwatch.StartNew();
+
         try
         {
             var service = new Stripe.SubscriptionService();
@@ -286,6 +314,10 @@ public class StripeService : IPaymentService
             {
                 subscription = await service.CancelAsync(subscriptionId, cancellationToken: cancellationToken);
                 _logger.LogInformation("Immediately cancelled Stripe subscription {SubscriptionId}", subscriptionId);
+
+                // Record metrics
+                _paymentMetrics.RecordStripeApiCall("cancel_subscription", true, stopwatch.Elapsed.TotalSeconds);
+                _paymentMetrics.SubscriptionCanceled("immediate", "unknown");
             }
             else
             {
@@ -295,6 +327,10 @@ public class StripeService : IPaymentService
                 };
                 subscription = await service.UpdateAsync(subscriptionId, options, cancellationToken: cancellationToken);
                 _logger.LogInformation("Scheduled Stripe subscription {SubscriptionId} for cancellation at period end", subscriptionId);
+
+                // Record metrics
+                _paymentMetrics.RecordStripeApiCall("schedule_cancellation", true, stopwatch.Elapsed.TotalSeconds);
+                _paymentMetrics.SubscriptionCanceled("at_period_end", "unknown");
             }
 
             return MapToSubscriptionDto(subscription);
@@ -302,12 +338,16 @@ public class StripeService : IPaymentService
         catch (StripeException ex)
         {
             _logger.LogError(ex, "Failed to cancel Stripe subscription {SubscriptionId}", subscriptionId);
+            _paymentMetrics.RecordStripeApiCall(cancelImmediately ? "cancel_subscription" : "schedule_cancellation", false, stopwatch.Elapsed.TotalSeconds);
+            _paymentMetrics.RecordStripeApiError(cancelImmediately ? "cancel_subscription" : "schedule_cancellation", ex.StripeError?.Type ?? "unknown");
             throw;
         }
     }
 
     public async Task<PaymentSubscriptionDto> ReactivateSubscriptionAsync(string subscriptionId, CancellationToken cancellationToken = default)
     {
+        var stopwatch = Stopwatch.StartNew();
+
         try
         {
             var options = new SubscriptionUpdateOptions
@@ -320,27 +360,40 @@ public class StripeService : IPaymentService
 
             _logger.LogInformation("Reactivated Stripe subscription {SubscriptionId}", subscriptionId);
 
+            // Record metrics
+            _paymentMetrics.RecordStripeApiCall("reactivate_subscription", true, stopwatch.Elapsed.TotalSeconds);
+            _paymentMetrics.SubscriptionUpdated("reactivation");
+
             return MapToSubscriptionDto(subscription);
         }
         catch (StripeException ex)
         {
             _logger.LogError(ex, "Failed to reactivate Stripe subscription {SubscriptionId}", subscriptionId);
+            _paymentMetrics.RecordStripeApiCall("reactivate_subscription", false, stopwatch.Elapsed.TotalSeconds);
+            _paymentMetrics.RecordStripeApiError("reactivate_subscription", ex.StripeError?.Type ?? "unknown");
             throw;
         }
     }
 
     public async Task<PaymentSubscriptionDto> GetSubscriptionAsync(string subscriptionId, CancellationToken cancellationToken = default)
     {
+        var stopwatch = Stopwatch.StartNew();
+
         try
         {
             var service = new Stripe.SubscriptionService();
             var subscription = await service.GetAsync(subscriptionId, cancellationToken: cancellationToken);
+
+            // Record metrics
+            _paymentMetrics.RecordStripeApiCall("get_subscription", true, stopwatch.Elapsed.TotalSeconds);
 
             return MapToSubscriptionDto(subscription);
         }
         catch (StripeException ex)
         {
             _logger.LogError(ex, "Failed to get Stripe subscription {SubscriptionId}", subscriptionId);
+            _paymentMetrics.RecordStripeApiCall("get_subscription", false, stopwatch.Elapsed.TotalSeconds);
+            _paymentMetrics.RecordStripeApiError("get_subscription", ex.StripeError?.Type ?? "unknown");
             throw;
         }
     }
@@ -416,6 +469,8 @@ public class StripeService : IPaymentService
 
     public async Task<PaymentBillingPortalSessionDto> CreatePortalSessionAsync(string customerId, string returnUrl, CancellationToken cancellationToken = default)
     {
+        var stopwatch = Stopwatch.StartNew();
+
         try
         {
             var options = new StripeBillingPortalSessionCreateOptions
@@ -429,6 +484,10 @@ public class StripeService : IPaymentService
 
             _logger.LogInformation("Created Stripe billing portal session {SessionId} for customer {CustomerId}", session.Id, customerId);
 
+            // Record metrics
+            _paymentMetrics.RecordStripeApiCall("create_billing_portal", true, stopwatch.Elapsed.TotalSeconds);
+            _paymentMetrics.BillingPortalSessionCreated();
+
             return new PaymentBillingPortalSessionDto
             {
                 Id = session.Id,
@@ -438,6 +497,8 @@ public class StripeService : IPaymentService
         catch (StripeException ex)
         {
             _logger.LogError(ex, "Failed to create Stripe billing portal session for customer {CustomerId}", customerId);
+            _paymentMetrics.RecordStripeApiCall("create_billing_portal", false, stopwatch.Elapsed.TotalSeconds);
+            _paymentMetrics.RecordStripeApiError("create_billing_portal", ex.StripeError?.Type ?? "unknown");
             throw;
         }
     }

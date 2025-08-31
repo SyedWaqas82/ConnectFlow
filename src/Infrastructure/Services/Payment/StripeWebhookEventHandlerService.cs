@@ -430,6 +430,9 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
         // Add appropriate domain events before database save
         if (hasPlansChanged)
         {
+            // Record plan change metrics
+            _paymentMetrics.SubscriptionUpdated("plan_change", currentPlan.Type.ToString(), newPlan.Type.ToString());
+
             var planChangeEvent = new SubscriptionStatusEvent(existingSubscription.TenantId, default, existingSubscription, SubscriptionAction.PlanChanged,
                 $"Plan changed from {currentPlan.Name} to {newPlan.Name}", sendEmailNotification: true, suspendLimitsImmediately: true, // Plan changes are immediate
                 previousPlanId: currentPlan.Id, newPlanId: newPlan.Id);
