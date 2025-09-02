@@ -24,8 +24,7 @@ public class SubscriptionStatusEventHandler : INotificationHandler<SubscriptionS
 
     public async Task Handle(SubscriptionStatusEvent notification, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Processing subscription status event: {Action} for subscription {SubscriptionId} (Immediate: {SuspendLimitsImmediately})",
-            notification.Action, notification.Subscription.Id, notification.SuspendLimitsImmediately);
+        _logger.LogInformation("Processing subscription status event: {Action} for subscription {SubscriptionId} (Immediate: {IsImmediate})", notification.Action, notification.Subscription.Id, notification.IsImmediate);
 
         try
         {
@@ -72,9 +71,41 @@ public class SubscriptionStatusEventHandler : INotificationHandler<SubscriptionS
                 break;
 
             case SubscriptionAction.Cancel:
-                subscription.Status = SubscriptionStatus.Canceled;
-                subscription.CanceledAt = notification.Timestamp;
-                subscription.CancelAtPeriodEnd = false;
+                if (notification.IsImmediate)
+                {
+                    subscription.Status = SubscriptionStatus.Canceled;
+                    subscription.CanceledAt = notification.Timestamp;
+                    subscription.CancelAtPeriodEnd = false;
+
+                    //Auto subscribe to free plan after cancelling current subscription
+                    var freePlan = await _context.Plans.FirstOrDefaultAsync(p => p.Name.ToLower() == _subscriptionSettings.DefaultDowngradePlanName.ToLower() && p.IsActive, cancellationToken);
+                    if (freePlan != null)
+                    {
+                        // Create new free subscription
+                        var freeSubscription = new Subscription
+                        {
+                            PaymentProviderSubscriptionId = $"free_{Guid.NewGuid()}",
+                            Status = SubscriptionStatus.Active,
+                            CurrentPeriodStart = DateTimeOffset.UtcNow,
+                            CurrentPeriodEnd = DateTimeOffset.UtcNow.AddYears(100), // Free plan never expires
+                            CancelAtPeriodEnd = false,
+                            PlanId = freePlan.Id,
+                            Amount = freePlan.Price,
+                            Currency = freePlan.Currency,
+                            TenantId = subscription.TenantId
+                        };
+
+                        _context.Subscriptions.Add(freeSubscription);
+
+                        // Add event for new free subscription creation
+                        freeSubscription.AddDomainEvent(new SubscriptionStatusEvent(subscription.TenantId, notification.ApplicationUserId,
+                            freeSubscription,
+                            SubscriptionAction.Create,
+                            $"Auto subscribed to free plan {freePlan.Name} after cancellation of {subscription.Plan.Name}",
+                            sendEmailNotification: true));
+                    }
+                }
+
                 break;
 
             case SubscriptionAction.GracePeriodStart:
@@ -131,8 +162,14 @@ public class SubscriptionStatusEventHandler : INotificationHandler<SubscriptionS
     {
         try
         {
+            //check if subscription does not have tenant loaded then load now
+            if (subscription.Tenant == null)
+            {
+                subscription.Tenant = await _context.Tenants.FindAsync(new object[] { subscription.TenantId }, cancellationToken) ?? throw new Exception($"Tenant not found for subscription {subscription.Id}");
+            }
+
             var templateId = GetEmailTemplateId(notification.Action);
-            var subject = GetEmailSubject(notification.Action, notification.SuspendLimitsImmediately);
+            var subject = GetEmailSubject(notification.Action, notification.IsImmediate);
 
             var emailEvent = new EmailSendMessageEvent(notification.TenantId, notification.ApplicationUserId)
             {
@@ -144,7 +181,7 @@ public class SubscriptionStatusEventHandler : INotificationHandler<SubscriptionS
                 TemplateId = templateId,
                 TemplateData = new Dictionary<string, object>
                 {
-                    { "tenantName", subscription.Tenant.Name ?? "Valued Customer" },
+                    { "tenantName", subscription.Tenant?.Name ?? "Valued Customer" },
                     { "reason", notification.Reason },
                     { "subscriptionId", subscription.Id },
                     { "planName", subscription.Plan?.Name ?? "Current Plan" },
@@ -154,7 +191,7 @@ public class SubscriptionStatusEventHandler : INotificationHandler<SubscriptionS
                     { "cancelledAt", DateTimeOffset.UtcNow.ToString("MMMM dd, yyyy") },
                     { "gracePeriodDays", _subscriptionSettings?.GracePeriodDays.ToString() ?? "7" },
                     { "gracePeriodEndDate", subscription.GracePeriodEndsAt?.ToString("MMMM dd, yyyy") ?? string.Empty },
-                    { "isImmediate", notification.SuspendLimitsImmediately.ToString() },
+                    { "isImmediate", notification.IsImmediate.ToString() },
                     { "correlationId", notification.CorrelationId.GetValueOrDefault() }
                 },
             };
@@ -182,12 +219,12 @@ public class SubscriptionStatusEventHandler : INotificationHandler<SubscriptionS
         _ => EmailTemplates.SubscriptionSuspended
     };
 
-    private string GetEmailSubject(SubscriptionAction action, bool suspendLimitsImmediately = false) => action switch
+    private string GetEmailSubject(SubscriptionAction action, bool isImmediate = false) => action switch
     {
         SubscriptionAction.Create => "Welcome! Your subscription is now active",
         SubscriptionAction.Suspend => "Your subscription has been suspended",
         SubscriptionAction.Reactivate => "Your subscription has been reactivated",
-        SubscriptionAction.Cancel when suspendLimitsImmediately => "Your subscription has been cancelled immediately",
+        SubscriptionAction.Cancel when isImmediate => "Your subscription has been cancelled immediately",
         SubscriptionAction.Cancel => "Your subscription will be cancelled at period end",
         SubscriptionAction.GracePeriodStart => "Payment required - Grace period started",
         SubscriptionAction.GracePeriodEnd => "Grace period ended",

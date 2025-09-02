@@ -144,7 +144,7 @@ public class PaymentStatusEventHandler : INotificationHandler<PaymentStatusEvent
 
     private void TriggerGracePeriodStartAsync(Subscription subscription, string reason)
     {
-        var gracePeriodEvent = new SubscriptionStatusEvent(subscription.TenantId, default, subscription, SubscriptionAction.GracePeriodStart, reason, sendEmailNotification: true, suspendLimitsImmediately: false);
+        var gracePeriodEvent = new SubscriptionStatusEvent(subscription.TenantId, default, subscription, SubscriptionAction.GracePeriodStart, reason, sendEmailNotification: true);
 
         subscription.AddDomainEvent(gracePeriodEvent);
 

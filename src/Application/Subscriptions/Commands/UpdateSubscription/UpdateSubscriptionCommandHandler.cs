@@ -47,7 +47,6 @@ public class UpdateSubscriptionCommandHandler : IRequestHandler<UpdateSubscripti
         // Update subscription in Stripe - this will trigger a webhook that updates local state
         var stripeSubscription = await _paymentService.UpdateSubscriptionAsync(currentActiveSubscription.PaymentProviderSubscriptionId, newPlan.PaymentProviderPriceId, metadata: new Dictionary<string, string>
                 {
-                    { "tenant_id", tenantId.Value.ToString() },
                     { "plan_id", newPlan.Id.ToString() },
                     { "previous_plan_id", currentPlan.Id.ToString() }
                 }, cancellationToken: cancellationToken);

@@ -54,7 +54,13 @@ public class PaymentEventDto
 {
     public string Id { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;
-    public object Data { get; set; } = new();
+    public int TenantId { get; set; }
+    public int ApplicationUserId { get; set; }
+    public Guid? ApplicationUserPublicId { get; set; }
+    public string ObjectId { get; set; } = string.Empty;
+    public string StripeSubscriptionId { get; set; } = string.Empty;
+    public string StripeCustomerId { get; set; } = string.Empty;
+    public Dictionary<string, object> Data { get; set; } = new();
     public DateTimeOffset Created { get; set; }
 }
 
@@ -63,4 +69,13 @@ public class PaymentUsageRecordDto
     public string Id { get; set; } = string.Empty;
     public long Quantity { get; set; }
     public DateTimeOffset Timestamp { get; set; }
+}
+
+public enum PaymentInvoiceStatus
+{
+    Succeeded,
+    Failed,
+    Created,
+    Finalized,
+    Paid
 }

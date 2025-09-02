@@ -22,9 +22,11 @@ public class CreateSubscriptionCommandHandler : IRequestHandler<CreateSubscripti
     {
         var tenantId = _contextManager.GetCurrentTenantId();
         var applicationUserId = _contextManager.GetCurrentApplicationUserId();
+        var applicationUserPublicId = _contextManager.GetCurrentApplicationUserPublicId();
 
         Guard.Against.Null(tenantId, nameof(tenantId), "Tenant ID not found", () => new ForbiddenAccessException("Tenant ID not found"));
         Guard.Against.Null(applicationUserId, nameof(applicationUserId), "Application User ID not found", () => new UnauthorizedAccessException("Application User ID not found"));
+        Guard.Against.Null(applicationUserPublicId, nameof(applicationUserPublicId), "Application User Public ID not found", () => new UnauthorizedAccessException("Application User Public ID not found"));
 
         // Get the tenant with Stripe customer ID
         var tenant = await _context.Tenants.FirstOrDefaultAsync(t => t.Id == tenantId.Value, cancellationToken);
@@ -53,6 +55,8 @@ public class CreateSubscriptionCommandHandler : IRequestHandler<CreateSubscripti
                 CurrentPeriodEnd = DateTimeOffset.UtcNow.AddYears(100), // Free plan never expires
                 CancelAtPeriodEnd = false,
                 PlanId = plan.Id,
+                Amount = plan.Price,
+                Currency = plan.Currency,
                 TenantId = tenant.Id
             };
 
@@ -78,6 +82,8 @@ public class CreateSubscriptionCommandHandler : IRequestHandler<CreateSubscripti
             new Dictionary<string, string>
             {
                 { "tenant_id", tenantId.Value.ToString() },
+                { "admin_user_id", applicationUserId.Value.ToString() },
+                { "admin_user_public_id", applicationUserPublicId.Value.ToString() },
                 { "plan_id", plan.Id.ToString() }
             }, cancellationToken);
 

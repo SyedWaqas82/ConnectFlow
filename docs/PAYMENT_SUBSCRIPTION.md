@@ -535,25 +535,29 @@ var emailEvent = new EmailSendMessageEvent(tenantId, userId)
 
 ## 11. API Endpoints
 
+
 ### 11.1 Subscription Management
 
 ```http
-GET    /subscriptions/GetSubscription           # Get current subscription
-GET    /subscriptions/GetAvailablePlans         # Get available plans
-GET    /subscriptions/GetCheckoutSession/{id}   # Check checkout session status
-POST   /subscriptions/CreateSubscription        # Create new subscription
-PUT    /subscriptions/UpdateSubscription        # Update subscription
-POST   /subscriptions/CancelSubscription        # Cancel subscription
-POST   /subscriptions/ReactivateSubscription    # Reactivate subscription
-POST   /subscriptions/ProcessWebhook            # Stripe webhook endpoint
+GET    /subscriptions/GetSubscription           # Get current subscription (auth required)
+GET    /subscriptions/GetAvailablePlans         # Get available plans (anonymous allowed)
+GET    /subscriptions/GetCheckoutSession/{sessionId}   # Check checkout session status (auth required)
+POST   /subscriptions/Create                    # Create new subscription (auth required)
+PUT    /subscriptions/Update                    # Update subscription (auth required)
+POST   /subscriptions/Cancel                    # Cancel subscription (auth required)
+POST   /subscriptions/Reactivate                # Reactivate subscription (auth required)
+POST   /subscriptions/ProcessWebhook            # Stripe webhook endpoint (anonymous allowed)
 ```
 
 ### 11.2 Authentication
 
+
 All endpoints except `GetAvailablePlans` and `ProcessWebhook` require:
+
 - **JWT Bearer token**
 - **Tenant context** (X-Tenant-Id header)
 - **TenantAdmin role**
+
 
 ## 12. Error Handling
 
@@ -598,10 +602,50 @@ return TypedResults.Problem(title: "Webhook processing failed", statusCode: 500)
 
 ### 14.1 Stripe Test Mode
 
+
 Use Stripe test mode for development:
+
 - **Test cards** for simulating payments
 - **Webhook testing** using Stripe CLI
 - **Test clock** for simulating time-based scenarios
+
+#### Testing Webhook Events with Stripe CLI
+
+You can use the Stripe CLI to test webhook event delivery to your local or remote endpoint. This is useful for simulating real Stripe events and verifying your webhook processing logic.
+
+**Steps:**
+
+1. Install the Stripe CLI:
+     - With Homebrew (macOS):
+         ```bash
+         brew install stripe/stripe-cli/stripe
+         ```
+     - Or see the [official Stripe CLI docs](https://stripe.com/docs/stripe-cli) for other platforms.
+2. Log in to Stripe CLI:
+    ```bash
+    stripe login
+    ```
+3. Forward webhook events to your local endpoint (replace the URL with your actual endpoint):
+    ```bash
+    stripe listen --forward-to localhost:5001/api/v1/subscriptions/ProcessWebhook
+    ```
+4. Trigger a test event (e.g., subscription created):
+    ```bash
+    stripe trigger customer.subscription.created
+    ```
+5. Check your application logs and the Stripe CLI output to verify the event was received and processed.
+
+**Common test events:**
+
+- `customer.subscription.created`
+- `customer.subscription.updated`
+- `customer.subscription.deleted`
+- `invoice.payment_succeeded`
+- `invoice.payment_failed`
+- `checkout.session.completed`
+
+See the [Stripe CLI trigger reference](https://stripe.com/docs/stripe-cli/events#trigger) for a full list of supported test events.
+
 
 ### 14.2 Test Scenarios
 

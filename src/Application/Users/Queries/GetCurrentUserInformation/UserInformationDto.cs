@@ -31,7 +31,7 @@ public record TenantDto
         {
             CreateMap<Tenant, TenantDto>()
                 .ForMember(dest => dest.Roles, opt => opt.MapFrom(src => src.TenantUsers.SelectMany(u => u.TenantUserRoles).Select(r => r.RoleName)))
-                .ForMember(dest => dest.Subscriptions, opt => opt.MapFrom(src => src.Subscriptions));
+                .ForMember(dest => dest.Subscriptions, opt => opt.MapFrom(src => src.Subscriptions.Where(s => s.Status == SubscriptionStatus.Active || s.Status == SubscriptionStatus.Trialing || s.Status == SubscriptionStatus.PastDue)));
         }
     }
 }

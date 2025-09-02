@@ -20,8 +20,8 @@ public interface IPaymentService
     Task<PaymentCheckoutSessionDto> CreateCheckoutSessionAsync(string customerId, string priceId, string successUrl, string cancelUrl, Dictionary<string, string>? metadata = null, CancellationToken cancellationToken = default);
     Task<PaymentCheckoutSessionDto> GetCheckoutSessionAsync(string sessionId, CancellationToken cancellationToken = default);
 
-    // Portal Session Management
-    Task<PaymentBillingPortalSessionDto> CreatePortalSessionAsync(string customerId, string returnUrl, CancellationToken cancellationToken = default);
+    // Billing Portal Management
+    Task<PaymentBillingPortalSessionDto> CreateBillingPortalSessionAsync(string customerId, string returnUrl, CancellationToken cancellationToken = default);
 
     // Invoice Management
     Task<PaymentInvoiceDto> GetInvoiceAsync(string invoiceId, CancellationToken cancellationToken = default);
@@ -29,7 +29,4 @@ public interface IPaymentService
 
     // Webhook Processing
     Task<PaymentEventDto> ProcessWebhookAsync(string body, string signature, CancellationToken cancellationToken = default);
-
-    // Usage Records (for metered billing if needed)
-    Task<PaymentUsageRecordDto> CreateUsageRecordAsync(string subscriptionItemId, long quantity, DateTimeOffset timestamp, CancellationToken cancellationToken = default);
 }

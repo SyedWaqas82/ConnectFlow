@@ -6,13 +6,15 @@ public class ProcessWebhookCommandHandler : IRequestHandler<ProcessWebhookComman
 {
     private readonly IPaymentService _paymentService;
     private readonly IPaymentWebhookEventHandlerService _paymentWebhookEventHandlerService;
+    private readonly IContextManager _contextManager;
     private readonly ICacheService _cacheService;
     private readonly SubscriptionSettings _subscriptionSettings;
 
-    public ProcessWebhookCommandHandler(IPaymentService paymentService, IPaymentWebhookEventHandlerService paymentWebhookEventHandlerService, ICacheService cacheService, IOptions<SubscriptionSettings> subscriptionSettings)
+    public ProcessWebhookCommandHandler(IPaymentService paymentService, IPaymentWebhookEventHandlerService paymentWebhookEventHandlerService, IContextManager contextManager, ICacheService cacheService, IOptions<SubscriptionSettings> subscriptionSettings)
     {
         _paymentService = paymentService;
         _paymentWebhookEventHandlerService = paymentWebhookEventHandlerService;
+        _contextManager = contextManager;
         _cacheService = cacheService;
         _subscriptionSettings = subscriptionSettings.Value;
     }
@@ -35,6 +37,8 @@ public class ProcessWebhookCommandHandler : IRequestHandler<ProcessWebhookComman
                 Message = "Event already processed (duplicate)"
             };
         }
+
+        await _contextManager.InitializeContextAsync(paymentEvent.TenantId, paymentEvent.ApplicationUserId);
 
         var processed = await ProcessEventAsync(paymentEvent, cancellationToken);
 
@@ -60,10 +64,11 @@ public class ProcessWebhookCommandHandler : IRequestHandler<ProcessWebhookComman
             "customer.subscription.created" => await _paymentWebhookEventHandlerService.HandleSubscriptionCreatedAsync(paymentEvent, cancellationToken),
             "customer.subscription.updated" => await _paymentWebhookEventHandlerService.HandleSubscriptionUpdatedAsync(paymentEvent, cancellationToken),
             "customer.subscription.deleted" => await _paymentWebhookEventHandlerService.HandleSubscriptionDeletedAsync(paymentEvent, cancellationToken),
-            "invoice.payment_succeeded" => await _paymentWebhookEventHandlerService.HandleInvoicePaymentSucceededAsync(paymentEvent, cancellationToken),
-            "invoice.payment_failed" => await _paymentWebhookEventHandlerService.HandleInvoicePaymentFailedAsync(paymentEvent, cancellationToken),
-            "invoice.finalized" => await _paymentWebhookEventHandlerService.HandleInvoiceFinalizedAsync(paymentEvent, cancellationToken),
-            "checkout.session.completed" => await _paymentWebhookEventHandlerService.HandleCheckoutSessionCompletedAsync(paymentEvent, cancellationToken),
+            "invoice.payment_succeeded" => await _paymentWebhookEventHandlerService.HandlePaymentAsync(paymentEvent, PaymentInvoiceStatus.Succeeded, cancellationToken),
+            "invoice.payment_failed" => await _paymentWebhookEventHandlerService.HandlePaymentAsync(paymentEvent, PaymentInvoiceStatus.Failed, cancellationToken),
+            "invoice.created" => await _paymentWebhookEventHandlerService.HandlePaymentAsync(paymentEvent, PaymentInvoiceStatus.Created, cancellationToken),
+            "invoice.finalized" => await _paymentWebhookEventHandlerService.HandlePaymentAsync(paymentEvent, PaymentInvoiceStatus.Finalized, cancellationToken),
+            "invoice.paid" => await _paymentWebhookEventHandlerService.HandlePaymentAsync(paymentEvent, PaymentInvoiceStatus.Paid, cancellationToken),
             _ => await _paymentWebhookEventHandlerService.HandleUnknownEventAsync(paymentEvent, cancellationToken)
         };
     }

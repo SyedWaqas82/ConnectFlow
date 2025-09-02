@@ -331,6 +331,8 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                     Status = table.Column<int>(type: "integer", nullable: false),
                     CurrentPeriodStart = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     CurrentPeriodEnd = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    Amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    Currency = table.Column<string>(type: "text", nullable: false),
                     CanceledAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     CancelAtPeriodEnd = table.Column<bool>(type: "boolean", nullable: false),
                     CancellationRequestedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
@@ -436,9 +438,12 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     PaymentProviderInvoiceId = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     Status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
-                    Amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    AmountPaid = table.Column<decimal>(type: "numeric(18,2)", nullable: false, defaultValue: 0m),
+                    AmountDue = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
                     Currency = table.Column<string>(type: "character varying(3)", maxLength: 3, nullable: false),
                     PaidAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    InvoicePdf = table.Column<string>(type: "text", nullable: false),
+                    HostedInvoiceUrl = table.Column<string>(type: "text", nullable: false),
                     SubscriptionId = table.Column<int>(type: "integer", nullable: false),
                     PublicId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
                     Created = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
@@ -530,13 +535,13 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                 columns: new[] { "Id", "BillingCycle", "CreatedBy", "Currency", "Description", "IsActive", "LastModifiedBy", "MaxChannels", "MaxFacebookChannels", "MaxInstagramChannels", "MaxTelegramChannels", "MaxUsers", "MaxWhatsAppChannels", "Name", "PaymentProviderPriceId", "PaymentProviderProductId", "Price", "Type" },
                 values: new object[,]
                 {
-                    { 1, 1, null, "USD", "Basic plan with limited features", true, null, 1, 0, 0, 0, 2, 1, "Free", "price_free", "", 0m, 1 },
-                    { 2, 1, null, "USD", "Starter plan with basic features", true, null, 3, 1, 1, 1, 5, 2, "Starter Plan - Monthly", "price_1S1lFgDVRyfs46JiBJyvA5eu", "prod_SxgcF8F4u3unNk", 29.99m, 2 },
-                    { 3, 2, null, "USD", "Starter plan with basic features", true, null, 3, 1, 1, 1, 5, 2, "Starter Plan - Yearly", "price_1S1lHtDVRyfs46JizuWqnOp2", "prod_Sxgf0MdFfTzUXR", 299.99m, 2 },
-                    { 4, 1, null, "USD", "Professional plan with advanced features", true, null, 10, 3, 3, 3, 25, 5, "Professional Plan - Monthly", "price_1S1lIXDVRyfs46Jirxqm0dz6", "prod_SxgfAcz4HHgFcY", 99.99m, 4 },
-                    { 5, 2, null, "USD", "Professional plan with advanced features", true, null, 10, 3, 3, 3, 25, 5, "Professional Plan - Yearly", "price_1S1lJ3DVRyfs46Ji40RP91Sk", "prod_SxggEc36SZchwA", 999.99m, 4 },
-                    { 6, 1, null, "USD", "Enterprise plan with all features", true, null, 50, 15, 15, 15, 100, 20, "Enterprise Plan - Monthly", "price_1S1lJgDVRyfs46JidlIn73va", "prod_Sxgh4Ucpw7IxSG", 299.99m, 5 },
-                    { 7, 2, null, "USD", "Enterprise plan with all features", true, null, 50, 15, 15, 15, 100, 20, "Enterprise Plan - Yearly", "price_1S1lKVDVRyfs46Ji1DJXRhHp", "prod_SxghGjm7I9Ugag", 2999.99m, 5 }
+                    { 1, 1, null, "usd", "Basic plan with limited features", true, null, 1, 0, 0, 0, 2, 1, "Free", "price_free", "", 0m, 1 },
+                    { 2, 1, null, "usd", "Starter plan with basic features", true, null, 3, 1, 1, 1, 5, 2, "Starter Plan - Monthly", "price_1S1lFgDVRyfs46JiBJyvA5eu", "prod_SxgcF8F4u3unNk", 29.99m, 2 },
+                    { 3, 2, null, "usd", "Starter plan with basic features", true, null, 3, 1, 1, 1, 5, 2, "Starter Plan - Yearly", "price_1S1lHtDVRyfs46JizuWqnOp2", "prod_Sxgf0MdFfTzUXR", 299.99m, 2 },
+                    { 4, 1, null, "usd", "Professional plan with advanced features", true, null, 10, 3, 3, 3, 25, 5, "Professional Plan - Monthly", "price_1S1lIXDVRyfs46Jirxqm0dz6", "prod_SxgfAcz4HHgFcY", 99.99m, 4 },
+                    { 5, 2, null, "usd", "Professional plan with advanced features", true, null, 10, 3, 3, 3, 25, 5, "Professional Plan - Yearly", "price_1S1lJ3DVRyfs46Ji40RP91Sk", "prod_SxggEc36SZchwA", 999.99m, 4 },
+                    { 6, 1, null, "usd", "Enterprise plan with all features", true, null, 50, 15, 15, 15, 100, 20, "Enterprise Plan - Monthly", "price_1S1lJgDVRyfs46JidlIn73va", "prod_Sxgh4Ucpw7IxSG", 299.99m, 5 },
+                    { 7, 2, null, "usd", "Enterprise plan with all features", true, null, 50, 15, 15, 15, 100, 20, "Enterprise Plan - Yearly", "price_1S1lKVDVRyfs46Ji1DJXRhHp", "prod_SxghGjm7I9Ugag", 2999.99m, 5 }
                 });
 
             migrationBuilder.CreateIndex(

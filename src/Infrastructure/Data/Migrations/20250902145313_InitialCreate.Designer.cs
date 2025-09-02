@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ConnectFlow.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250830102131_InitialCreate")]
+    [Migration("20250902145313_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -126,8 +126,13 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<decimal>("Amount")
+                    b.Property<decimal>("AmountDue")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("AmountPaid")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
 
                     b.Property<DateTimeOffset>("Created")
                         .ValueGeneratedOnAdd()
@@ -141,6 +146,14 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(3)
                         .HasColumnType("character varying(3)");
+
+                    b.Property<string>("HostedInvoiceUrl")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("InvoicePdf")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateTimeOffset>("LastModified")
                         .ValueGeneratedOnAdd()
@@ -286,7 +299,7 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                             Id = 1,
                             BillingCycle = 1,
                             Created = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            Currency = "USD",
+                            Currency = "usd",
                             Description = "Basic plan with limited features",
                             IsActive = true,
                             LastModified = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
@@ -308,7 +321,7 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                             Id = 2,
                             BillingCycle = 1,
                             Created = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            Currency = "USD",
+                            Currency = "usd",
                             Description = "Starter plan with basic features",
                             IsActive = true,
                             LastModified = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
@@ -330,7 +343,7 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                             Id = 3,
                             BillingCycle = 2,
                             Created = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            Currency = "USD",
+                            Currency = "usd",
                             Description = "Starter plan with basic features",
                             IsActive = true,
                             LastModified = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
@@ -352,7 +365,7 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                             Id = 4,
                             BillingCycle = 1,
                             Created = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            Currency = "USD",
+                            Currency = "usd",
                             Description = "Professional plan with advanced features",
                             IsActive = true,
                             LastModified = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
@@ -374,7 +387,7 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                             Id = 5,
                             BillingCycle = 2,
                             Created = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            Currency = "USD",
+                            Currency = "usd",
                             Description = "Professional plan with advanced features",
                             IsActive = true,
                             LastModified = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
@@ -396,7 +409,7 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                             Id = 6,
                             BillingCycle = 1,
                             Created = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            Currency = "USD",
+                            Currency = "usd",
                             Description = "Enterprise plan with all features",
                             IsActive = true,
                             LastModified = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
@@ -418,7 +431,7 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                             Id = 7,
                             BillingCycle = 2,
                             Created = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            Currency = "USD",
+                            Currency = "usd",
                             Description = "Enterprise plan with all features",
                             IsActive = true,
                             LastModified = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
@@ -445,6 +458,9 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<bool>("CancelAtPeriodEnd")
                         .HasColumnType("boolean");
 
@@ -461,6 +477,10 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
 
                     b.Property<int?>("CreatedBy")
                         .HasColumnType("integer");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateTimeOffset>("CurrentPeriodEnd")
                         .HasColumnType("timestamp with time zone");

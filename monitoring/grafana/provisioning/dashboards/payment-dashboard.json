@@ -88,7 +88,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
-          "expr": "sum(stripe_payments_successful_total)",
+          "expr": "sum(stripe_payments_successful_total or vector(0))",
           "legendFormat": "Successful Payments",
           "range": true,
           "refId": "A"
@@ -154,7 +154,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
-          "expr": "sum(stripe_payments_failed_total)",
+          "expr": "sum(stripe_payments_failed_total or vector(0))",
           "legendFormat": "Failed Payments",
           "range": true,
           "refId": "A"
@@ -224,7 +224,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
-          "expr": "100 * sum(stripe_payments_successful_total) / (sum(stripe_payments_successful_total) + sum(stripe_payments_failed_total) or vector(1))",
+          "expr": "100 * sum(stripe_payments_successful_total or vector(0)) / (sum(stripe_payments_successful_total or vector(0)) + sum(stripe_payments_failed_total or vector(0)) + vector(1))",
           "legendFormat": "Success Rate",
           "range": true,
           "refId": "A"
@@ -286,7 +286,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
-          "expr": "sum(stripe_payment_amounts)",
+          "expr": "sum(stripe_payment_amounts_USD_sum or vector(0))",
           "legendFormat": "Total Revenue",
           "range": true,
           "refId": "A"
@@ -361,7 +361,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
-          "expr": "sum(stripe_api_calls_total)",
+          "expr": "sum(stripe_api_calls_total or vector(0))",
           "legendFormat": "API Calls",
           "range": true,
           "refId": "A"
@@ -431,7 +431,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
-          "expr": "rate(stripe_api_duration_seconds_sum[5m]) / rate(stripe_api_duration_seconds_count[5m])",
+          "expr": "avg_over_time(stripe_api_duration_seconds[5m]) * 1000 or vector(0)",
           "legendFormat": "Avg Response Time",
           "range": true,
           "refId": "A"
@@ -493,7 +493,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
-          "expr": "sum(stripe_webhooks_received_total)",
+          "expr": "sum(stripe_webhooks_received_total or vector(0))",
           "legendFormat": "Webhooks Received",
           "range": true,
           "refId": "A"
@@ -559,7 +559,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
-          "expr": "sum(stripe_webhooks_failed_total)",
+          "expr": "sum(stripe_webhooks_failed_total or vector(0))",
           "legendFormat": "Webhook Errors",
           "range": true,
           "refId": "A"
@@ -634,7 +634,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
-          "expr": "sum(stripe_subscriptions_created_total)",
+          "expr": "sum(stripe_subscriptions_created_total or vector(0))",
           "legendFormat": "Created",
           "range": true,
           "refId": "A"
@@ -700,7 +700,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
-          "expr": "sum(stripe_subscriptions_canceled_total)",
+          "expr": "sum(stripe_subscriptions_canceled_total or vector(0))",
           "legendFormat": "Canceled",
           "range": true,
           "refId": "A"
@@ -837,13 +837,35 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 80,
+            "gradientMode": "none",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
               "vis": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
             }
           },
-          "mappings": []
+          "mappings": [],
+          "unit": "short"
         },
         "overrides": []
       },
@@ -855,20 +877,13 @@
       },
       "id": 16,
       "options": {
-        "legend": {
-          "displayMode": "visible",
-          "placement": "right"
-        },
-        "pieType": "pie",
+        "orientation": "horizontal",
         "reduceOptions": {
           "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
+        "showTooltipPercent": true
       },
       "targets": [
         {
@@ -879,12 +894,13 @@
           "editorMode": "code",
           "expr": "sum by (operation) (stripe_api_calls_total)",
           "legendFormat": "{{operation}}",
-          "range": true,
-          "refId": "A"
+          "range": false,
+          "refId": "A",
+          "instant": true
         }
       ],
       "title": "Stripe API Calls by Operation",
-      "type": "piechart"
+      "type": "barchart"
     },
     {
       "datasource": {
@@ -895,18 +911,55 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           },
           "custom": {
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "vis": false
-            }
+            "align": "auto",
+            "displayMode": "auto",
+            "inspect": false
           },
-          "mappings": []
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          },
+          "unit": "short"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "failure_reason"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Failure Reason"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Count"
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 8,
@@ -916,20 +969,13 @@
       },
       "id": 17,
       "options": {
-        "legend": {
-          "displayMode": "visible",
-          "placement": "right"
-        },
-        "pieType": "pie",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "Count"
+          }
+        ]
       },
       "targets": [
         {
@@ -938,14 +984,16 @@
             "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
-          "expr": "sum by (reason) (stripe_payments_failed_total)",
-          "legendFormat": "{{reason}}",
-          "range": true,
-          "refId": "A"
+          "expr": "sum by (failure_reason) (stripe_payments_failed_total)",
+          "format": "table",
+          "legendFormat": "{{failure_reason}}",
+          "range": false,
+          "refId": "A",
+          "instant": true
         }
       ],
       "title": "Payment Failure Reasons",
-      "type": "piechart"
+      "type": "table"
     },
     {
       "collapsed": false,
@@ -953,7 +1001,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 25
+        "y": 36
       },
       "id": 13,
       "panels": [],
@@ -990,7 +1038,7 @@
         "h": 8,
         "w": 6,
         "x": 0,
-        "y": 26
+        "y": 37
       },
       "id": 14,
       "options": {
@@ -1052,7 +1100,7 @@
         "h": 8,
         "w": 6,
         "x": 6,
-        "y": 26
+        "y": 37
       },
       "id": 15,
       "options": {
@@ -1114,7 +1162,7 @@
         "h": 8,
         "w": 6,
         "x": 12,
-        "y": 26
+        "y": 37
       },
       "id": 16,
       "options": {
@@ -1176,7 +1224,7 @@
         "h": 8,
         "w": 6,
         "x": 18,
-        "y": 26
+        "y": 37
       },
       "id": 17,
       "options": {
@@ -1266,7 +1314,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 34
+        "y": 45
       },
       "id": 18,
       "options": {
@@ -1355,7 +1403,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 34
+        "y": 45
       },
       "id": 19,
       "options": {

@@ -430,7 +430,6 @@ public class IdentityService : IIdentityService
                 new Dictionary<string, string>
                 {
                     { "tenant_id", tenant.Id.ToString() },
-                    { "tenant_name", tenant.Name },
                     { "admin_user_id", tenantAdmin.Id.ToString() },
                     { "admin_user_public_id", tenantAdmin.PublicId.ToString() },
                     { "migration", "true" }
@@ -476,7 +475,6 @@ public class IdentityService : IIdentityService
                 new Dictionary<string, string>
                 {
                     { "tenant_id", tenant.Id.ToString() },
-                    { "tenant_name", name },
                     { "admin_user_id", adminUser.Id.ToString() },
                     { "admin_user_public_id", adminUser.PublicId.ToString() }
                 });

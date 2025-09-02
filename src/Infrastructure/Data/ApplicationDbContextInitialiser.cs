@@ -166,6 +166,8 @@ public class ApplicationDbContextInitialiser
                     Status = SubscriptionStatus.Active,
                     CurrentPeriodStart = DateTimeOffset.UtcNow,
                     PlanId = 2,
+                    Amount = 29.99m,
+                    Currency = "usd",
                     TenantId = tenant.Id,
                     CreatedBy = tenantAdmin.Id
                 };

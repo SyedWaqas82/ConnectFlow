@@ -8,8 +8,7 @@ using StripeInvoice = Stripe.Invoice;
 using StripeCheckoutSession = Stripe.Checkout.Session;
 using StripeCheckoutSessionService = Stripe.Checkout.SessionService;
 using StripeCheckoutSessionCreateOptions = Stripe.Checkout.SessionCreateOptions;
-using StripeBillingPortalSessionService = Stripe.BillingPortal.SessionService;
-using StripeBillingPortalSessionCreateOptions = Stripe.BillingPortal.SessionCreateOptions;
+using Newtonsoft.Json.Linq;
 
 namespace ConnectFlow.Infrastructure.Services.Payment;
 
@@ -51,8 +50,53 @@ public class StripeService : IPaymentService
                 Id = stripeEvent.Id,
                 Type = stripeEvent.Type,
                 Created = stripeEvent.Created,
-                Data = stripeEvent.Data.RawObject as Dictionary<string, object> ?? new Dictionary<string, object>()
+                Data = stripeEvent.Data.RawObject.ToObject<Dictionary<string, object>>() ?? new Dictionary<string, object>()
             };
+
+            var metadataDict = (eventDto.Data.TryGetValue("metadata", out var metadataToken) && metadataToken is JObject metadataJObject) ? metadataJObject.ToObject<Dictionary<string, string>>() ?? new Dictionary<string, string>() : new Dictionary<string, string>();
+            eventDto.TenantId = int.TryParse(metadataDict.GetValueOrDefault("tenant_id"), out var tid) ? tid : default;
+            eventDto.ApplicationUserId = int.TryParse(metadataDict.GetValueOrDefault("admin_user_id"), out var uid) ? uid : default;
+            eventDto.ApplicationUserPublicId = Guid.TryParse(metadataDict.GetValueOrDefault("admin_user_public_id"), out var guid) ? guid : (Guid?)null;
+
+            switch (eventDto.Type)
+            {
+                case "customer.subscription.created" or "customer.subscription.updated" or "customer.subscription.deleted":
+                    var data = stripeEvent.Data.Object as StripeSubscription;
+
+                    eventDto.ObjectId = data?.Id ?? string.Empty;
+                    eventDto.StripeCustomerId = data?.CustomerId ?? string.Empty;
+                    eventDto.StripeSubscriptionId = data?.Id ?? string.Empty;
+                    break;
+                case "invoice.payment_succeeded" or "invoice.payment_failed" or "invoice.created" or "invoice.finalized" or "invoice.paid":
+                    var invoiceData = stripeEvent.Data.Object as StripeInvoice;
+
+                    eventDto.ObjectId = invoiceData?.Id ?? string.Empty;
+                    eventDto.StripeCustomerId = invoiceData?.CustomerId ?? string.Empty;
+                    eventDto.StripeSubscriptionId = invoiceData?.Parent?.SubscriptionDetails?.SubscriptionId ?? string.Empty;
+
+                    eventDto.TenantId = int.TryParse(invoiceData?.Parent?.SubscriptionDetails?.Metadata?.GetValueOrDefault("tenant_id"), out tid) ? tid : default;
+                    eventDto.ApplicationUserId = int.TryParse(invoiceData?.Parent?.SubscriptionDetails?.Metadata?.GetValueOrDefault("admin_user_id"), out uid) ? uid : default;
+                    eventDto.ApplicationUserPublicId = Guid.TryParse(invoiceData?.Parent?.SubscriptionDetails?.Metadata?.GetValueOrDefault("admin_user_public_id"), out guid) ? guid : (Guid?)null;
+
+                    // For payment failures, extract failure reason from payment intent
+                    if (eventDto.Type == "invoice.payment_failed")
+                    {
+                        // Try to extract failure information from the invoice's payment intent
+                        var failureCode = "unknown";
+                        var failureMessage = "Payment failed";
+
+                        // Check if there's payment intent information in the data
+                        if (eventDto.Data.TryGetValue("last_payment_error", out var errorData) && errorData is JObject errorObj)
+                        {
+                            failureCode = errorObj["code"]?.ToString() ?? errorObj["decline_code"]?.ToString() ?? "unknown";
+                            failureMessage = errorObj["message"]?.ToString() ?? "Payment failed";
+                        }
+
+                        eventDto.Data["failure_code"] = failureCode;
+                        eventDto.Data["failure_message"] = failureMessage;
+                    }
+                    break;
+            }
 
             // Record successful webhook processing
             _paymentMetrics.WebhookProcessed(eventType, stopwatch.Elapsed.TotalSeconds);
@@ -285,11 +329,6 @@ public class StripeService : IPaymentService
             // Record metrics
             _paymentMetrics.RecordStripeApiCall("update_subscription", true, stopwatch.Elapsed.TotalSeconds);
 
-            // Determine change type for better metrics
-            var changeType = priceId != null ? "plan_change" :
-                           cancelAtPeriodEnd.HasValue ? "cancellation_setting" : "general_update";
-            _paymentMetrics.SubscriptionUpdated(changeType);
-
             return MapToSubscriptionDto(subscription);
         }
         catch (StripeException ex)
@@ -317,7 +356,6 @@ public class StripeService : IPaymentService
 
                 // Record metrics
                 _paymentMetrics.RecordStripeApiCall("cancel_subscription", true, stopwatch.Elapsed.TotalSeconds);
-                _paymentMetrics.SubscriptionCanceled("immediate", "unknown");
             }
             else
             {
@@ -330,7 +368,6 @@ public class StripeService : IPaymentService
 
                 // Record metrics
                 _paymentMetrics.RecordStripeApiCall("schedule_cancellation", true, stopwatch.Elapsed.TotalSeconds);
-                _paymentMetrics.SubscriptionCanceled("at_period_end", "unknown");
             }
 
             return MapToSubscriptionDto(subscription);
@@ -425,7 +462,11 @@ public class StripeService : IPaymentService
                 CancelUrl = cancelUrl,
                 AllowPromotionCodes = true,
                 BillingAddressCollection = "auto",
-                Metadata = metadata ?? new Dictionary<string, string>()
+                Metadata = metadata ?? new Dictionary<string, string>(),
+                SubscriptionData = new Stripe.Checkout.SessionSubscriptionDataOptions
+                {
+                    Metadata = metadata ?? new Dictionary<string, string>()
+                },
             };
 
             var service = new StripeCheckoutSessionService();
@@ -453,52 +494,55 @@ public class StripeService : IPaymentService
 
     public async Task<PaymentCheckoutSessionDto> GetCheckoutSessionAsync(string sessionId, CancellationToken cancellationToken = default)
     {
+        var stopwatch = Stopwatch.StartNew();
+
         try
         {
             var service = new StripeCheckoutSessionService();
             var session = await service.GetAsync(sessionId, cancellationToken: cancellationToken);
+
+            // Record metrics
+            _paymentMetrics.RecordStripeApiCall("get_checkout_session", true, stopwatch.Elapsed.TotalSeconds);
 
             return MapToCheckoutSessionDto(session);
         }
         catch (StripeException ex)
         {
             _logger.LogError(ex, "Failed to get Stripe checkout session {SessionId}", sessionId);
+            _paymentMetrics.RecordStripeApiCall("get_checkout_session", false, stopwatch.Elapsed.TotalSeconds);
+            _paymentMetrics.RecordStripeApiError("get_checkout_session", ex.StripeError?.Type ?? "unknown");
             throw;
         }
     }
 
-    public async Task<PaymentBillingPortalSessionDto> CreatePortalSessionAsync(string customerId, string returnUrl, CancellationToken cancellationToken = default)
+    public async Task<PaymentBillingPortalSessionDto> CreateBillingPortalSessionAsync(string customerId, string returnUrl, CancellationToken cancellationToken = default)
     {
         var stopwatch = Stopwatch.StartNew();
 
         try
         {
-            var options = new StripeBillingPortalSessionCreateOptions
+            var options = new Stripe.BillingPortal.SessionCreateOptions
             {
                 Customer = customerId,
-                ReturnUrl = returnUrl
+                ReturnUrl = returnUrl,
             };
 
-            var service = new StripeBillingPortalSessionService();
+            var service = new Stripe.BillingPortal.SessionService();
             var session = await service.CreateAsync(options, cancellationToken: cancellationToken);
 
             _logger.LogInformation("Created Stripe billing portal session {SessionId} for customer {CustomerId}", session.Id, customerId);
 
             // Record metrics
-            _paymentMetrics.RecordStripeApiCall("create_billing_portal", true, stopwatch.Elapsed.TotalSeconds);
+            _paymentMetrics.RecordStripeApiCall("create_billing_portal_session", true, stopwatch.Elapsed.TotalSeconds);
             _paymentMetrics.BillingPortalSessionCreated();
 
-            return new PaymentBillingPortalSessionDto
-            {
-                Id = session.Id,
-                Url = session.Url
-            };
+            return MapToBillingPortalSessionDto(session);
         }
         catch (StripeException ex)
         {
             _logger.LogError(ex, "Failed to create Stripe billing portal session for customer {CustomerId}", customerId);
-            _paymentMetrics.RecordStripeApiCall("create_billing_portal", false, stopwatch.Elapsed.TotalSeconds);
-            _paymentMetrics.RecordStripeApiError("create_billing_portal", ex.StripeError?.Type ?? "unknown");
+            _paymentMetrics.RecordStripeApiCall("create_billing_portal_session", false, stopwatch.Elapsed.TotalSeconds);
+            _paymentMetrics.RecordStripeApiError("create_billing_portal_session", ex.StripeError?.Type ?? "unknown");
             throw;
         }
     }
@@ -509,22 +553,31 @@ public class StripeService : IPaymentService
 
     public async Task<PaymentInvoiceDto> GetInvoiceAsync(string invoiceId, CancellationToken cancellationToken = default)
     {
+        var stopwatch = Stopwatch.StartNew();
+
         try
         {
             var service = new InvoiceService();
             var invoice = await service.GetAsync(invoiceId, cancellationToken: cancellationToken);
+
+            // Record metrics
+            _paymentMetrics.RecordStripeApiCall("get_invoice", true, stopwatch.Elapsed.TotalSeconds);
 
             return MapToInvoiceDto(invoice);
         }
         catch (StripeException ex)
         {
             _logger.LogError(ex, "Failed to get Stripe invoice {InvoiceId}", invoiceId);
+            _paymentMetrics.RecordStripeApiCall("get_invoice", false, stopwatch.Elapsed.TotalSeconds);
+            _paymentMetrics.RecordStripeApiError("get_invoice", ex.StripeError?.Type ?? "unknown");
             throw;
         }
     }
 
     public async Task<List<PaymentInvoiceDto>> GetInvoicesAsync(string customerId, int limit = 10, CancellationToken cancellationToken = default)
     {
+        var stopwatch = Stopwatch.StartNew();
+
         try
         {
             var options = new InvoiceListOptions
@@ -537,32 +590,18 @@ public class StripeService : IPaymentService
             var service = new InvoiceService();
             var invoices = await service.ListAsync(options, cancellationToken: cancellationToken);
 
+            // Record metrics
+            _paymentMetrics.RecordStripeApiCall("list_invoices", true, stopwatch.Elapsed.TotalSeconds);
+
             return invoices.Data.Select(MapToInvoiceDto).ToList();
         }
         catch (StripeException ex)
         {
             _logger.LogError(ex, "Failed to get Stripe invoices for customer {CustomerId}", customerId);
+            _paymentMetrics.RecordStripeApiCall("list_invoices", false, stopwatch.Elapsed.TotalSeconds);
+            _paymentMetrics.RecordStripeApiError("list_invoices", ex.StripeError?.Type ?? "unknown");
             throw;
         }
-    }
-
-    #endregion
-
-    #region Usage Records
-
-    public Task<PaymentUsageRecordDto> CreateUsageRecordAsync(string subscriptionItemId, long quantity, DateTimeOffset timestamp, CancellationToken cancellationToken = default)
-    {
-        // Usage records functionality - implement when metered billing is needed
-        // For now, return a basic implementation that tracks the request
-        _logger.LogInformation("Usage record creation requested for subscription item {SubscriptionItemId}, quantity {Quantity}",
-            subscriptionItemId, quantity);
-
-        return Task.FromResult(new PaymentUsageRecordDto
-        {
-            Id = $"usg_{Guid.NewGuid().ToString("N")[..24]}", // Generate usage record-like ID
-            Quantity = quantity,
-            Timestamp = timestamp
-        });
     }
 
     #endregion
@@ -582,21 +621,17 @@ public class StripeService : IPaymentService
 
     private static PaymentSubscriptionDto MapToSubscriptionDto(StripeSubscription subscription)
     {
-        // Extract current period dates from RawJObject as they're not exposed as typed properties in this SDK version
-        var currentPeriodStart = subscription.RawJObject?["current_period_start"]?.ToObject<long>() ?? 0;
-        var currentPeriodEnd = subscription.RawJObject?["current_period_end"]?.ToObject<long>() ?? 0;
-
-        // Extract price ID from the first item in the subscription (most subscriptions have only one item)
-        var priceId = subscription.Items?.Data?.FirstOrDefault()?.Price?.Id ?? string.Empty;
+        // Extract first item in the subscription (most subscriptions have only one item)
+        var firstItem = subscription.Items?.Data?.FirstOrDefault();
 
         return new PaymentSubscriptionDto
         {
             Id = subscription.Id,
             CustomerId = subscription.CustomerId,
             Status = subscription.Status,
-            PriceId = priceId,
-            CurrentPeriodStart = DateTimeOffset.FromUnixTimeSeconds(currentPeriodStart),
-            CurrentPeriodEnd = DateTimeOffset.FromUnixTimeSeconds(currentPeriodEnd),
+            PriceId = firstItem?.Price?.Id ?? string.Empty,
+            CurrentPeriodStart = firstItem?.CurrentPeriodStart ?? DateTimeOffset.MinValue,
+            CurrentPeriodEnd = firstItem?.CurrentPeriodEnd ?? DateTimeOffset.MinValue,
             CancelAtPeriodEnd = subscription.CancelAtPeriodEnd,
             CanceledAt = subscription.CanceledAt,
             Metadata = subscription.Metadata ?? new Dictionary<string, string>()
@@ -615,10 +650,20 @@ public class StripeService : IPaymentService
         };
     }
 
+    private static PaymentBillingPortalSessionDto MapToBillingPortalSessionDto(Stripe.BillingPortal.Session session)
+    {
+        return new PaymentBillingPortalSessionDto
+        {
+            Id = session.Id,
+            Url = session.Url,
+            CustomerId = session.Customer
+        };
+    }
+
     private static PaymentInvoiceDto MapToInvoiceDto(StripeInvoice invoice)
     {
         // Extract subscription ID from RawJObject as it's not exposed as a direct property
-        var subscriptionId = invoice.RawJObject?["subscription"]?.ToObject<string>() ?? string.Empty;
+        var subscriptionId = invoice.Parent?.SubscriptionDetails?.SubscriptionId ?? string.Empty;
 
         return new PaymentInvoiceDto
         {
