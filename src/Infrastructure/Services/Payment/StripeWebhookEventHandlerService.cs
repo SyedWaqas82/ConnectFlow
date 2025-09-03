@@ -28,11 +28,11 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
     {
         try
         {
-            if (!ValidateRequiredFields(paymentEvent, paymentEvent.StripeSubscriptionId, paymentEvent.StripeCustomerId))
+            if (!ValidateRequiredFields(paymentEvent, paymentEvent.SubscriptionId, paymentEvent.CustomerId))
                 return false;
 
             // Get the full subscription details from Stripe
-            var subscription = await _paymentService.GetSubscriptionAsync(paymentEvent.StripeSubscriptionId, cancellationToken);
+            var subscription = await _paymentService.GetSubscriptionAsync(paymentEvent.SubscriptionId, cancellationToken);
 
             // Extract price ID from subscription data
             var priceId = subscription.PriceId;
@@ -51,11 +51,11 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
             }
 
             // Check if subscription already exists
-            var existingSubscription = await FindSubscriptionByStripeIdAsync(paymentEvent.StripeSubscriptionId, cancellationToken, includePlan: false, includeTenant: false);
+            var existingSubscription = await FindSubscriptionByStripeIdAsync(paymentEvent.SubscriptionId, cancellationToken, includePlan: false, includeTenant: false);
 
             if (existingSubscription != null)
             {
-                _logger.LogInformation("Subscription {SubscriptionId} already exists, updating status", paymentEvent.StripeSubscriptionId);
+                _logger.LogInformation("Subscription {SubscriptionId} already exists, updating status", paymentEvent.SubscriptionId);
                 return await UpdateExistingSubscriptionFromWebhook(existingSubscription, subscription, plan, cancellationToken);
             }
 
@@ -72,14 +72,14 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
     {
         try
         {
-            if (!ValidateRequiredFields(paymentEvent, paymentEvent.StripeSubscriptionId))
+            if (!ValidateRequiredFields(paymentEvent, paymentEvent.SubscriptionId))
                 return false;
 
-            var existingSubscription = await FindSubscriptionByStripeIdAsync(paymentEvent.StripeSubscriptionId, cancellationToken);
+            var existingSubscription = await FindSubscriptionByStripeIdAsync(paymentEvent.SubscriptionId, cancellationToken);
             if (existingSubscription == null) return false;
 
             // Get updated subscription details from Stripe
-            var subscription = await _paymentService.GetSubscriptionAsync(paymentEvent.StripeSubscriptionId, cancellationToken);
+            var subscription = await _paymentService.GetSubscriptionAsync(paymentEvent.SubscriptionId, cancellationToken);
 
             return await UpdateExistingSubscriptionFromWebhook(existingSubscription, subscription, existingSubscription.Plan, cancellationToken);
         }
@@ -94,10 +94,10 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
     {
         try
         {
-            if (!ValidateRequiredFields(paymentEvent, paymentEvent.StripeSubscriptionId))
+            if (!ValidateRequiredFields(paymentEvent, paymentEvent.SubscriptionId))
                 return false;
 
-            var existingSubscription = await FindSubscriptionByStripeIdAsync(paymentEvent.StripeSubscriptionId, cancellationToken);
+            var existingSubscription = await FindSubscriptionByStripeIdAsync(paymentEvent.SubscriptionId, cancellationToken);
             if (existingSubscription == null) return false;
 
             return await ProcessSubscriptionDeletionAsync(existingSubscription, cancellationToken);
@@ -130,10 +130,10 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
             var failureCode = invoiceData.GetValueOrDefault("failure_code")?.ToString() ?? "unknown";
             var failureMessage = invoiceData.GetValueOrDefault("failure_message")?.ToString() ?? "Payment failed";
 
-            if (!ValidateRequiredFields(paymentEvent, paymentEvent.ObjectId, paymentEvent.StripeSubscriptionId))
+            if (!ValidateRequiredFields(paymentEvent, paymentEvent.ObjectId, paymentEvent.SubscriptionId))
                 return false;
 
-            var existingSubscription = await FindSubscriptionByStripeIdAsync(paymentEvent.StripeSubscriptionId, cancellationToken);
+            var existingSubscription = await FindSubscriptionByStripeIdAsync(paymentEvent.SubscriptionId, cancellationToken);
             if (existingSubscription == null) return false;
 
             // Create or update invoice record
@@ -483,8 +483,7 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
         existingSubscription.CanceledAt = DateTimeOffset.UtcNow; // When it was actually canceled
         existingSubscription.CancelAtPeriodEnd = false; // Reset flag since cancellation is now complete
 
-        _logger.LogInformation("Subscription {SubscriptionId} deleted - was scheduled for cancellation: {WasScheduled}",
-            existingSubscription.Id, wasScheduledForCancellation);
+        _logger.LogInformation("Subscription {SubscriptionId} deleted - was scheduled for cancellation: {WasScheduled}", existingSubscription.Id, wasScheduledForCancellation);
 
         // Add cancellation domain event
         var cancelEvent = new SubscriptionStatusEvent(existingSubscription.TenantId, default, existingSubscription, SubscriptionAction.Cancel, wasScheduledForCancellation ? "Subscription reached period end and was canceled as scheduled" : "Subscription was canceled immediately", sendEmailNotification: true); // Always suspend limits immediately when subscription is actually deleted

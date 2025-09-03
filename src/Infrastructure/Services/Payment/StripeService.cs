@@ -64,15 +64,15 @@ public class StripeService : IPaymentService
                     var data = stripeEvent.Data.Object as StripeSubscription;
 
                     eventDto.ObjectId = data?.Id ?? string.Empty;
-                    eventDto.StripeCustomerId = data?.CustomerId ?? string.Empty;
-                    eventDto.StripeSubscriptionId = data?.Id ?? string.Empty;
+                    eventDto.CustomerId = data?.CustomerId ?? string.Empty;
+                    eventDto.SubscriptionId = data?.Id ?? string.Empty;
                     break;
                 case "invoice.payment_succeeded" or "invoice.payment_failed" or "invoice.created" or "invoice.finalized" or "invoice.paid":
                     var invoiceData = stripeEvent.Data.Object as StripeInvoice;
 
                     eventDto.ObjectId = invoiceData?.Id ?? string.Empty;
-                    eventDto.StripeCustomerId = invoiceData?.CustomerId ?? string.Empty;
-                    eventDto.StripeSubscriptionId = invoiceData?.Parent?.SubscriptionDetails?.SubscriptionId ?? string.Empty;
+                    eventDto.CustomerId = invoiceData?.CustomerId ?? string.Empty;
+                    eventDto.SubscriptionId = invoiceData?.Parent?.SubscriptionDetails?.SubscriptionId ?? string.Empty;
 
                     eventDto.TenantId = int.TryParse(invoiceData?.Parent?.SubscriptionDetails?.Metadata?.GetValueOrDefault("tenant_id"), out tid) ? tid : default;
                     eventDto.ApplicationUserId = int.TryParse(invoiceData?.Parent?.SubscriptionDetails?.Metadata?.GetValueOrDefault("admin_user_id"), out uid) ? uid : default;
@@ -283,7 +283,7 @@ public class StripeService : IPaymentService
         }
     }
 
-    public async Task<PaymentSubscriptionDto> UpdateSubscriptionAsync(string subscriptionId, string? priceId = null, bool? cancelAtPeriodEnd = null, Dictionary<string, string>? metadata = null, CancellationToken cancellationToken = default)
+    public async Task<PaymentSubscriptionDto> UpdateSubscriptionAsync(string subscriptionId, string priceId, Dictionary<string, string>? metadata = null, CancellationToken cancellationToken = default)
     {
         var stopwatch = Stopwatch.StartNew();
 
@@ -291,32 +291,22 @@ public class StripeService : IPaymentService
         {
             var options = new SubscriptionUpdateOptions();
 
-            if (!string.IsNullOrEmpty(priceId))
+            // Get current subscription to update items correctly
+            var currentService = new Stripe.SubscriptionService();
+            var currentSubscription = await currentService.GetAsync(subscriptionId, cancellationToken: cancellationToken);
+
+            options = new SubscriptionUpdateOptions
             {
-                // Get current subscription to update items correctly
-                var currentService = new Stripe.SubscriptionService();
-                var currentSubscription = await currentService.GetAsync(subscriptionId, cancellationToken: cancellationToken);
-
-                options.Items = new List<SubscriptionItemOptions>();
-
-                // Remove old items and add new price
-                foreach (var item in currentSubscription.Items.Data)
-                {
-                    options.Items.Add(new SubscriptionItemOptions
+                CancelAtPeriodEnd = false,
+                Items = new List<SubscriptionItemOptions>
                     {
-                        Id = item.Id,
-                        Deleted = true
-                    });
-                }
-
-                options.Items.Add(new SubscriptionItemOptions
-                {
-                    Price = priceId
-                });
-            }
-
-            if (cancelAtPeriodEnd.HasValue)
-                options.CancelAtPeriodEnd = cancelAtPeriodEnd.Value;
+                        new SubscriptionItemOptions
+                        {
+                            Id = currentSubscription.Items.Data[0].Id,
+                            Price = priceId,
+                        }
+                    }
+            };
 
             if (metadata != null)
                 options.Metadata = metadata;
@@ -363,6 +353,7 @@ public class StripeService : IPaymentService
                 {
                     CancelAtPeriodEnd = true
                 };
+
                 subscription = await service.UpdateAsync(subscriptionId, options, cancellationToken: cancellationToken);
                 _logger.LogInformation("Scheduled Stripe subscription {SubscriptionId} for cancellation at period end", subscriptionId);
 
@@ -608,12 +599,14 @@ public class StripeService : IPaymentService
 
     #region Refunding
 
-    public async Task<decimal> CalculateExpectedCreditAsync(string subscriptionId, string newPriceId)
+    public async Task<decimal> CalculateExpectedCreditAsync(string subscriptionId, string newPriceId, CancellationToken cancellationToken = default)
     {
+        var stopwatch = Stopwatch.StartNew();
+
         try
         {
             var service = new Stripe.SubscriptionService();
-            var subscription = await service.GetAsync(subscriptionId);
+            var subscription = await service.GetAsync(subscriptionId, cancellationToken: cancellationToken);
 
             var previewOptions = new InvoiceCreatePreviewOptions
             {
@@ -636,12 +629,18 @@ public class StripeService : IPaymentService
             var invoiceService = new InvoiceService();
             var previewInvoice = await invoiceService.CreatePreviewAsync(previewOptions);
 
+            // Record metrics
+            _paymentMetrics.RecordStripeApiCall("create_invoice_preview", true, stopwatch.Elapsed.TotalSeconds);
+
             var creditAmount = previewInvoice.Lines.Data.Where(line => line.Amount < 0).Sum(line => Math.Abs(line.Amount));
 
             return (decimal)creditAmount / 100;
         }
-        catch
+        catch (StripeException ex)
         {
+            _paymentMetrics.RecordStripeApiCall("calculate_refund_credit", false, stopwatch.Elapsed.TotalSeconds);
+            _paymentMetrics.RecordStripeApiError("calculate_refund_credit", ex.StripeError?.Type ?? "unknown");
+
             return 0;
         }
     }
@@ -657,7 +656,8 @@ public class StripeService : IPaymentService
             Id = customer.Id,
             Email = customer.Email,
             Name = customer.Name,
-            Metadata = customer.Metadata
+            Metadata = customer.Metadata ?? new Dictionary<string, string>(),
+            Data = customer.GetType().GetProperties().ToDictionary(property => property.Name, property => property.GetValue(customer) ?? string.Empty)
         };
     }
 
@@ -676,7 +676,8 @@ public class StripeService : IPaymentService
             CurrentPeriodEnd = firstItem?.CurrentPeriodEnd ?? DateTimeOffset.MinValue,
             CancelAtPeriodEnd = subscription.CancelAtPeriodEnd,
             CanceledAt = subscription.CanceledAt,
-            Metadata = subscription.Metadata ?? new Dictionary<string, string>()
+            Metadata = subscription.Metadata ?? new Dictionary<string, string>(),
+            Data = subscription.GetType().GetProperties().ToDictionary(property => property.Name, property => property.GetValue(subscription) ?? string.Empty)
         };
     }
 
@@ -688,7 +689,8 @@ public class StripeService : IPaymentService
             Url = session.Url,
             CustomerId = session.CustomerId,
             Status = session.Status,
-            Metadata = session.Metadata
+            Metadata = session.Metadata ?? new Dictionary<string, string>(),
+            Data = session.GetType().GetProperties().ToDictionary(property => property.Name, property => property.GetValue(session) ?? string.Empty)
         };
     }
 
@@ -717,7 +719,8 @@ public class StripeService : IPaymentService
             Currency = invoice.Currency,
             Created = invoice.Created,
             PaidAt = invoice.StatusTransitions?.PaidAt,
-            InvoiceUrl = invoice.InvoicePdf
+            Metadata = invoice.Metadata ?? new Dictionary<string, string>(),
+            Data = invoice.GetType().GetProperties().ToDictionary(property => property.Name, property => property.GetValue(invoice) ?? string.Empty)
         };
     }
 

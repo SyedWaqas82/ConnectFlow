@@ -11,7 +11,7 @@ public interface IPaymentService
 
     // Subscription Management
     Task<PaymentSubscriptionDto> CreateSubscriptionAsync(string customerId, string priceId, Dictionary<string, string>? metadata = null, CancellationToken cancellationToken = default);
-    Task<PaymentSubscriptionDto> UpdateSubscriptionAsync(string subscriptionId, string? priceId = null, bool? cancelAtPeriodEnd = null, Dictionary<string, string>? metadata = null, CancellationToken cancellationToken = default);
+    Task<PaymentSubscriptionDto> UpdateSubscriptionAsync(string subscriptionId, string priceId, Dictionary<string, string>? metadata = null, CancellationToken cancellationToken = default);
     Task<PaymentSubscriptionDto> CancelSubscriptionAsync(string subscriptionId, bool cancelImmediately = false, CancellationToken cancellationToken = default);
     Task<PaymentSubscriptionDto> ReactivateSubscriptionAsync(string subscriptionId, CancellationToken cancellationToken = default);
     Task<PaymentSubscriptionDto> GetSubscriptionAsync(string subscriptionId, CancellationToken cancellationToken = default);
@@ -31,5 +31,5 @@ public interface IPaymentService
     Task<PaymentEventDto> ProcessWebhookAsync(string body, string signature, CancellationToken cancellationToken = default);
 
     // Refunding
-    Task<decimal> CalculateExpectedCreditAsync(string subscriptionId, string newPriceId);
+    Task<decimal> CalculateExpectedCreditAsync(string subscriptionId, string newPriceId, CancellationToken cancellationToken = default);
 }

@@ -6,6 +6,7 @@ public class PaymentCustomerDto
     public string Email { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public Dictionary<string, string> Metadata { get; set; } = new();
+    public Dictionary<string, object> Data { get; set; } = new();
 }
 
 public class PaymentSubscriptionDto
@@ -19,6 +20,7 @@ public class PaymentSubscriptionDto
     public bool CancelAtPeriodEnd { get; set; }
     public DateTimeOffset? CanceledAt { get; set; }
     public Dictionary<string, string> Metadata { get; set; } = new();
+    public Dictionary<string, object> Data { get; set; } = new();
 }
 
 public class PaymentCheckoutSessionDto
@@ -28,6 +30,7 @@ public class PaymentCheckoutSessionDto
     public string Status { get; set; } = string.Empty;
     public string CustomerId { get; set; } = string.Empty;
     public Dictionary<string, string> Metadata { get; set; } = new();
+    public Dictionary<string, object> Data { get; set; } = new();
 }
 
 public class PaymentBillingPortalSessionDto
@@ -47,7 +50,8 @@ public class PaymentInvoiceDto
     public string Currency { get; set; } = string.Empty;
     public DateTimeOffset Created { get; set; }
     public DateTimeOffset? PaidAt { get; set; }
-    public string? InvoiceUrl { get; set; }
+    public Dictionary<string, string> Metadata { get; set; } = new();
+    public Dictionary<string, object> Data { get; set; } = new();
 }
 
 public class PaymentEventDto
@@ -58,10 +62,10 @@ public class PaymentEventDto
     public int ApplicationUserId { get; set; }
     public Guid? ApplicationUserPublicId { get; set; }
     public string ObjectId { get; set; } = string.Empty;
-    public string StripeSubscriptionId { get; set; } = string.Empty;
-    public string StripeCustomerId { get; set; } = string.Empty;
-    public Dictionary<string, object> Data { get; set; } = new();
+    public string SubscriptionId { get; set; } = string.Empty;
+    public string CustomerId { get; set; } = string.Empty;
     public DateTimeOffset Created { get; set; }
+    public Dictionary<string, object> Data { get; set; } = new();
 }
 
 public class PaymentUsageRecordDto
