@@ -9,8 +9,8 @@ public class EmailTemplates
     public const string PaymentSuccess = nameof(PaymentSuccess);
     public const string PaymentFailed = nameof(PaymentFailed);
     public const string PaymentRetry = nameof(PaymentRetry);
+    public const string PaymentRefundRequested = nameof(PaymentRefundRequested);
     public const string PaymentRefunded = nameof(PaymentRefunded);
-    public const string PaymentPartialRefund = nameof(PaymentPartialRefund);
 
     // Subscription templates
     public const string SubscriptionCreated = nameof(SubscriptionCreated);

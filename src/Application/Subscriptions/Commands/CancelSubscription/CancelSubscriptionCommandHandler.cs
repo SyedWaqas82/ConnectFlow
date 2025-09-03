@@ -8,12 +8,14 @@ public class CancelSubscriptionCommandHandler : IRequestHandler<CancelSubscripti
     private readonly IPaymentService _paymentService;
     private readonly IContextManager _contextManager;
     private readonly ISubscriptionManagementService _subscriptionManagementService;
+    private readonly SubscriptionSettings _subscriptionSettings;
 
-    public CancelSubscriptionCommandHandler(IPaymentService paymentService, IContextManager contextManager, ISubscriptionManagementService subscriptionManagementService)
+    public CancelSubscriptionCommandHandler(IPaymentService paymentService, IContextManager contextManager, ISubscriptionManagementService subscriptionManagementService, IOptions<SubscriptionSettings> subscriptionSettings)
     {
         _paymentService = paymentService;
         _contextManager = contextManager;
         _subscriptionManagementService = subscriptionManagementService;
+        _subscriptionSettings = subscriptionSettings.Value;
     }
 
     public async Task<Result<CancelSubscriptionResult>> Handle(CancelSubscriptionCommand request, CancellationToken cancellationToken)
@@ -36,6 +38,11 @@ public class CancelSubscriptionCommandHandler : IRequestHandler<CancelSubscripti
                 CancelledAt = null,
                 EffectiveDate = null
             }, "Free subscriptions cannot be cancelled.");
+        }
+
+        if (!_subscriptionSettings.AllowImmediateCancellations && request.CancelImmediately)
+        {
+            return Result<CancelSubscriptionResult>.Failure(null, "Immediate cancellations are not allowed as per the cancellation policy.");
         }
 
         // Cancel subscription in Stripe - this will trigger a webhook that updates local state

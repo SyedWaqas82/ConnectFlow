@@ -4,6 +4,7 @@ using ConnectFlow.Application.Subscriptions.Commands.CreateSubscription;
 using ConnectFlow.Application.Subscriptions.Commands.ProcessWebhook;
 using ConnectFlow.Application.Subscriptions.Commands.ReactivateSubscription;
 using ConnectFlow.Application.Subscriptions.Commands.UpdateSubscription;
+using ConnectFlow.Application.Subscriptions.Queries.CalculateRefundCredit;
 using ConnectFlow.Application.Subscriptions.Queries.GetAvailablePlans;
 using ConnectFlow.Application.Subscriptions.Queries.GetCheckoutSession;
 using ConnectFlow.Application.Subscriptions.Queries.GetSubscription;
@@ -24,6 +25,7 @@ public class Subscriptions : EndpointGroupBase
         group.MapPut(UpdateSubscription, "Update");
         group.MapPost(CancelSubscription, "Cancel");
         group.MapPost(ReactivateSubscription, "Reactivate");
+        group.MapGet(CalculateRefundCredit, "CalculateRefundCredit");
         group.AllowAnonymous().MapPost(ProcessWebhook, "ProcessWebhook");
     }
 
@@ -67,6 +69,12 @@ public class Subscriptions : EndpointGroupBase
     public async Task<Ok<Result<ReactivateSubscriptionResult>>> ReactivateSubscription(ISender sender)
     {
         var result = await sender.Send(new ReactivateSubscriptionCommand());
+        return TypedResults.Ok(result);
+    }
+
+    public async Task<Ok<decimal>> CalculateRefundCredit(ISender sender)
+    {
+        var result = await sender.Send(new CalculateRefundCreditQuery());
         return TypedResults.Ok(result);
     }
 

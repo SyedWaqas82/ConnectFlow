@@ -243,8 +243,8 @@ public class PaymentStatusEventHandler : INotificationHandler<PaymentStatusEvent
         PaymentAction.Success => EmailTemplates.PaymentSuccess,
         PaymentAction.Failed => EmailTemplates.PaymentFailed,
         PaymentAction.Retry => EmailTemplates.PaymentRetry,
+        PaymentAction.RefundRequested => EmailTemplates.PaymentRefundRequested,
         PaymentAction.Refunded => EmailTemplates.PaymentRefunded,
-        PaymentAction.PartialRefund => EmailTemplates.PaymentPartialRefund,
         _ => EmailTemplates.PaymentFailed
     };
 
@@ -253,8 +253,8 @@ public class PaymentStatusEventHandler : INotificationHandler<PaymentStatusEvent
         PaymentAction.Success => "Payment Successful - Thank You!",
         PaymentAction.Failed => "Payment Failed - Action Required",
         PaymentAction.Retry => "Payment Retry Scheduled",
+        PaymentAction.RefundRequested => "Payment Refund Requested",
         PaymentAction.Refunded => "Payment Refunded",
-        PaymentAction.PartialRefund => "Partial Refund Processed",
         _ => "Payment Update"
     };
 }

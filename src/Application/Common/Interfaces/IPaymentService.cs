@@ -29,4 +29,7 @@ public interface IPaymentService
 
     // Webhook Processing
     Task<PaymentEventDto> ProcessWebhookAsync(string body, string signature, CancellationToken cancellationToken = default);
+
+    // Refunding
+    Task<decimal> CalculateExpectedCreditAsync(string subscriptionId, string newPriceId);
 }

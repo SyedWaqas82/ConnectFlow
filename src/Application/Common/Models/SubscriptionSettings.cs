@@ -22,4 +22,6 @@ public class SubscriptionSettings
     // Advanced retry behavior
     public bool UseIntelligentGracePeriod { get; set; } = true; // Adjust grace period based on retry attempts
     public int RetryAttemptGracePeriodHours { get; set; } = 72; // Additional grace period per retry attempt
+    public bool AllowImmediateCancellations { get; set; } = true; // Allow users to cancel immediately
+    public bool AllowRefunds { get; set; } = true; // Allow users to request refunds
 }

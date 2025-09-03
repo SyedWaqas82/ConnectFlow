@@ -606,6 +606,48 @@ public class StripeService : IPaymentService
 
     #endregion
 
+    #region Refunding
+
+    public async Task<decimal> CalculateExpectedCreditAsync(string subscriptionId, string newPriceId)
+    {
+        try
+        {
+            var service = new Stripe.SubscriptionService();
+            var subscription = await service.GetAsync(subscriptionId);
+
+            var previewOptions = new InvoiceCreatePreviewOptions
+            {
+                Customer = subscription.CustomerId,
+                Subscription = subscriptionId,
+                SubscriptionDetails = new InvoiceSubscriptionDetailsOptions
+                {
+                    Items = new List<InvoiceSubscriptionDetailsItemOptions>
+                    {
+                        new InvoiceSubscriptionDetailsItemOptions
+                        {
+                            Id = subscription.Items.Data[0].Id,
+                            Price = newPriceId
+                        }
+                    },
+                    ProrationDate = DateTime.UtcNow
+                }
+            };
+
+            var invoiceService = new InvoiceService();
+            var previewInvoice = await invoiceService.CreatePreviewAsync(previewOptions);
+
+            var creditAmount = previewInvoice.Lines.Data.Where(line => line.Amount < 0).Sum(line => Math.Abs(line.Amount));
+
+            return (decimal)creditAmount / 100;
+        }
+        catch
+        {
+            return 0;
+        }
+    }
+
+    #endregion
+
     #region Private Mapping Methods
 
     private static PaymentCustomerDto MapToCustomerDto(StripeCustomer customer)

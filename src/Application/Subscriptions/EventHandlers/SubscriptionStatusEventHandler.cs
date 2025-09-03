@@ -199,7 +199,7 @@ public class SubscriptionStatusEventHandler : INotificationHandler<SubscriptionS
             var queue = MessagingConfiguration.GetQueueByTypeAndDomain(MessagingConfiguration.QueueType.Default, MessagingConfiguration.QueueDomain.Email);
             await _messagePublisher.PublishAsync(emailEvent, queue.RoutingKey, cancellationToken);
 
-            _logger.LogInformation("Queued {Action} email notification for tenant {TenantEmail} for subscription {SubscriptionId}", notification.Action, subscription.Tenant.Email, subscription.Id);
+            _logger.LogInformation("Queued {Action} email notification for tenant {TenantEmail} for subscription {SubscriptionId}", notification.Action, subscription.Tenant?.Email, subscription.Id);
         }
         catch (Exception ex)
         {

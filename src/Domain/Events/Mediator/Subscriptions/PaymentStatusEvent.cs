@@ -30,6 +30,6 @@ public enum PaymentAction
     Success,
     Failed,
     Retry,
-    Refunded,
-    PartialRefund
+    RefundRequested,
+    Refunded
 }
