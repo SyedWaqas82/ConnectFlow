@@ -142,9 +142,10 @@ The RabbitMQ implementation includes comprehensive monitoring via:
 
 To access the monitoring:
 
-- Grafana Dashboard: [http://localhost:3000/d/rabbitmq-dashboard](http://localhost:3000/d/rabbitmq-dashboard)
-- RabbitMQ Management UI: [http://localhost:15672](http://localhost:15672) (guest/guest)
-- Health Check UI: [http://localhost:5010/healthz](http://localhost:5010/healthz) (depends on your app port)
+- **Grafana RabbitMQ Dashboard**: <http://localhost:3000/d/rabbitmq-dashboard>
+- **RabbitMQ Management UI**: <http://localhost:15672> (guest/guest)
+- **Health Check UI**: <https://localhost:5001/health> (depends on your app port)
+- **Prometheus RabbitMQ Metrics**: <http://localhost:9419/metrics>
 
 ## Creating New Queues
 

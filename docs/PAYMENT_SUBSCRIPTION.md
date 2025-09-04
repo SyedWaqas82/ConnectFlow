@@ -429,15 +429,12 @@ Payment Fails → Update Retry Count → Calculate Next Retry → Start Grace Pe
 ```json
 {
   "SubscriptionSettings": {
-    "GracePeriodDays": 7,                    // Grace period after payment failure
-    "MaxPaymentRetries": 4,                  // Maximum retry attempts (matches Stripe)
-    "StripeRetryPeriodDays": 25,            // Stripe's full retry period
-    "DefaultDowngradePlanName": "Free",      // Plan to downgrade to
-    "AutoDowngradeAfterGracePeriod": true,   // Auto-downgrade after grace period
-    "AutoDowngradeAfterMaxRetries": false,   // Don't auto-downgrade on max retries
-    "EventIdempotencyCacheDuration": 24,     // Cache webhook events (hours)
-    "UseIntelligentGracePeriod": true,       // Extend grace period beyond Stripe retries
-    "RetryAttemptGracePeriodHours": 72       // Buffer hours after last retry
+    "GracePeriodDays": 7,
+    "MaxPaymentRetries": 5,
+    "DefaultDowngradePlanName": "Free",
+    "EventIdempotencyCacheDuration": 24,
+    "AllowImmediateCancellations": false,
+    "AllowDowngrades": false
   }
 }
 ```
@@ -447,8 +444,37 @@ Payment Fails → Update Retry Count → Calculate Next Retry → Start Grace Pe
 ```json
 {
   "StripeSettings": {
-    "SecretKey": "sk_test_...",              // Stripe secret key
-    "WebhookSecret": "whsec_..."             // Webhook endpoint secret
+    "SecretKey": "sk_test_...",
+    "PublishableKey": "pk_test_...",
+    "WebhookSecret": "whsec_..."
+  }
+}
+```
+
+### 8.3 JWT Settings (for API authentication)
+
+```json
+{
+  "JwtSettings": {
+    "Key": "your-secret-key-min-256-bits",
+    "Issuer": "ConnectFlow.Dev",
+    "Audience": "ConnectFlow.Dev",
+    "AccessTokenExpirationMinutes": 60,
+    "RefreshTokenExpirationDays": 7
+  }
+}
+```
+
+### 8.4 Monitoring Configuration
+
+```json
+{
+  "Monitoring": {
+    "UseLoki": true,
+    "LokiUrl": "http://localhost:3100",
+    "OtlpEndpoint": "http://localhost:4317",
+    "PrometheusUrl": "http://localhost:9090",
+    "GrafanaUrl": "http://localhost:3000"
   }
 }
 ```

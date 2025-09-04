@@ -1,40 +1,45 @@
-# ConnectFlow BaseJob Framework Documentation
+# ConnectFlow Enhanced BaseJob Framework Documentation
 
 ## Overview
 
-The ConnectFlow BaseJob framework provides a comprehensive foundation for enterprise-grade background job processing with Quartz.NET. All jobs in the system inherit from `BaseJob`, which provides automatic correlation tracking, comprehensive metrics collection, structured logging, distributed tracing, and context management.
+The ConnectFlow Enhanced BaseJob framework provides a comprehensive foundation for enterprise-grade background job processing with Quartz.NET. All jobs in the system inherit from `BaseJob`, which provides automatic correlation tracking, comprehensive metrics collection, structured logging, distributed tracing, and unified context management.
 
 ## Architecture Features
 
 ### 🔄 Automatic Context Management
-- Tenant and user context initialization
-- Secure context isolation between jobs
-- Helper methods for accessing current context
+- Tenant and user context initialization with multiple initialization strategies
+- Secure context isolation between jobs with automatic cleanup
+- Helper methods for accessing current context throughout job execution
 
-### 📊 Comprehensive Metrics
-- `job_executions_total` - Success/error counters by job type
-- `job_duration_seconds` - Execution time histogram  
-- `job_errors_total` - Error counters by error type and job
+### 📊 Comprehensive Metrics Collection
+- `job_executions_total` - Success/error counters by job type and status
+- `job_duration_seconds` - Execution time histogram with percentile tracking
+- `job_errors_total` - Error counters categorized by error type and job
+- Automatic integration with Prometheus and Grafana dashboards
 
-### 🔍 Correlation Tracking
-- Automatic correlation ID generation
-- Correlation ID propagation through logs and traces
-- External service integration support
+### 🔍 Advanced Correlation Tracking
+- Automatic correlation ID generation for all job executions
+- Correlation ID propagation through logs, traces, and downstream services
+- Support for external correlation ID injection from API calls
+- Cross-service correlation for distributed job processing
 
-### 📝 Structured Logging
-- Automatic LogContext properties injection
-- Job data parameters in logs
-- Execution timing and status
+### 📝 Rich Structured Logging
+- Automatic LogContext properties injection with job metadata
+- Job data parameters automatically included in structured logs
+- Execution timing, status, and performance metrics in logs
+- Integration with Serilog and Loki for powerful log querying
 
-### 🌐 Distributed Tracing
-- OpenTelemetry integration
-- Activity/span creation with tags
-- Job data and timing information
+### 🌐 Distributed Tracing Integration
+- Full OpenTelemetry integration with automatic activity creation
+- Activity/span creation with comprehensive tags and timing information
+- Job data and execution context automatically included in traces
+- Integration with Tempo for distributed trace visualization
 
-### ⚡ Enhanced Scheduling
-- Simple extension methods for job scheduling
-- Built-in correlation ID support
-- Flexible context and data passing
+### ⚡ Enhanced Scheduling Extensions
+- Simple extension methods for job scheduling with context
+- Built-in correlation ID support with automatic generation
+- Flexible context and data passing with type safety
+- Support for immediate, delayed, and cron-based scheduling
 
 ## BaseJob Implementation
 

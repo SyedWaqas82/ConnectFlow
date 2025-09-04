@@ -13,13 +13,15 @@ ConnectFlow implements Clean Architecture with these key layers:
 
 ### Key Features
 
-- **Multi-tenant SaaS Architecture** with complete tenant isolation
-- **Subscription & Payment Processing** with Stripe integration
-- **User Management** with JWT authentication and role-based access control
-- **Background Job Processing** using Quartz.NET with comprehensive monitoring
-- **Asynchronous Messaging** with RabbitMQ for reliable event processing
-- **Comprehensive Observability** with OpenTelemetry, Prometheus, and Grafana
-- **Context Management** for unified user/tenant context across HTTP and background operations
+- **Multi-tenant SaaS Architecture** with complete tenant isolation and context management
+- **Subscription & Payment Processing** with Stripe integration and webhook processing
+- **User Management** with JWT authentication, refresh tokens, and role-based access control
+- **Enhanced Background Job Processing** using Quartz.NET with automatic metrics, correlation tracking, and distributed tracing
+- **Domain-Driven Asynchronous Messaging** with RabbitMQ for reliable event processing with retry and dead letter patterns
+- **Comprehensive Observability Stack** with OpenTelemetry, Prometheus, Loki, Tempo, and Grafana dashboards
+- **Unified Context Management** for seamless user/tenant context across HTTP and background operations
+- **Rate Limiting** with token bucket and fixed window algorithms for API protection
+- **Health Monitoring** with comprehensive health checks and dedicated monitoring UI
 
 ## Application Structure
 
@@ -72,63 +74,89 @@ The application is built around these primary domain entities:
 ### Local Development Setup
 
 1. **Clone the repository**
+
    ```bash
    git clone <repository-url>
    cd ConnectFlow
    ```
 
-2. **Configure application settings**
+2. **Start infrastructure services**
+
+   ```bash
+   docker-compose up -d postgres redis rabbitmq grafana prometheus loki tempo mailhog
+   ```
+
+3. **Configure application settings**
    
    Update `src/Web/appsettings.Development.json` with your local configuration:
    
    ```json
    {
      "ConnectionStrings": {
-       "ConnectFlowDb": "Host=localhost;Database=ConnectFlow;Username=postgres;Password=yourpassword",
+       "ConnectFlowDb": "Host=localhost;Database=ConnectFlow_Dev;Username=postgres;Password=postgres",
        "Redis": "localhost:6379"
      },
      "RabbitMQ": {
        "HostName": "localhost",
+       "Port": 5672,
        "UserName": "guest",
        "Password": "guest"
      },
      "StripeSettings": {
        "SecretKey": "sk_test_...",
        "WebhookSecret": "whsec_..."
+     },
+     "Monitoring": {
+       "UseLoki": true,
+       "LokiUrl": "http://localhost:3100",
+       "OtlpEndpoint": "http://localhost:4317"
      }
    }
    ```
 
-3. **Initialize the database**
+4. **Initialize the database**
+
    ```bash
    cd src/Infrastructure
    dotnet ef database update
    ```
 
-4. **Build the solution**
+5. **Build the solution**
+
    ```bash
    dotnet build -tl
    ```
 
-5. **Run the application**
+6. **Run the application**
+
    ```bash
    cd src/Web
    dotnet watch run
    ```
 
-   Navigate to [https://localhost:5001](https://localhost:5001) for the API.
+   Navigate to <https://localhost:5001> for the API.
+
+### Development Access URLs
+
+- **Application API**: <https://localhost:5001>
+- **Grafana Dashboards**: <http://localhost:3000> (admin/admin)
+- **RabbitMQ Management**: <http://localhost:15672> (guest/guest)
+- **MailHog Email UI**: <http://localhost:8025>
+- **Prometheus Metrics**: <http://localhost:9090>
 
 ### Code Scaffolding
 
 The solution supports scaffolding new CQRS features using the Clean Architecture template:
 
 **Create a new command:**
+
 ```bash
 cd src/Application
 dotnet new ca-usecase --name CreateExample --feature-name Examples --usecase-type command --return-type int
 ```
 
 **Create a new query:**
+
 ```bash
 cd src/Application
 dotnet new ca-usecase -n GetExamples -fn Examples -ut query -rt ExamplesVm
@@ -185,11 +213,14 @@ The application uses the standard .NET configuration system with support for:
 ### Key Configuration Sections
 
 - **ConnectionStrings** - Database and Redis connections
-- **JwtSettings** - JWT token configuration
-- **RabbitMQ** - Message queue settings
-- **StripeSettings** - Payment processing configuration
-- **SubscriptionSettings** - Billing and subscription behavior
+- **JwtSettings** - JWT token configuration with refresh token support
+- **RabbitMQ** - Message queue settings with connection management
+- **StripeSettings** - Payment processing configuration with webhook secrets
+- **SubscriptionSettings** - Billing and subscription behavior configuration
 - **EmailSettings** - SMTP and email template configuration
+- **Monitoring** - Observability stack configuration (Loki, Tempo, Prometheus)
+- **RateLimiting** - API protection with token bucket and fixed window algorithms
+- **QuartzSettings** - Background job processing configuration with clustering support
 
 ## Development Guidelines
 
@@ -200,20 +231,23 @@ The application uses the standard .NET configuration system with support for:
 3. **Single Responsibility** - Each class has one reason to change
 4. **Domain-Driven Design** - Model real business concepts and workflows
 
-### CQRS Pattern
+### CQRS Implementation
 
-Commands and queries are separated with dedicated handlers:
+ConnectFlow implements the CQRS (Command Query Responsibility Segregation) pattern:
+
 - **Commands** - Modify state, return results or void
-- **Queries** - Read data, return DTOs or view models
-- **Handlers** - Process commands/queries with business logic
-- **Validators** - Validate input using FluentValidation
+- **Queries** - Read data, never modify state
+- **Handlers** - Process commands and queries using MediatR
+- **Validators** - Validate requests using FluentValidation
+- **Authorization** - Role-based and resource-based authorization
 
-### Event-Driven Architecture
+### Domain Events
 
-The application uses domain events and messaging for decoupled communication:
+The application uses domain events for decoupled communication:
+
 - **Domain Events** - In-process notifications using MediatR
 - **Message Events** - Cross-service communication via RabbitMQ
-- **Event Handlers** - Process events and coordinate side effects
+- **Integration Events** - External system integration patterns
 
 ## Deployment
 
