@@ -1,3 +1,4 @@
+using ConnectFlow.Application.Common.Exceptions;
 using ConnectFlow.Application.Common.Messaging;
 using ConnectFlow.Domain.Constants;
 using ConnectFlow.Domain.Events.Mediator.TenantUsers;
@@ -37,6 +38,12 @@ public class TenantUserRestoredEventHandler : INotificationHandler<TenantUserRes
             }
 
             var userData = userResult.Data;
+
+            //check if subscription does not have tenant loaded then load now
+            if (tenantUser.Tenant == null)
+            {
+                tenantUser.Tenant = await _dbContext.Tenants.FindAsync(new object[] { tenantUser.TenantId }, cancellationToken) ?? throw new TenantNotFoundException($"Tenant not found for user {tenantUser.Id}");
+            }
 
             var emailEvent = new EmailSendMessageEvent(tenantUser.TenantId, tenantUser.ApplicationUserId)
             {

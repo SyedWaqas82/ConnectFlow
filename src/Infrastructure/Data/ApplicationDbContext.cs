@@ -21,7 +21,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<TenantUserRole> TenantUserRoles => Set<TenantUserRole>();
     public DbSet<Subscription> Subscriptions => Set<Subscription>();
     public DbSet<Plan> Plans => Set<Plan>();
-    public DbSet<Invoice> Invoices => Set<Invoice>();
     public DbSet<ChannelAccount> ChannelAccounts => Set<ChannelAccount>();
 
     protected override void OnModelCreating(ModelBuilder builder)

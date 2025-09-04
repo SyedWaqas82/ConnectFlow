@@ -11,7 +11,6 @@ public class PaymentStatusEvent : BaseEvent
     public decimal? Amount { get; }
     public bool SendEmailNotification { get; }
     public int FailureCount { get; }
-    public DateTimeOffset Timestamp { get; }
 
     public PaymentStatusEvent(int tenantId, int applicationUserId, Subscription subscription, PaymentAction action, string reason, decimal? amount = null, bool sendEmailNotification = true, int failureCount = 0) : base(tenantId, applicationUserId)
     {
@@ -21,13 +20,11 @@ public class PaymentStatusEvent : BaseEvent
         Amount = amount;
         SendEmailNotification = sendEmailNotification;
         FailureCount = failureCount;
-        Timestamp = DateTimeOffset.UtcNow;
     }
 }
 
 public enum PaymentAction
 {
     Success,
-    Failed,
-    Retry,
+    Failed
 }

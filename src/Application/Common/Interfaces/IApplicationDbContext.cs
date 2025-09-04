@@ -7,7 +7,6 @@ public interface IApplicationDbContext
     DbSet<TenantUserRole> TenantUserRoles { get; }
     DbSet<Subscription> Subscriptions { get; }
     DbSet<Plan> Plans { get; }
-    DbSet<Invoice> Invoices { get; }
     DbSet<ChannelAccount> ChannelAccounts { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);

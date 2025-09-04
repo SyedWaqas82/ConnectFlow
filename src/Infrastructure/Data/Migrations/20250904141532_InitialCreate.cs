@@ -336,12 +336,11 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                     CanceledAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     CancelAtPeriodEnd = table.Column<bool>(type: "boolean", nullable: false),
                     CancellationRequestedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
-                    GracePeriodEndsAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     IsInGracePeriod = table.Column<bool>(type: "boolean", nullable: false),
+                    GracePeriodEndsAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    FirstPaymentFailureAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     LastPaymentFailedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     PaymentRetryCount = table.Column<int>(type: "integer", nullable: false),
-                    FirstPaymentFailureAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
-                    NextRetryAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     HasReachedMaxRetries = table.Column<bool>(type: "boolean", nullable: false),
                     PlanId = table.Column<int>(type: "integer", nullable: false),
                     TenantId = table.Column<int>(type: "integer", nullable: false),
@@ -426,50 +425,6 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         name: "FK_TenantUsers_Tenants_TenantId",
                         column: x => x.TenantId,
                         principalTable: "Tenants",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Invoices",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    PaymentProviderInvoiceId = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    Status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
-                    AmountPaid = table.Column<decimal>(type: "numeric(18,2)", nullable: false, defaultValue: 0m),
-                    AmountDue = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    Currency = table.Column<string>(type: "character varying(3)", maxLength: 3, nullable: false),
-                    PaidAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
-                    InvoicePdf = table.Column<string>(type: "text", nullable: false),
-                    HostedInvoiceUrl = table.Column<string>(type: "text", nullable: false),
-                    SubscriptionId = table.Column<int>(type: "integer", nullable: false),
-                    PublicId = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    Created = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
-                    CreatedBy = table.Column<int>(type: "integer", nullable: true),
-                    LastModified = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
-                    LastModifiedBy = table.Column<int>(type: "integer", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Invoices", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Invoices_AspNetUsers_CreatedBy",
-                        column: x => x.CreatedBy,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
-                    table.ForeignKey(
-                        name: "FK_Invoices_AspNetUsers_LastModifiedBy",
-                        column: x => x.LastModifiedBy,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
-                    table.ForeignKey(
-                        name: "FK_Invoices_Subscriptions_SubscriptionId",
-                        column: x => x.SubscriptionId,
-                        principalTable: "Subscriptions",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -624,33 +579,6 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                 name: "IX_ChannelAccounts_TenantId",
                 table: "ChannelAccounts",
                 column: "TenantId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Invoices_CreatedBy",
-                table: "Invoices",
-                column: "CreatedBy");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Invoices_LastModifiedBy",
-                table: "Invoices",
-                column: "LastModifiedBy");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Invoices_PaymentProviderInvoiceId",
-                table: "Invoices",
-                column: "PaymentProviderInvoiceId",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Invoices_PublicId",
-                table: "Invoices",
-                column: "PublicId",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Invoices_SubscriptionId",
-                table: "Invoices",
-                column: "SubscriptionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Plans_CreatedBy",
@@ -809,7 +737,7 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                 name: "ChannelAccounts");
 
             migrationBuilder.DropTable(
-                name: "Invoices");
+                name: "Subscriptions");
 
             migrationBuilder.DropTable(
                 name: "TenantUserRoles");
@@ -818,13 +746,10 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
-                name: "Subscriptions");
+                name: "Plans");
 
             migrationBuilder.DropTable(
                 name: "TenantUsers");
-
-            migrationBuilder.DropTable(
-                name: "Plans");
 
             migrationBuilder.DropTable(
                 name: "Tenants");

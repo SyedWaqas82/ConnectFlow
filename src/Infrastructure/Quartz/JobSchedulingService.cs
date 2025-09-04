@@ -33,6 +33,14 @@ public class JobSchedulingService : IHostedService
             // Get the scheduler now that the schema should be initialized
             _scheduler = await _schedulerFactory.GetScheduler();
 
+            // Check if we should recreate jobs on startup
+            var recreateJobsOnStartup = _configuration.GetValue<bool>("QuartzSettings:RecreateJobsOnStartup", false);
+            if (recreateJobsOnStartup)
+            {
+                _logger.LogInformation("RecreateJobsOnStartup is enabled, clearing all existing jobs");
+                await _scheduler.Clear();
+            }
+
             // Schedule all jobs using the new enhanced extensions
             await ScheduleEnhancedJobs();
 
@@ -91,9 +99,6 @@ public class JobSchedulingService : IHostedService
         // SubscriptionGracePeriodJob: runs every hour (system job)
         await ScheduleJobFromConfig<SubscriptionGracePeriodJob>(defaultCron: "0 0 * * * ?", description: "Hourly subscription grace period check");
 
-        // ReportGenerationJob (Weekly): runs every Monday at 8:00 AM
-        await ScheduleJobFromConfig<ReportGenerationJob>(defaultCron: "0 0 8 ? * MON", description: "Weekly report generation job", suffix: "Weekly", additionalData: new JobDataMap { ["ReportType"] = "Weekly" });
-
         // ReportGenerationJob (Monthly): runs on the 1st of every month at 6:00 AM
         await ScheduleJobFromConfig<ReportGenerationJob>(defaultCron: "0 0 6 1 * ?", description: "Monthly report generation job", suffix: "Monthly", additionalData: new JobDataMap { ["ReportType"] = "Monthly" });
 
@@ -112,6 +117,11 @@ public class JobSchedulingService : IHostedService
             jobName = $"{jobName}.{suffix}";
         }
 
+        if (tenantId > 0)
+        {
+            jobName = $"{jobName}.Tenant{tenantId}";
+        }
+
         // Get configuration section for this job
         var jobConfig = _configuration.GetSection($"QuartzJobs:{jobName}");
 
@@ -126,41 +136,41 @@ public class JobSchedulingService : IHostedService
             return;
         }
 
-        // Generate correlation ID for this scheduled job
-        var correlationId = $"scheduled_{jobName}_{DateTimeOffset.UtcNow:yyyyMMddHHmmss}";
-
         if (_scheduler == null)
         {
             throw new InvalidOperationException("Scheduler is not initialized. JobSchedulingService must be started before scheduling jobs.");
         }
 
+        // Check if job already exists (for persistent jobs)
+        var jobKey = new JobKey(jobName);
+        if (await _scheduler.CheckExists(jobKey))
+        {
+            _logger.LogInformation("Job {JobName} already exists in persistent storage, skipping scheduling", jobName);
+            return;
+        }
+
+        // Generate correlation ID for this scheduled job
+        var correlationId = $"scheduled_{jobName}_{DateTimeOffset.UtcNow:yyyyMMddHHmmss}";
+
         try
         {
-            // Use the enhanced scheduling extensions
+            // Schedule as tenant job
+            var scheduledTime = await _scheduler.ScheduleJobWithContextAsync<T>(
+                jobName,
+                jobDescription,
+                tenantId: tenantId,
+                applicationUserId: applicationUserId,
+                correlationId: correlationId,
+                cronExpression: cronExpression,
+                additionalData: additionalData
+            );
+
             if (tenantId > 0)
             {
-                // Schedule as tenant job
-                var scheduledTime = await _scheduler.ScheduleJobWithContextAsync<T>(
-                    tenantId: tenantId,
-                    applicationUserId: applicationUserId,
-                    correlationId: correlationId,
-                    cronExpression: cronExpression,
-                    additionalData: additionalData
-                );
-
                 _logger.LogInformation("Scheduled tenant job {JobName} for tenant {TenantId} at {ScheduledTime} with cron '{CronExpression}'", jobName, tenantId, scheduledTime, cronExpression);
             }
             else
             {
-                // Schedule as system job
-                var scheduledTime = await _scheduler.ScheduleJobWithContextAsync<T>(
-                    tenantId: 0,
-                    applicationUserId: 0,
-                    correlationId: correlationId,
-                    cronExpression: cronExpression,
-                    additionalData: additionalData
-                );
-
                 _logger.LogInformation("Scheduled system job {JobName} at {ScheduledTime} with cron '{CronExpression}'", jobName, scheduledTime, cronExpression);
             }
         }

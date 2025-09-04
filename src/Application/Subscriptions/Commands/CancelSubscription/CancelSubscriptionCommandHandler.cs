@@ -51,7 +51,7 @@ public class CancelSubscriptionCommandHandler : IRequestHandler<CancelSubscripti
             {
                 SubscriptionId = currentSubscription.Id,
                 Status = "subscription_cancelled_at_period_end",
-                CancelledAt = currentSubscription.CancellationRequestedAt,
+                CancelledAt = currentSubscription.CanceledAt ?? currentSubscription.CancellationRequestedAt,
                 EffectiveDate = currentSubscription.CurrentPeriodEnd
             }, "Subscription will be cancelled at the end of the current billing period.");
         }

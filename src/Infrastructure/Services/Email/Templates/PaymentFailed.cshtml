@@ -4,7 +4,6 @@
     var reason = Model["reason"]?.ToString() ?? "Payment could not be processed";
     var subscriptionId = Model["subscriptionId"];
     var planName = Model["planName"]?.ToString() ?? "Current Plan";
-    var nextRetryDate = Model["nextRetryDate"]?.ToString();
 }
 
 <!DOCTYPE html>
@@ -109,10 +108,6 @@
                 <p><strong>Plan:</strong> @planName</p>
                 <p><strong>Subscription ID:</strong> #@subscriptionId</p>
                 <p><strong>Reason:</strong> @reason</p>
-                @if (!string.IsNullOrEmpty(nextRetryDate))
-                {
-                    <p><strong>Next Retry:</strong> @nextRetryDate</p>
-                }
             </div>
 
             <div class="alert">

@@ -13,15 +13,12 @@ public class Subscription : BaseAuditableEntity
     public bool CancelAtPeriodEnd { get; set; }
     public DateTimeOffset? CancellationRequestedAt { get; set; } // When cancellation was originally requested
 
-    // Grace Period for failed payments
-    public DateTimeOffset? GracePeriodEndsAt { get; set; }
+    // Grace Period and payment failure tracking
     public bool IsInGracePeriod { get; set; }
-    public DateTimeOffset? LastPaymentFailedAt { get; set; }
-
-    // Payment retry tracking
-    public int PaymentRetryCount { get; set; } = 0;
+    public DateTimeOffset? GracePeriodEndsAt { get; set; }
     public DateTimeOffset? FirstPaymentFailureAt { get; set; }
-    public DateTimeOffset? NextRetryAt { get; set; }
+    public DateTimeOffset? LastPaymentFailedAt { get; set; }
+    public int PaymentRetryCount { get; set; } = 0;
     public bool HasReachedMaxRetries { get; set; } = false;
 
     // Plan
@@ -31,6 +28,4 @@ public class Subscription : BaseAuditableEntity
     // Tenant
     public int TenantId { get; set; }
     public Tenant Tenant { get; set; } = null!;
-
-    public IList<Invoice> Invoices { get; private set; } = new List<Invoice>();
 }

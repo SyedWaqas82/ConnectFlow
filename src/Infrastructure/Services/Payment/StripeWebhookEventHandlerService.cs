@@ -1,6 +1,6 @@
 using ConnectFlow.Application.Common.Models;
 using ConnectFlow.Infrastructure.Common.Metrics;
-using Google.Protobuf.WellKnownTypes;
+using MediatR;
 using Newtonsoft.Json.Linq;
 
 namespace ConnectFlow.Infrastructure.Services.Payment;
@@ -15,16 +15,14 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
     private readonly SubscriptionSettings _subscriptionSettings;
     private readonly ILogger<StripeWebhookEventHandlerService> _logger;
     private readonly PaymentMetrics _paymentMetrics;
-    private readonly ICacheService _cacheService;
 
-    public StripeWebhookEventHandlerService(IPaymentService paymentService, IApplicationDbContext context, IOptions<SubscriptionSettings> subscriptionSettings, ILogger<StripeWebhookEventHandlerService> logger, PaymentMetrics paymentMetrics, ICacheService cacheService)
+    public StripeWebhookEventHandlerService(IPaymentService paymentService, IApplicationDbContext context, IOptions<SubscriptionSettings> subscriptionSettings, ILogger<StripeWebhookEventHandlerService> logger, PaymentMetrics paymentMetrics)
     {
         _paymentService = paymentService;
         _context = context;
         _subscriptionSettings = subscriptionSettings.Value;
         _logger = logger;
         _paymentMetrics = paymentMetrics;
-        _cacheService = cacheService;
     }
 
     public async Task<bool> HandleSubscriptionCreatedAsync(PaymentEventDto paymentEvent, CancellationToken cancellationToken)
@@ -103,7 +101,9 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
             var existingSubscription = await FindSubscriptionByStripeIdAsync(paymentEvent.SubscriptionId, cancellationToken);
             if (existingSubscription == null) return false;
 
-            return await ProcessSubscriptionDeletionAsync(existingSubscription, cancellationToken);
+            var subscription = await _paymentService.GetSubscriptionAsync(paymentEvent.SubscriptionId, cancellationToken);
+
+            return await ProcessSubscriptionDeletionAsync(existingSubscription, subscription, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -139,31 +139,10 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
             var existingSubscription = await FindSubscriptionByStripeIdAsync(paymentEvent.SubscriptionId, cancellationToken);
             if (existingSubscription == null) return false;
 
-            // Create or update invoice record
-            var invoice = await CreateOrUpdateInvoiceAsync(paymentEvent.ObjectId, existingSubscription.Id, amountDue, amountPaid, currency, status, paidAt, invoicePdf, invoiceHostedUrl, cancellationToken);
-
-            if (invoiceStatus != PaymentInvoiceStatus.Failed)
-            {
-                var cacheKey = $"webhook_event_subscription_payment_alert_{paymentEvent.SubscriptionId}";
-                var emailSent = _cacheService.GetAsync<bool>(cacheKey);
-
-                if (emailSent == null || !emailSent.Result)
-                {
-                    // Send email notification logic here (if needed)
-                    var paymentDomainEvent = new PaymentStatusEvent(existingSubscription.TenantId, default, existingSubscription, PaymentAction.Success, invoiceStatus.ToString(), amount: amountPaid, sendEmailNotification: true);
-
-                    invoice.AddDomainEvent(paymentDomainEvent);
-
-                    await _cacheService.SetAsync(cacheKey, true, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30), cancellationToken: cancellationToken);
-                }
-            }
-
             if (invoiceStatus == PaymentInvoiceStatus.Succeeded)
             {
                 // Track payment success metric
                 _paymentMetrics.PaymentSuccessful(amountPaid, currency);
-
-                await _context.SaveChangesAsync(cancellationToken);
 
                 _logger.LogInformation("Payment succeeded for subscription {SubscriptionId}, amount {Amount} {Currency}", existingSubscription.Id, amountPaid, currency);
             }
@@ -178,10 +157,10 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
                 {
                     existingSubscription.HasReachedMaxRetries = true;
                 }
+                existingSubscription.LastModified = DateTimeOffset.UtcNow; //touch the subscription to trigger domain event
 
                 var paymentDomainEvent = new PaymentStatusEvent(existingSubscription.TenantId, default, existingSubscription, PaymentAction.Failed, $"Payment attempt {attemptCount} failed", amount: amountDue, sendEmailNotification: true, failureCount: attemptCount);
-
-                invoice.AddDomainEvent(paymentDomainEvent);
+                existingSubscription.AddDomainEvent(paymentDomainEvent);
 
                 await _context.SaveChangesAsync(cancellationToken);
 
@@ -189,18 +168,19 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
             }
             else if (invoiceStatus == PaymentInvoiceStatus.Created)
             {
-                await _context.SaveChangesAsync(cancellationToken);
-
                 _logger.LogInformation("Invoice {InvoiceId} created for subscription {SubscriptionId}", paymentEvent.ObjectId, existingSubscription.Id);
             }
             else if (invoiceStatus == PaymentInvoiceStatus.Finalized)
             {
-                await _context.SaveChangesAsync(cancellationToken);
-
                 _logger.LogInformation("Payment succeeded for subscription {SubscriptionId}, amount {Amount} {Currency}", existingSubscription.Id, amountPaid, currency);
             }
             else if (invoiceStatus == PaymentInvoiceStatus.Paid)
             {
+                var paymentDomainEvent = new PaymentStatusEvent(existingSubscription.TenantId, default, existingSubscription, PaymentAction.Success, invoiceStatus.ToString(), amount: amountPaid, sendEmailNotification: true);
+
+                existingSubscription.LastModified = DateTimeOffset.UtcNow; //touch the subscription to trigger domain event
+                existingSubscription.AddDomainEvent(paymentDomainEvent);
+
                 await _context.SaveChangesAsync(cancellationToken);
 
                 _logger.LogInformation("Invoice {InvoiceId} marked as paid for subscription {SubscriptionId}", paymentEvent.ObjectId, existingSubscription.Id);
@@ -249,43 +229,6 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
         }
 
         return subscription;
-    }
-
-    private async Task<Invoice> CreateOrUpdateInvoiceAsync(string stripeInvoiceId, int subscriptionId, decimal amountDue, decimal amountPaid, string currency, string status, DateTimeOffset? paidAt, string invoicePdf, string invoiceHostedUrl, CancellationToken cancellationToken)
-    {
-        var existingInvoice = await _context.Invoices.FirstOrDefaultAsync(i => i.PaymentProviderInvoiceId == stripeInvoiceId, cancellationToken);
-
-        if (existingInvoice == null)
-        {
-            var invoice = new Invoice
-            {
-                PaymentProviderInvoiceId = stripeInvoiceId,
-                SubscriptionId = subscriptionId,
-                AmountDue = amountDue,
-                AmountPaid = amountPaid,
-                Currency = currency,
-                Status = status,
-                PaidAt = paidAt,
-                InvoicePdf = invoicePdf,
-                HostedInvoiceUrl = invoiceHostedUrl
-            };
-
-            _context.Invoices.Add(invoice);
-
-            return invoice;
-        }
-        else
-        {
-            existingInvoice.AmountDue = amountDue;
-            existingInvoice.AmountPaid = amountPaid;
-            existingInvoice.Currency = currency;
-            existingInvoice.Status = status;
-            existingInvoice.PaidAt = paidAt;
-            existingInvoice.InvoicePdf = invoicePdf;
-            existingInvoice.HostedInvoiceUrl = invoiceHostedUrl;
-
-            return existingInvoice;
-        }
     }
 
     private async Task<bool> CreateNewSubscriptionAsync(PaymentSubscriptionDto subscription, Plan plan, int tenantId, CancellationToken cancellationToken)
@@ -379,7 +322,7 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
         if (subscription.CancelAtPeriodEnd && !previousCancelAtPeriodEnd)
         {
             // Cancellation was newly requested
-            existingSubscription.CancellationRequestedAt = subscription.CanceledAt ?? DateTimeOffset.UtcNow;
+            existingSubscription.CancellationRequestedAt = DateTimeOffset.UtcNow;
 
             // Don't set CanceledAt yet for period-end cancellations - that's when it actually gets canceled
             if (!subscription.CanceledAt.HasValue)
@@ -404,8 +347,7 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
 
             existingSubscription.AddDomainEvent(planChangeEvent);
 
-            _logger.LogInformation("Subscription {SubscriptionId} plan changed from {FromPlan} to {ToPlan}",
-                existingSubscription.Id, currentPlan.Name, newPlan.Name);
+            _logger.LogInformation("Subscription {SubscriptionId} plan changed from {FromPlan} to {ToPlan}", existingSubscription.Id, currentPlan.Name, newPlan.Name);
         }
 
         // Track if we've already handled cancellation to avoid duplicates
@@ -426,8 +368,7 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
                 // For actual cancellation (status = "canceled"), this is immediate regardless of the flag
                 var isImmediateAction = action == SubscriptionAction.Cancel;
 
-                var statusEvent = new SubscriptionStatusEvent(existingSubscription.TenantId, default, existingSubscription, action, $"Status changed from {previousStatus} to {newStatus}",
-                    sendEmailNotification: true, isImmediate: isImmediateAction);
+                var statusEvent = new SubscriptionStatusEvent(existingSubscription.TenantId, default, existingSubscription, action, $"Status changed from {previousStatus} to {newStatus}", sendEmailNotification: true, isImmediate: isImmediateAction);
 
                 existingSubscription.AddDomainEvent(statusEvent);
 
@@ -437,8 +378,7 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
                     cancellationEventAdded = true;
                 }
 
-                _logger.LogInformation("Subscription {SubscriptionId} status changed from {PreviousStatus} to {NewStatus} - action: {Action}",
-                    existingSubscription.Id, previousStatus, newStatus, action);
+                _logger.LogInformation("Subscription {SubscriptionId} status changed from {PreviousStatus} to {NewStatus} - action: {Action}", existingSubscription.Id, previousStatus, newStatus, action);
             }
         }
 
@@ -451,8 +391,7 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
 
                 existingSubscription.AddDomainEvent(cancelEvent);
 
-                _logger.LogInformation("Subscription {SubscriptionId} set to cancel at period end ({PeriodEnd})",
-                    existingSubscription.Id, subscription.CurrentPeriodEnd);
+                _logger.LogInformation("Subscription {SubscriptionId} set to cancel at period end ({PeriodEnd})", existingSubscription.Id, subscription.CurrentPeriodEnd);
             }
             else if (!subscription.CancelAtPeriodEnd && previousCancelAtPeriodEnd)
             {
@@ -460,8 +399,7 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
 
                 existingSubscription.AddDomainEvent(reactivateEvent);
 
-                _logger.LogInformation("Subscription {SubscriptionId} cancellation was reversed - subscription reactivated",
-                    existingSubscription.Id);
+                _logger.LogInformation("Subscription {SubscriptionId} cancellation was reversed - subscription reactivated", existingSubscription.Id);
             }
         }
 
@@ -471,7 +409,7 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
         return true;
     }
 
-    private async Task<bool> ProcessSubscriptionDeletionAsync(Subscription existingSubscription, CancellationToken cancellationToken)
+    private async Task<bool> ProcessSubscriptionDeletionAsync(Subscription existingSubscription, PaymentSubscriptionDto subscription, CancellationToken cancellationToken)
     {
         var wasScheduledForCancellation = existingSubscription.CancelAtPeriodEnd;
 
@@ -481,7 +419,7 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
 
         // Update cancellation timestamps (keep data synchronization)
         // Note: Status change will be handled by event handler
-        existingSubscription.CanceledAt = DateTimeOffset.UtcNow; // When it was actually canceled
+        existingSubscription.CanceledAt = subscription.CanceledAt ?? DateTimeOffset.UtcNow; // When it was actually canceled
         existingSubscription.CancelAtPeriodEnd = false; // Reset flag since cancellation is now complete
 
         _logger.LogInformation("Subscription {SubscriptionId} deleted - was scheduled for cancellation: {WasScheduled}", existingSubscription.Id, wasScheduledForCancellation);
@@ -493,8 +431,7 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Processed subscription deletion for {SubscriptionId}, was scheduled: {WasScheduled}",
-            existingSubscription.Id, wasScheduledForCancellation);
+        _logger.LogInformation("Processed subscription deletion for {SubscriptionId}, was scheduled: {WasScheduled}", existingSubscription.Id, wasScheduledForCancellation);
         return true;
     }
 

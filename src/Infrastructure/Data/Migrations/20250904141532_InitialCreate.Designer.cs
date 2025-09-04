@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ConnectFlow.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250902145313_InitialCreate")]
+    [Migration("20250904141532_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -116,89 +116,6 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         .HasDatabaseName("IX_ChannelAccount_TenantId_ProviderAccountId");
 
                     b.ToTable("ChannelAccounts");
-                });
-
-            modelBuilder.Entity("ConnectFlow.Domain.Entities.Invoice", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("AmountDue")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("AmountPaid")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("decimal(18,2)")
-                        .HasDefaultValue(0m);
-
-                    b.Property<DateTimeOffset>("Created")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("now()");
-
-                    b.Property<int?>("CreatedBy")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Currency")
-                        .IsRequired()
-                        .HasMaxLength(3)
-                        .HasColumnType("character varying(3)");
-
-                    b.Property<string>("HostedInvoiceUrl")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("InvoicePdf")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset>("LastModified")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("now()");
-
-                    b.Property<int?>("LastModifiedBy")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTimeOffset?>("PaidAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("PaymentProviderInvoiceId")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<Guid>("PublicId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasDefaultValueSql("gen_random_uuid()");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
-
-                    b.Property<int>("SubscriptionId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedBy");
-
-                    b.HasIndex("LastModifiedBy");
-
-                    b.HasIndex("PaymentProviderInvoiceId")
-                        .IsUnique();
-
-                    b.HasIndex("PublicId")
-                        .IsUnique();
-
-                    b.HasIndex("SubscriptionId");
-
-                    b.ToTable("Invoices");
                 });
 
             modelBuilder.Entity("ConnectFlow.Domain.Entities.Plan", b =>
@@ -509,9 +426,6 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                         .HasColumnType("integer");
 
                     b.Property<DateTimeOffset?>("LastPaymentFailedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset?>("NextRetryAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("PaymentProviderSubscriptionId")
@@ -1137,27 +1051,6 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
                     b.Navigation("Tenant");
                 });
 
-            modelBuilder.Entity("ConnectFlow.Domain.Entities.Invoice", b =>
-                {
-                    b.HasOne("ConnectFlow.Infrastructure.Identity.ApplicationUser", null)
-                        .WithMany()
-                        .HasForeignKey("CreatedBy")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("ConnectFlow.Infrastructure.Identity.ApplicationUser", null)
-                        .WithMany()
-                        .HasForeignKey("LastModifiedBy")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("ConnectFlow.Domain.Entities.Subscription", "Subscription")
-                        .WithMany("Invoices")
-                        .HasForeignKey("SubscriptionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Subscription");
-                });
-
             modelBuilder.Entity("ConnectFlow.Domain.Entities.Plan", b =>
                 {
                     b.HasOne("ConnectFlow.Infrastructure.Identity.ApplicationUser", null)
@@ -1320,11 +1213,6 @@ namespace ConnectFlow.Infrastructure.Data.Migrations
             modelBuilder.Entity("ConnectFlow.Domain.Entities.Plan", b =>
                 {
                     b.Navigation("Subscriptions");
-                });
-
-            modelBuilder.Entity("ConnectFlow.Domain.Entities.Subscription", b =>
-                {
-                    b.Navigation("Invoices");
                 });
 
             modelBuilder.Entity("ConnectFlow.Domain.Entities.Tenant", b =>

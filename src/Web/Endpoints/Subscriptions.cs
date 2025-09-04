@@ -1,5 +1,6 @@
 using ConnectFlow.Application.Common.Models;
 using ConnectFlow.Application.Subscriptions.Commands.CancelSubscription;
+using ConnectFlow.Application.Subscriptions.Commands.CreatePortalSession;
 using ConnectFlow.Application.Subscriptions.Commands.CreateSubscription;
 using ConnectFlow.Application.Subscriptions.Commands.ProcessWebhook;
 using ConnectFlow.Application.Subscriptions.Commands.ReactivateSubscription;
@@ -22,6 +23,7 @@ public class Subscriptions : EndpointGroupBase
         group.AllowAnonymous().MapGet(GetAvailablePlans, "GetAvailablePlans");
         group.MapGet(GetCheckoutSession, "GetCheckoutSession/{sessionId}");
         group.MapPost(CreateSubscription, "Create");
+        group.MapPost(CreateBillingPortalSession, "EditBilling");
         group.MapPut(UpdateSubscription, "Update");
         group.MapPost(CancelSubscription, "Cancel");
         group.MapPost(ReactivateSubscription, "Reactivate");
@@ -49,6 +51,12 @@ public class Subscriptions : EndpointGroupBase
     }
 
     public async Task<Ok<Result<CreateSubscriptionResult>>> CreateSubscription(ISender sender, CreateSubscriptionCommand command)
+    {
+        var result = await sender.Send(command);
+        return TypedResults.Ok(result);
+    }
+
+    public async Task<Ok<Result<CreateBillingPortalSessionResult>>> CreateBillingPortalSession(ISender sender, CreateBillingPortalSessionCommand command)
     {
         var result = await sender.Send(command);
         return TypedResults.Ok(result);

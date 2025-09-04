@@ -267,6 +267,7 @@ public class SubscriptionManagementService : ISubscriptionManagementService
             {
                 tenantUser.EntityStatus = EntityStatus.Suspended;
                 tenantUser.SuspendedAt = DateTimeOffset.UtcNow;
+                tenantUser.ResumedAt = null;
                 tenantUser.AddDomainEvent(new TenantUserSuspendedEvent(tenantUser, tenantUser.ApplicationUserId));
             }
 
@@ -283,6 +284,7 @@ public class SubscriptionManagementService : ISubscriptionManagementService
             foreach (var tenantUser in tenantUsersToRestore)
             {
                 tenantUser.EntityStatus = EntityStatus.Active;
+                tenantUser.SuspendedAt = null;
                 tenantUser.ResumedAt = DateTimeOffset.UtcNow;
                 tenantUser.AddDomainEvent(new TenantUserRestoredEvent(tenantUser, tenantUser.ApplicationUserId));
             }
@@ -328,6 +330,7 @@ public class SubscriptionManagementService : ISubscriptionManagementService
             {
                 channel.EntityStatus = EntityStatus.Suspended;
                 channel.SuspendedAt = DateTimeOffset.UtcNow;
+                channel.ResumedAt = null;
                 channel.AddDomainEvent(new ChannelAccountSuspendedEvent(tenantId, default, channel));
             }
 
@@ -347,6 +350,7 @@ public class SubscriptionManagementService : ISubscriptionManagementService
             foreach (var channel in channelsToRestore)
             {
                 channel.EntityStatus = EntityStatus.Active;
+                channel.SuspendedAt = null;
                 channel.ResumedAt = DateTimeOffset.UtcNow;
                 channel.AddDomainEvent(new ChannelAccountRestoredEvent(tenantId, default, channel));
             }
@@ -375,6 +379,7 @@ public class SubscriptionManagementService : ISubscriptionManagementService
         {
             tenantUser.EntityStatus = EntityStatus.Suspended;
             tenantUser.SuspendedAt = DateTimeOffset.UtcNow;
+            tenantUser.ResumedAt = null;
             tenantUser.AddDomainEvent(new TenantUserSuspendedEvent(tenantUser, tenantUser.ApplicationUserId));
         }
 
@@ -388,6 +393,7 @@ public class SubscriptionManagementService : ISubscriptionManagementService
         {
             channel.EntityStatus = EntityStatus.Suspended;
             channel.SuspendedAt = DateTimeOffset.UtcNow;
+            channel.ResumedAt = null;
             channel.AddDomainEvent(new ChannelAccountSuspendedEvent(tenantId, default, channel));
         }
 

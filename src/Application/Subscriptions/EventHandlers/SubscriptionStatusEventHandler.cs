@@ -1,6 +1,7 @@
 using ConnectFlow.Application.Common.Models;
 using ConnectFlow.Application.Common.Messaging;
 using ConnectFlow.Domain.Constants;
+using ConnectFlow.Application.Common.Exceptions;
 
 namespace ConnectFlow.Application.Subscriptions.EventHandlers;
 
@@ -74,8 +75,6 @@ public class SubscriptionStatusEventHandler : INotificationHandler<SubscriptionS
                 if (notification.IsImmediate)
                 {
                     subscription.Status = SubscriptionStatus.Canceled;
-                    subscription.CanceledAt = notification.Timestamp;
-                    subscription.CancelAtPeriodEnd = false;
 
                     //Auto subscribe to free plan after cancelling current subscription
                     var freePlan = await _context.Plans.FirstOrDefaultAsync(p => p.Name.ToLower() == _subscriptionSettings.DefaultDowngradePlanName.ToLower() && p.IsActive, cancellationToken);
@@ -110,13 +109,9 @@ public class SubscriptionStatusEventHandler : INotificationHandler<SubscriptionS
 
             case SubscriptionAction.GracePeriodStart:
                 subscription.Status = SubscriptionStatus.PastDue;
-                subscription.IsInGracePeriod = true;
-                subscription.GracePeriodEndsAt = notification.Timestamp.AddDays(_subscriptionSettings.GracePeriodDays);
                 break;
 
             case SubscriptionAction.GracePeriodEnd:
-                subscription.IsInGracePeriod = false;
-                subscription.GracePeriodEndsAt = null;
                 break;
 
             case SubscriptionAction.PlanChanged:
@@ -165,7 +160,7 @@ public class SubscriptionStatusEventHandler : INotificationHandler<SubscriptionS
             //check if subscription does not have tenant loaded then load now
             if (subscription.Tenant == null)
             {
-                subscription.Tenant = await _context.Tenants.FindAsync(new object[] { subscription.TenantId }, cancellationToken) ?? throw new Exception($"Tenant not found for subscription {subscription.Id}");
+                subscription.Tenant = await _context.Tenants.FindAsync(new object[] { subscription.TenantId }, cancellationToken) ?? throw new TenantNotFoundException($"Tenant not found for subscription {subscription.Id}");
             }
 
             var templateId = GetEmailTemplateId(notification.Action);

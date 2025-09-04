@@ -9,7 +9,6 @@ public class SubscriptionStatusEvent : BaseEvent
     public SubscriptionAction Action { get; }
     public string Reason { get; }
     public bool SendEmailNotification { get; }
-    public DateTimeOffset Timestamp { get; }
     public bool IsImmediate { get; }
     public int? PreviousPlanId { get; }
     public int? NewPlanId { get; }
@@ -23,7 +22,6 @@ public class SubscriptionStatusEvent : BaseEvent
         IsImmediate = isImmediate;
         PreviousPlanId = previousPlanId;
         NewPlanId = newPlanId;
-        Timestamp = DateTimeOffset.UtcNow;
     }
 }
 

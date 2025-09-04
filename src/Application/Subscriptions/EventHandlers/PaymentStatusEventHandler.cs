@@ -1,6 +1,7 @@
 using ConnectFlow.Application.Common.Models;
 using ConnectFlow.Application.Common.Messaging;
 using ConnectFlow.Domain.Constants;
+using ConnectFlow.Application.Common.Exceptions;
 
 namespace ConnectFlow.Application.Subscriptions.EventHandlers;
 
@@ -59,13 +60,12 @@ public class PaymentStatusEventHandler : INotificationHandler<PaymentStatusEvent
         {
             case PaymentAction.Success:
                 // Reset failure tracking on successful payment
-                subscription.PaymentRetryCount = 0;
-                subscription.FirstPaymentFailureAt = null;
-                subscription.LastPaymentFailedAt = null;
-                subscription.NextRetryAt = null;
-                subscription.HasReachedMaxRetries = false;
                 subscription.IsInGracePeriod = false;
                 subscription.GracePeriodEndsAt = null;
+                subscription.FirstPaymentFailureAt = null;
+                subscription.LastPaymentFailedAt = null;
+                subscription.PaymentRetryCount = 0;
+                subscription.HasReachedMaxRetries = false;
 
                 // Reactivate if suspended
                 if (subscription.Status == SubscriptionStatus.PastDue || subscription.Status == SubscriptionStatus.Unpaid)
@@ -76,79 +76,52 @@ public class PaymentStatusEventHandler : INotificationHandler<PaymentStatusEvent
                 // Trigger reactivation if subscription was suspended
                 if (originalStatus == SubscriptionStatus.Unpaid)
                 {
-                    TriggerSubscriptionReactivationAsync(subscription, "Payment successful");
+                    var reactivationEvent = new SubscriptionStatusEvent(subscription.TenantId, default, subscription, SubscriptionAction.Reactivate, "Payment successful", sendEmailNotification: true);
+
+                    subscription.AddDomainEvent(reactivationEvent);
+
+                    _logger.LogInformation("Triggered reactivation for subscription {SubscriptionId}", subscription);
                 }
                 break;
 
             case PaymentAction.Failed:
                 subscription.PaymentRetryCount = notification.FailureCount;
-                subscription.LastPaymentFailedAt = notification.Timestamp;
+                subscription.LastPaymentFailedAt = DateTimeOffset.UtcNow;
 
                 if (subscription.FirstPaymentFailureAt == null)
                 {
-                    subscription.FirstPaymentFailureAt = notification.Timestamp;
+                    subscription.FirstPaymentFailureAt = subscription.LastPaymentFailedAt;
                 }
 
-                // Calculate next retry time based on Stripe's retry schedule
-                subscription.NextRetryAt = CalculateNextRetryTime(notification.FailureCount, subscription.FirstPaymentFailureAt.Value);
-
                 // Start grace period if configured
-                if (!subscription.IsInGracePeriod && ShouldStartGracePeriod(notification.FailureCount))
+                if (!subscription.IsInGracePeriod && notification.FailureCount >= 1)
                 {
                     subscription.IsInGracePeriod = true;
-                    subscription.GracePeriodEndsAt = _subscriptionSettings.UseIntelligentGracePeriod
-                        ? CalculateIntelligentGracePeriodEnd(notification.FailureCount, subscription.FirstPaymentFailureAt.Value)
-                        : notification.Timestamp.AddDays(_subscriptionSettings.GracePeriodDays);
-                    subscription.Status = SubscriptionStatus.PastDue;
+                    subscription.GracePeriodEndsAt = DateTimeOffset.UtcNow.AddDays(_subscriptionSettings.GracePeriodDays);
 
                     // Trigger grace period start
-                    TriggerGracePeriodStartAsync(subscription, notification.Reason);
+                    var gracePeriodEvent = new SubscriptionStatusEvent(subscription.TenantId, default, subscription, SubscriptionAction.GracePeriodStart, notification.Reason, sendEmailNotification: true);
+
+                    subscription.AddDomainEvent(gracePeriodEvent);
+
+                    _logger.LogInformation("Triggered grace period start for subscription {SubscriptionId}", subscription.Id);
                 }
 
                 // Check if suspension is needed
-                if (ShouldSuspendAfterFailure(notification.FailureCount))
+                if (notification.FailureCount >= _subscriptionSettings.MaxPaymentRetries)
                 {
-                    TriggerSubscriptionSuspensionAsync(subscription, notification.Reason);
-                }
-                break;
+                    var suspensionEvent = new SubscriptionStatusEvent(subscription.TenantId, default, subscription, SubscriptionAction.Suspend, notification.Reason, sendEmailNotification: true);
 
-            case PaymentAction.Retry:
-                subscription.PaymentRetryCount = notification.FailureCount;
-                subscription.NextRetryAt = notification.Timestamp.AddHours(24); // Next retry in 24 hours
+                    subscription.AddDomainEvent(suspensionEvent);
+
+                    _logger.LogInformation("Triggered suspension for subscription {SubscriptionId}", subscription.Id);
+                }
                 break;
         }
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Updated payment tracking for subscription {SubscriptionId}: {Action}",
-            subscription.Id, notification.Action);
-    }
-
-    private void TriggerSubscriptionSuspensionAsync(Subscription subscription, string reason)
-    {
-        var suspensionEvent = new SubscriptionStatusEvent(subscription.TenantId, default, subscription, SubscriptionAction.Suspend, reason, sendEmailNotification: true);
-
-        subscription.AddDomainEvent(suspensionEvent);
-
-        _logger.LogInformation("Triggered suspension for subscription {SubscriptionId}", subscription.Id);
-    }
-
-    private void TriggerSubscriptionReactivationAsync(Subscription subscription, string reason)
-    {
-        var reactivationEvent = new SubscriptionStatusEvent(subscription.TenantId, default, subscription, SubscriptionAction.Reactivate, reason, sendEmailNotification: true);
-
-        subscription.AddDomainEvent(reactivationEvent);
-
-        _logger.LogInformation("Triggered reactivation for subscription {SubscriptionId}", subscription);
-    }
-
-    private void TriggerGracePeriodStartAsync(Subscription subscription, string reason)
-    {
-        var gracePeriodEvent = new SubscriptionStatusEvent(subscription.TenantId, default, subscription, SubscriptionAction.GracePeriodStart, reason, sendEmailNotification: true);
-
-        subscription.AddDomainEvent(gracePeriodEvent);
-
-        _logger.LogInformation("Triggered grace period start for subscription {SubscriptionId}", subscription.Id);
+        _logger.LogInformation("Updated payment tracking for subscription {SubscriptionId}: {Action}", subscription.Id, notification.Action);
     }
 
     private async Task SendEmailNotificationAsync(Subscription subscription, PaymentStatusEvent notification, CancellationToken cancellationToken)
@@ -157,6 +130,12 @@ public class PaymentStatusEventHandler : INotificationHandler<PaymentStatusEvent
         {
             var templateId = GetEmailTemplateId(notification.Action);
             var subject = GetEmailSubject(notification.Action);
+
+            //check if subscription does not have tenant loaded then load now
+            if (subscription.Tenant == null)
+            {
+                subscription.Tenant = await _context.Tenants.FindAsync(new object[] { subscription.TenantId }, cancellationToken) ?? throw new TenantNotFoundException($"Tenant not found for subscription {subscription.Id}");
+            }
 
             var emailEvent = new EmailSendMessageEvent(notification.TenantId, notification.ApplicationUserId)
             {
@@ -174,8 +153,7 @@ public class PaymentStatusEventHandler : INotificationHandler<PaymentStatusEvent
                     { "subscriptionId", subscription.Id },
                     { "planName", subscription.Plan?.Name ?? "Current Plan" },
                     { "paymentAction", notification.Action.ToString() },
-                    { "timestamp", notification.Timestamp.ToString("MMMM dd, yyyy") },
-                    { "nextRetryDate", subscription.NextRetryAt?.ToString("MMMM dd, yyyy") ?? string.Empty },
+                    { "timestamp", DateTimeOffset.UtcNow.ToString("MMMM dd, yyyy") },
                     { "failureCount", notification.FailureCount },
                     { "correlationId", notification.CorrelationId.GetValueOrDefault() }
                 },
@@ -192,57 +170,10 @@ public class PaymentStatusEventHandler : INotificationHandler<PaymentStatusEvent
         }
     }
 
-    private bool ShouldStartGracePeriod(int failureCount)
-    {
-        // Start grace period on first failure (can be configured)
-        return failureCount >= 1;
-    }
-
-    private bool ShouldSuspendAfterFailure(int failureCount)
-    {
-        // Suspend after max retries reached
-        return failureCount >= _subscriptionSettings.MaxPaymentRetries;
-    }
-
-    private DateTimeOffset CalculateNextRetryTime(int attemptCount, DateTimeOffset firstFailureAt)
-    {
-        // Stripe's approximate retry schedule:
-        // 1st retry: 3-5 days after initial failure
-        // 2nd retry: 5-7 days after first retry
-        // 3rd retry: 7-9 days after second retry
-        // 4th retry: 10-11 days after third retry
-
-        return attemptCount switch
-        {
-            1 => firstFailureAt.AddDays(4), // First retry around day 4
-            2 => firstFailureAt.AddDays(9), // Second retry around day 9
-            3 => firstFailureAt.AddDays(16), // Third retry around day 16
-            4 => firstFailureAt.AddDays(25), // Final retry around day 25
-            _ => firstFailureAt.AddDays(3) // Default fallback
-        };
-    }
-
-    private DateTimeOffset CalculateIntelligentGracePeriodEnd(int attemptCount, DateTimeOffset firstFailureAt)
-    {
-        // Base grace period calculation
-        var baseGracePeriodEnd = DateTimeOffset.UtcNow.AddDays(_subscriptionSettings.GracePeriodDays);
-
-        // If we're still in Stripe's retry period, extend grace period beyond the last expected retry
-        var nextRetryTime = CalculateNextRetryTime(attemptCount, firstFailureAt);
-        var stripeRetryEndTime = firstFailureAt.AddDays(_subscriptionSettings.StripeRetryPeriodDays);
-
-        // Ensure grace period extends beyond Stripe's retry attempts with additional buffer
-        var intelligentEndTime = stripeRetryEndTime.AddHours(_subscriptionSettings.RetryAttemptGracePeriodHours);
-
-        // Use the later of the two dates
-        return baseGracePeriodEnd > intelligentEndTime ? baseGracePeriodEnd : intelligentEndTime;
-    }
-
     private string GetEmailTemplateId(PaymentAction action) => action switch
     {
         PaymentAction.Success => EmailTemplates.PaymentSuccess,
         PaymentAction.Failed => EmailTemplates.PaymentFailed,
-        PaymentAction.Retry => EmailTemplates.PaymentRetry,
         _ => EmailTemplates.PaymentFailed
     };
 
@@ -250,7 +181,6 @@ public class PaymentStatusEventHandler : INotificationHandler<PaymentStatusEvent
     {
         PaymentAction.Success => "Payment Successful - Thank You!",
         PaymentAction.Failed => "Payment Failed - Action Required",
-        PaymentAction.Retry => "Payment Retry Scheduled",
         _ => "Payment Update"
     };
 }
