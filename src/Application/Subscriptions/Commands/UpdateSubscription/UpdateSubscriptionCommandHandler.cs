@@ -9,13 +9,15 @@ public class UpdateSubscriptionCommandHandler : IRequestHandler<UpdateSubscripti
     private readonly IPaymentService _paymentService;
     private readonly IContextManager _contextManager;
     private readonly ISubscriptionManagementService _subscriptionManagementService;
+    private readonly SubscriptionSettings _subscriptionSettings;
 
-    public UpdateSubscriptionCommandHandler(IApplicationDbContext context, IPaymentService paymentService, IContextManager contextManager, ISubscriptionManagementService subscriptionManagementService)
+    public UpdateSubscriptionCommandHandler(IApplicationDbContext context, IPaymentService paymentService, IContextManager contextManager, ISubscriptionManagementService subscriptionManagementService, IOptions<SubscriptionSettings> subscriptionSettings)
     {
         _context = context;
         _paymentService = paymentService;
         _contextManager = contextManager;
         _subscriptionManagementService = subscriptionManagementService;
+        _subscriptionSettings = subscriptionSettings.Value;
     }
 
     public async Task<Result<UpdateSubscriptionResult>> Handle(UpdateSubscriptionCommand request, CancellationToken cancellationToken)
@@ -42,6 +44,11 @@ public class UpdateSubscriptionCommandHandler : IRequestHandler<UpdateSubscripti
         if (currentPlan.Type == PlanType.Free)
         {
             return Result<UpdateSubscriptionResult>.Failure(null, "Cannot switch from a free plan using this method. Please create a new paid subscription.");
+        }
+
+        if (!_subscriptionSettings.AllowDowngrades && newPlan.Price < currentPlan.Price)
+        {
+            return Result<UpdateSubscriptionResult>.Failure(null, "Downgrades are not allowed as per the current subscription settings.");
         }
 
         // Update subscription in Stripe - this will trigger a webhook that updates local state

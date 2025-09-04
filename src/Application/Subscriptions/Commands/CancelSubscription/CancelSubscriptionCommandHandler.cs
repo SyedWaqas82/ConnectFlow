@@ -45,13 +45,24 @@ public class CancelSubscriptionCommandHandler : IRequestHandler<CancelSubscripti
             return Result<CancelSubscriptionResult>.Failure(null, "Immediate cancellations are not allowed as per the cancellation policy.");
         }
 
+        if (!request.CancelImmediately && currentSubscription.CancelAtPeriodEnd)
+        {
+            return Result<CancelSubscriptionResult>.Success(new CancelSubscriptionResult
+            {
+                SubscriptionId = currentSubscription.Id,
+                Status = "subscription_cancelled_at_period_end",
+                CancelledAt = currentSubscription.CancellationRequestedAt,
+                EffectiveDate = currentSubscription.CurrentPeriodEnd
+            }, "Subscription will be cancelled at the end of the current billing period.");
+        }
+
         // Cancel subscription in Stripe - this will trigger a webhook that updates local state
         var stripeSubscription = await _paymentService.CancelSubscriptionAsync(currentSubscription.PaymentProviderSubscriptionId, request.CancelImmediately, cancellationToken);
 
         // Return result based on Stripe response - local state will be updated via webhook
         var message = request.CancelImmediately
-            ? "Subscription cancellation request sent to Stripe. Local state will be updated via webhook."
-            : "Subscription will be cancelled at the end of the current billing period. Local state will be updated via webhook.";
+            ? "Subscription cancellation request sent to Payment Gateway."
+            : "Subscription will be cancelled at the end of the current billing period.";
 
         var effectiveDate = request.CancelImmediately ? DateTimeOffset.UtcNow : currentSubscription.CurrentPeriodEnd;
 

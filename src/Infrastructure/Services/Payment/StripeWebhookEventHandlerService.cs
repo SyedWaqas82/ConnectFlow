@@ -1,5 +1,6 @@
 using ConnectFlow.Application.Common.Models;
 using ConnectFlow.Infrastructure.Common.Metrics;
+using Google.Protobuf.WellKnownTypes;
 using Newtonsoft.Json.Linq;
 
 namespace ConnectFlow.Infrastructure.Services.Payment;
@@ -14,14 +15,16 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
     private readonly SubscriptionSettings _subscriptionSettings;
     private readonly ILogger<StripeWebhookEventHandlerService> _logger;
     private readonly PaymentMetrics _paymentMetrics;
+    private readonly ICacheService _cacheService;
 
-    public StripeWebhookEventHandlerService(IPaymentService paymentService, IApplicationDbContext context, IOptions<SubscriptionSettings> subscriptionSettings, ILogger<StripeWebhookEventHandlerService> logger, PaymentMetrics paymentMetrics)
+    public StripeWebhookEventHandlerService(IPaymentService paymentService, IApplicationDbContext context, IOptions<SubscriptionSettings> subscriptionSettings, ILogger<StripeWebhookEventHandlerService> logger, PaymentMetrics paymentMetrics, ICacheService cacheService)
     {
         _paymentService = paymentService;
         _context = context;
         _subscriptionSettings = subscriptionSettings.Value;
         _logger = logger;
         _paymentMetrics = paymentMetrics;
+        _cacheService = cacheService;
     }
 
     public async Task<bool> HandleSubscriptionCreatedAsync(PaymentEventDto paymentEvent, CancellationToken cancellationToken)
@@ -139,17 +142,26 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
             // Create or update invoice record
             var invoice = await CreateOrUpdateInvoiceAsync(paymentEvent.ObjectId, existingSubscription.Id, amountDue, amountPaid, currency, status, paidAt, invoicePdf, invoiceHostedUrl, cancellationToken);
 
+            if (invoiceStatus != PaymentInvoiceStatus.Failed)
+            {
+                var cacheKey = $"webhook_event_subscription_payment_alert_{paymentEvent.SubscriptionId}";
+                var emailSent = _cacheService.GetAsync<bool>(cacheKey);
+
+                if (emailSent == null || !emailSent.Result)
+                {
+                    // Send email notification logic here (if needed)
+                    var paymentDomainEvent = new PaymentStatusEvent(existingSubscription.TenantId, default, existingSubscription, PaymentAction.Success, invoiceStatus.ToString(), amount: amountPaid, sendEmailNotification: true);
+
+                    invoice.AddDomainEvent(paymentDomainEvent);
+
+                    await _cacheService.SetAsync(cacheKey, true, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30), cancellationToken: cancellationToken);
+                }
+            }
+
             if (invoiceStatus == PaymentInvoiceStatus.Succeeded)
             {
                 // Track payment success metric
                 _paymentMetrics.PaymentSuccessful(amountPaid, currency);
-
-                // Add PaymentStatusEvent domain event for payment success
-                // Use the subscription's TenantId to ensure we have the correct tenant context
-                // The PaymentStatusEventHandler will handle status updates and retry tracking reset
-                var paymentDomainEvent = new PaymentStatusEvent(existingSubscription.TenantId, default, existingSubscription, PaymentAction.Success, "Payment succeeded", amount: amountPaid, sendEmailNotification: true);
-
-                invoice.AddDomainEvent(paymentDomainEvent);
 
                 await _context.SaveChangesAsync(cancellationToken);
 
@@ -167,10 +179,6 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
                     existingSubscription.HasReachedMaxRetries = true;
                 }
 
-                // Add PaymentStatusEvent domain event for payment failure
-                // Use the subscription's TenantId to ensure we have the correct tenant context
-                // The PaymentStatusEventHandler will handle suspension logic when SuspendOnFailure=true
-                // The PaymentStatusEventHandler will handle retry tracking and grace period logic
                 var paymentDomainEvent = new PaymentStatusEvent(existingSubscription.TenantId, default, existingSubscription, PaymentAction.Failed, $"Payment attempt {attemptCount} failed", amount: amountDue, sendEmailNotification: true, failureCount: attemptCount);
 
                 invoice.AddDomainEvent(paymentDomainEvent);
@@ -187,13 +195,6 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
             }
             else if (invoiceStatus == PaymentInvoiceStatus.Finalized)
             {
-                // Add PaymentStatusEvent domain event for payment success
-                // Use the subscription's TenantId to ensure we have the correct tenant context
-                // The PaymentStatusEventHandler will handle status updates and retry tracking reset
-                var paymentDomainEvent = new PaymentStatusEvent(existingSubscription.TenantId, default, existingSubscription, PaymentAction.Success, "Payment Finalized", amount: amountPaid, sendEmailNotification: true);
-
-                invoice.AddDomainEvent(paymentDomainEvent);
-
                 await _context.SaveChangesAsync(cancellationToken);
 
                 _logger.LogInformation("Payment succeeded for subscription {SubscriptionId}, amount {Amount} {Currency}", existingSubscription.Id, amountPaid, currency);

@@ -101,7 +101,7 @@ public class JobSchedulingService : IHostedService
         await ScheduleJobFromConfig<TestMetricsJob>(defaultCron: "0 * * * * ?", description: "Test metrics job");
 
         // LongRunningJob: runs every 3 seconds (for misfire testing)
-        await ScheduleJobFromConfig<LongRunningJob>(defaultCron: "0/3 * * * * ?", description: "Long running job that will cause misfires");
+        //await ScheduleJobFromConfig<LongRunningJob>(defaultCron: "0/3 * * * * ?", description: "Long running job that will cause misfires");
     }
 
     private async Task ScheduleJobFromConfig<T>(string defaultCron, string description, string? suffix = null, JobDataMap? additionalData = null, int tenantId = 0, int applicationUserId = 0) where T : BaseJob

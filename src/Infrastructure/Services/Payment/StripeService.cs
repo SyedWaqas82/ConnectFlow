@@ -298,6 +298,7 @@ public class StripeService : IPaymentService
             options = new SubscriptionUpdateOptions
             {
                 CancelAtPeriodEnd = false,
+                ProrationBehavior = "always_invoice",
                 Items = new List<SubscriptionItemOptions>
                     {
                         new SubscriptionItemOptions

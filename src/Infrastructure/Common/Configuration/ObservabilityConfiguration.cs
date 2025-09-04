@@ -67,12 +67,12 @@ public static class ObservabilityConfiguration
 
             if (builder.Environment.IsDevelopment())
             {
-                tracing.AddConsoleExporter();
+                //tracing.AddConsoleExporter();
             }
         }
         else
         {
-            tracing.AddConsoleExporter();
+            //tracing.AddConsoleExporter();
         }
     }
 
