@@ -252,9 +252,9 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
         }
 
         // Add domain event for subscription creation
-        var subscriptionEvent = new SubscriptionStatusEvent(tenantId, default, newSubscription, SubscriptionAction.Create, "Subscription created via Stripe webhook", sendEmailNotification: true);
-
-        newSubscription.AddDomainEvent(subscriptionEvent);
+        // Also, raise plan change event so entities get synced to plan limits if coming from an old cancelled subscription
+        newSubscription.AddDomainEvent(new SubscriptionStatusEvent(tenantId, default, newSubscription, SubscriptionAction.Create, "Subscription created via Stripe webhook", sendEmailNotification: true));
+        newSubscription.AddDomainEvent(new SubscriptionStatusEvent(tenantId, default, newSubscription, SubscriptionAction.PlanChanged, "Subscription plan changed", sendEmailNotification: false));
 
         _context.Subscriptions.Add(newSubscription);
 
@@ -343,7 +343,7 @@ public class StripeWebhookEventHandlerService : IPaymentWebhookEventHandlerServi
             // Record plan change metrics
             _paymentMetrics.SubscriptionUpdated("plan_change", currentPlan.Type.ToString(), newPlan.Type.ToString());
 
-            var planChangeEvent = new SubscriptionStatusEvent(existingSubscription.TenantId, default, existingSubscription, SubscriptionAction.PlanChanged, $"Plan changed from {currentPlan.Name} to {newPlan.Name}", sendEmailNotification: true, previousPlanId: currentPlan.Id, newPlanId: newPlan.Id);
+            var planChangeEvent = new SubscriptionStatusEvent(existingSubscription.TenantId, default, existingSubscription, SubscriptionAction.PlanChanged, $"Plan changed from {currentPlan.Name} to {newPlan.Name}", sendEmailNotification: true);
 
             existingSubscription.AddDomainEvent(planChangeEvent);
 

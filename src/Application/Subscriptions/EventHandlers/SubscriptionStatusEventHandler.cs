@@ -35,7 +35,10 @@ public class SubscriptionStatusEventHandler : INotificationHandler<SubscriptionS
             await UpdateSubscriptionStatusAsync(subscription, notification, cancellationToken);
 
             // Handle subscription limits based on action
-            await HandleSubscriptionLimitsAsync(subscription, notification, cancellationToken);
+            if (notification.Action == SubscriptionAction.Reactivate || (notification.Action == SubscriptionAction.Cancel && notification.IsImmediate) || notification.Action == SubscriptionAction.PlanChanged)
+            {
+                await HandleSubscriptionLimitsAsync(subscription, notification, cancellationToken);
+            }
 
             // Send email notification if required
             if (notification.SendEmailNotification)

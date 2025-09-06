@@ -1,4 +1,5 @@
 using ConnectFlow.Application.Common.Exceptions;
+using ConnectFlow.Application.Common.Models;
 using ConnectFlow.Domain.Events.Mediator.ChannelAccounts;
 using ConnectFlow.Domain.Events.Mediator.TenantUsers;
 
@@ -8,12 +9,14 @@ public class SubscriptionManagementService : ISubscriptionManagementService
 {
     private readonly IApplicationDbContext _context;
     private readonly IContextManager _contextManager;
+    private readonly SubscriptionSettings _subscriptionSettings;
     private readonly ILogger<SubscriptionManagementService> _logger;
 
-    public SubscriptionManagementService(IApplicationDbContext context, IContextManager contextManager, ILogger<SubscriptionManagementService> logger)
+    public SubscriptionManagementService(IApplicationDbContext context, IContextManager contextManager, IOptions<SubscriptionSettings> subscriptionSettings, ILogger<SubscriptionManagementService> logger)
     {
         _context = context;
         _contextManager = contextManager;
+        _subscriptionSettings = subscriptionSettings.Value;
         _logger = logger;
     }
 
@@ -212,15 +215,24 @@ public class SubscriptionManagementService : ISubscriptionManagementService
         {
             // Get the current active subscription and plan
             var subscription = await GetActiveSubscriptionAsync(tenantId, cancellationToken);
+            var plan = subscription?.Plan;
 
-            if (subscription?.Plan == null)
+            if (plan == null)
             {
-                _logger.LogWarning("No active subscription found for tenant {TenantId}. Suspending all entities.", tenantId);
-                await SuspendAllEntitiesAsync(tenantId, "No active subscription", cancellationToken);
-                return;
+                plan = await _context.Plans.FirstOrDefaultAsync(p => p.Name.ToLower() == _subscriptionSettings.DefaultDowngradePlanName.ToLower() && p.IsActive, cancellationToken);
+
+                if (plan == null)
+                {
+                    //await SuspendAllEntitiesAsync(tenantId, "No active subscription", cancellationToken);
+                    _logger.LogError("Default downgrade plan '{PlanName}' not found or inactive. Cannot proceed with entity suspension for tenant {TenantId}.", _subscriptionSettings.DefaultDowngradePlanName, tenantId);
+                    return;
+                }
+                else
+                {
+                    _logger.LogWarning("No active subscription found for tenant {TenantId}. Proceeding with default downgrade plan '{PlanName}'.", tenantId, plan.Name);
+                }
             }
 
-            var plan = subscription.Plan;
             _logger.LogInformation("Syncing entities for tenant {TenantId} with plan {PlanName} (MaxUsers: {MaxUsers}, MaxChannels: {MaxChannels})", tenantId, plan.Name, plan.MaxUsers, plan.MaxChannels);
 
             // Sync users with plan limits
