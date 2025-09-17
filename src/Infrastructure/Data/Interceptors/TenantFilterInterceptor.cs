@@ -42,8 +42,8 @@ public class TenantFilterInterceptor : SaveChangesInterceptor
 
             if (!currentTenantId.HasValue) return;
 
-            // Set TenantId for all entities implementing ITenantEntity
-            foreach (var entry in context.ChangeTracker.Entries<ITenantEntity>())
+            // Set TenantId for all entities implementing ITenantableEntity
+            foreach (var entry in context.ChangeTracker.Entries<ITenantableEntity>())
             {
                 if (entry.State == EntityState.Added)
                 {

@@ -24,11 +24,17 @@ public abstract class BaseAuditableConfiguration<TEntity> : IEntityTypeConfigura
         ConfigureTenantRelationship(builder);
         ConfigureSoftDelete(builder);
         ConfigureEntitySuspension(builder);
+        ConfigureActivities(builder);
+        ConfigureLabels(builder);
+        ConfigureNotes(builder);
+        ConfigureComments(builder);
+        ConfigureFiles(builder);
+        ConfigureDocuments(builder);
     }
 
     protected virtual void ConfigureTenantRelationship(EntityTypeBuilder<TEntity> builder)
     {
-        if (typeof(ITenantEntity).IsAssignableFrom(typeof(TEntity)))
+        if (typeof(ITenantableEntity).IsAssignableFrom(typeof(TEntity)))
         {
             builder.HasIndex("TenantId");
             builder.Property("TenantId").IsRequired();
@@ -45,7 +51,7 @@ public abstract class BaseAuditableConfiguration<TEntity> : IEntityTypeConfigura
 
     protected virtual void ConfigureSoftDelete(EntityTypeBuilder<TEntity> builder)
     {
-        if (typeof(ISoftDeleteEntity).IsAssignableFrom(typeof(TEntity)))
+        if (typeof(ISoftDeleteableEntity).IsAssignableFrom(typeof(TEntity)))
         {
             builder.Property<bool>("IsDeleted").HasDefaultValue(false);
 
@@ -58,6 +64,55 @@ public abstract class BaseAuditableConfiguration<TEntity> : IEntityTypeConfigura
         if (typeof(ISuspendibleEntity).IsAssignableFrom(typeof(TEntity)))
         {
             builder.Property<EntityStatus>("EntityStatus").IsRequired();
+        }
+    }
+
+    protected virtual void ConfigureActivities(EntityTypeBuilder<TEntity> builder)
+    {
+        if (typeof(IActivatableEntity).IsAssignableFrom(typeof(TEntity)))
+        {
+            //builder.HasIndex(a => new { a.TenantId, a.EntityType, a.EntityId }).HasDatabaseName("IX_Activity_TenantId_TargetType_TargetId");
+            builder.HasIndex("TenantId", "EntityType", "EntityId").HasDatabaseName("IX_Activity_TenantId_EntityType_EntityId");
+        }
+    }
+
+    protected virtual void ConfigureLabels(EntityTypeBuilder<TEntity> builder)
+    {
+        if (typeof(ILabelableEntity).IsAssignableFrom(typeof(TEntity)))
+        {
+            builder.HasIndex("EntityType", "EntityId").HasDatabaseName("IX_EntityLabel_EntityType_EntityId");
+        }
+    }
+
+    protected virtual void ConfigureNotes(EntityTypeBuilder<TEntity> builder)
+    {
+        if (typeof(INoteableEntity).IsAssignableFrom(typeof(TEntity)))
+        {
+            builder.HasIndex("TenantId", "EntityType", "EntityId").HasDatabaseName("IX_Note_TenantId_EntityType_EntityId");
+        }
+    }
+
+    protected virtual void ConfigureComments(EntityTypeBuilder<TEntity> builder)
+    {
+        if (typeof(ICommentableEntity).IsAssignableFrom(typeof(TEntity)))
+        {
+            builder.HasIndex("TenantId", "EntityType", "EntityId").HasDatabaseName("IX_EntityComment_TenantId_EntityType_EntityId");
+        }
+    }
+
+    protected virtual void ConfigureFiles(EntityTypeBuilder<TEntity> builder)
+    {
+        if (typeof(IFileableEntity).IsAssignableFrom(typeof(TEntity)))
+        {
+            builder.HasIndex("TenantId", "EntityType", "EntityId").HasDatabaseName("IX_EntityFile_TenantId_EntityType_EntityId");
+        }
+    }
+
+    protected virtual void ConfigureDocuments(EntityTypeBuilder<TEntity> builder)
+    {
+        if (typeof(IDocumentableEntity).IsAssignableFrom(typeof(TEntity)))
+        {
+            builder.HasIndex("TenantId", "EntityType", "EntityId").HasDatabaseName("IX_EntityDocument_TenantId_EntityType_EntityId");
         }
     }
 }

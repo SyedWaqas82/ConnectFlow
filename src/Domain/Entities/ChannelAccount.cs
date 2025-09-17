@@ -1,6 +1,6 @@
 namespace ConnectFlow.Domain.Entities;
 
-public class ChannelAccount : BaseAuditableEntity, ITenantEntity, ISoftDeleteEntity, ISuspendibleEntity
+public class ChannelAccount : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEntity, ISuspendibleEntity
 {
     public ChannelType Type { get; set; } // Type of channel (WhatsApp, Facebook, Instagram, ...)
     public string? ProviderAccountId { get; set; } // Unique identifier from the provider (e.g. WhatsApp business account id, Facebook page id)

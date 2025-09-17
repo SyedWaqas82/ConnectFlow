@@ -7,7 +7,7 @@ public static class ModelBuilderExtensions
 {
     public static void ApplyTenantFilters(this ModelBuilder modelBuilder, IContextManager contextManager)
     {
-        var tenantEntityTypes = modelBuilder.Model.GetEntityTypes().Where(e => typeof(ITenantEntity).IsAssignableFrom(e.ClrType)).ToList();
+        var tenantEntityTypes = modelBuilder.Model.GetEntityTypes().Where(e => typeof(ITenantableEntity).IsAssignableFrom(e.ClrType)).ToList();
 
         foreach (var entityType in tenantEntityTypes)
         {
@@ -20,7 +20,7 @@ public static class ModelBuilderExtensions
 
     public static void ApplySoftDeleteFilters(this ModelBuilder modelBuilder)
     {
-        var softDeleteEntityTypes = modelBuilder.Model.GetEntityTypes().Where(e => typeof(ISoftDeleteEntity).IsAssignableFrom(e.ClrType)).ToList();
+        var softDeleteEntityTypes = modelBuilder.Model.GetEntityTypes().Where(e => typeof(ISoftDeleteableEntity).IsAssignableFrom(e.ClrType)).ToList();
 
         foreach (var entityType in softDeleteEntityTypes)
         {
@@ -44,13 +44,13 @@ public static class ModelBuilderExtensions
         }
     }
 
-    private static void SetTenantFilter<T>(ModelBuilder modelBuilder, IContextManager contextManager) where T : class, ITenantEntity
+    private static void SetTenantFilter<T>(ModelBuilder modelBuilder, IContextManager contextManager) where T : class, ITenantableEntity
     {
         var tenantId = contextManager.GetCurrentTenantId();
         modelBuilder.Entity<T>().HasQueryFilter(e => contextManager.IsSuperAdmin() || (tenantId.HasValue && e.TenantId == tenantId.Value));
     }
 
-    private static void SetSoftDeleteFilter<T>(ModelBuilder modelBuilder) where T : class, ISoftDeleteEntity
+    private static void SetSoftDeleteFilter<T>(ModelBuilder modelBuilder) where T : class, ISoftDeleteableEntity
     {
         modelBuilder.Entity<T>().HasQueryFilter(e => !e.IsDeleted);
     }

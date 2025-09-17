@@ -3,7 +3,7 @@ namespace ConnectFlow.Domain.Common;
 /// <summary>
 /// Interface for entities that support soft delete functionality
 /// </summary>
-public interface ISoftDeleteEntity
+public interface ISoftDeleteableEntity
 {
     /// <summary>
     /// Indicates whether this entity has been soft-deleted
