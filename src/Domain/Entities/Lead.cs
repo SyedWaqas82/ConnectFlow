@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ConnectFlow.Domain.Entities;
 
-public class Lead : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEntity, ISuspendibleEntity, IActivatableEntity, ILabelableEntity, INoteableEntity
+public class Lead : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEntity, ISuspendibleEntity, IActivatableEntity, ILabelableEntity, INoteableEntity, IChangeLogableEntity
 {
     public required string Title { get; set; }
     public int OwnerId { get; set; }
@@ -29,6 +29,8 @@ public class Lead : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEntit
     public IList<EntityLabel> Labels { get; set; } = new List<EntityLabel>();
     [NotMapped]
     public IList<Note> Notes { get; set; } = new List<Note>();
+    [NotMapped]
+    public IList<ChangeLog> ChangeLogs { get; set; } = new List<ChangeLog>();
 
     // ITenantEntity implementation
     public int TenantId { get; set; }
@@ -43,4 +45,48 @@ public class Lead : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEntit
     public EntityStatus EntityStatus { get; set; } = EntityStatus.Active; // Overall status of the entity
     public DateTimeOffset? SuspendedAt { get; set; }
     public DateTimeOffset? ResumedAt { get; set; }
+
+    public string FormatValueForDisplay(string propertyName, object? value)
+    {
+        if (value == null) return "Not Set";
+
+        return propertyName switch
+        {
+            nameof(Value) when value is decimal val => $"${val:N2}",
+            nameof(IsDeleted) when value is bool b => b ? "Yes" : "No",
+            nameof(EntityStatus) when value is EntityStatus b => b == EntityStatus.Suspended ? "Yes" : "No",
+            _ => value.ToString() ?? "Not Set"
+        };
+    }
+
+    public IList<string> GetLoggableFields()
+    {
+        return new List<string>
+        {
+            nameof(Title),
+            nameof(Value),
+            nameof(Currency),
+            nameof(OwnerId),
+            nameof(PersonId),
+            nameof(OrganizationId),
+            nameof(IsDeleted),
+            nameof(EntityStatus)
+        };
+    }
+
+    public string GetPropertyDisplayName(string propertyName)
+    {
+        return propertyName switch
+        {
+            nameof(Title) => "Lead Title",
+            nameof(Value) => "Lead Value",
+            nameof(Currency) => "Currency",
+            nameof(OwnerId) => "Owner",
+            nameof(PersonId) => "Contact Person",
+            nameof(OrganizationId) => "Organization",
+            nameof(IsDeleted) => "Deleted",
+            nameof(EntityStatus) => "Suspended",
+            _ => propertyName
+        };
+    }
 }

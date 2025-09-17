@@ -9,6 +9,7 @@ public interface IApplicationDbContext
     DbSet<Plan> Plans { get; }
     DbSet<ChannelAccount> ChannelAccounts { get; }
     DbSet<EntityActivity> Activities { get; }
+    DbSet<ChangeLog> ChangeLogs { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

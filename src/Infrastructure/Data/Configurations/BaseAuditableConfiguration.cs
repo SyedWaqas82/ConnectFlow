@@ -30,6 +30,7 @@ public abstract class BaseAuditableConfiguration<TEntity> : IEntityTypeConfigura
         ConfigureComments(builder);
         ConfigureFiles(builder);
         ConfigureDocuments(builder);
+        ConfigureChangeLog(builder);
     }
 
     protected virtual void ConfigureTenantRelationship(EntityTypeBuilder<TEntity> builder)
@@ -73,6 +74,8 @@ public abstract class BaseAuditableConfiguration<TEntity> : IEntityTypeConfigura
         {
             //builder.HasIndex(a => new { a.TenantId, a.EntityType, a.EntityId }).HasDatabaseName("IX_Activity_TenantId_TargetType_TargetId");
             builder.HasIndex("TenantId", "EntityType", "EntityId").HasDatabaseName("IX_Activity_TenantId_EntityType_EntityId");
+            builder.Property("EntityId").IsRequired();
+            builder.Property("EntityType").IsRequired();
         }
     }
 
@@ -81,6 +84,8 @@ public abstract class BaseAuditableConfiguration<TEntity> : IEntityTypeConfigura
         if (typeof(ILabelableEntity).IsAssignableFrom(typeof(TEntity)))
         {
             builder.HasIndex("EntityType", "EntityId").HasDatabaseName("IX_EntityLabel_EntityType_EntityId");
+            builder.Property("EntityId").IsRequired();
+            builder.Property("EntityType").IsRequired();
         }
     }
 
@@ -89,6 +94,8 @@ public abstract class BaseAuditableConfiguration<TEntity> : IEntityTypeConfigura
         if (typeof(INoteableEntity).IsAssignableFrom(typeof(TEntity)))
         {
             builder.HasIndex("TenantId", "EntityType", "EntityId").HasDatabaseName("IX_Note_TenantId_EntityType_EntityId");
+            builder.Property("EntityId").IsRequired();
+            builder.Property("EntityType").IsRequired();
         }
     }
 
@@ -97,6 +104,8 @@ public abstract class BaseAuditableConfiguration<TEntity> : IEntityTypeConfigura
         if (typeof(ICommentableEntity).IsAssignableFrom(typeof(TEntity)))
         {
             builder.HasIndex("TenantId", "EntityType", "EntityId").HasDatabaseName("IX_EntityComment_TenantId_EntityType_EntityId");
+            builder.Property("EntityId").IsRequired();
+            builder.Property("EntityType").IsRequired();
         }
     }
 
@@ -105,6 +114,8 @@ public abstract class BaseAuditableConfiguration<TEntity> : IEntityTypeConfigura
         if (typeof(IFileableEntity).IsAssignableFrom(typeof(TEntity)))
         {
             builder.HasIndex("TenantId", "EntityType", "EntityId").HasDatabaseName("IX_EntityFile_TenantId_EntityType_EntityId");
+            builder.Property("EntityId").IsRequired();
+            builder.Property("EntityType").IsRequired();
         }
     }
 
@@ -113,6 +124,18 @@ public abstract class BaseAuditableConfiguration<TEntity> : IEntityTypeConfigura
         if (typeof(IDocumentableEntity).IsAssignableFrom(typeof(TEntity)))
         {
             builder.HasIndex("TenantId", "EntityType", "EntityId").HasDatabaseName("IX_EntityDocument_TenantId_EntityType_EntityId");
+            builder.Property("EntityId").IsRequired();
+            builder.Property("EntityType").IsRequired();
+        }
+    }
+
+    protected virtual void ConfigureChangeLog(EntityTypeBuilder<TEntity> builder)
+    {
+        if (typeof(IChangeLogableEntity).IsAssignableFrom(typeof(TEntity)))
+        {
+            builder.HasIndex("TenantId", "EntityType", "EntityId").HasDatabaseName("IX_ChangeLog_TenantId_EntityType_EntityId");
+            builder.Property("EntityId").IsRequired();
+            builder.Property("EntityType").IsRequired();
         }
     }
 }
