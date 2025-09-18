@@ -4,6 +4,7 @@ public class Pipeline : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableE
 {
     public required string Name { get; set; }
     public int SortOrder { get; set; }
+    public string? Description { get; set; }
     public bool DealsProbabilityEnabled { get; set; } = false;
     public IList<Deal> Deals { get; private set; } = new List<Deal>();
     public IList<PipelineStage> Stages { get; private set; } = new List<PipelineStage>();

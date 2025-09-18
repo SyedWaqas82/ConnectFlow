@@ -46,6 +46,7 @@ public class Lead : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEntit
     public DateTimeOffset? SuspendedAt { get; set; }
     public DateTimeOffset? ResumedAt { get; set; }
 
+    // IChangeLogableEntity implementation
     public string FormatValueForDisplay(string propertyName, object? value)
     {
         if (value == null) return "Not Set";

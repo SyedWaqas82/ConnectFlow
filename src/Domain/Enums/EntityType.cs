@@ -7,6 +7,7 @@ public enum EntityType
     Person = 3,
     Organization = 4,
     Project = 5,
-    Product = 6,
-    Note = 7,
+    ProjectPhase = 6,
+    Product = 7,
+    Note = 8,
 }
