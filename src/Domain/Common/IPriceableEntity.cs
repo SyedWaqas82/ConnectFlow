@@ -1,8 +1,8 @@
 namespace ConnectFlow.Domain.Common;
 
-public interface INoteableEntity
+public interface IPriceableEntity
 {
     int Id { get; }
-    IList<EntityNote> Notes { get; set; }
+    IList<EntityPrice> Prices { get; set; }
     EntityType EntityType { get; }
 }

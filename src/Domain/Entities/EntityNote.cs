@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ConnectFlow.Domain.Entities;
 
-public class Note : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEntity, ICommentableEntity
+public class EntityNote : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEntity, ICommentableEntity
 {
     public required string Content { get; set; }
     public bool IsPinned { get; set; } = false;
@@ -22,9 +22,9 @@ public class Note : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEntit
     public DateTimeOffset? DeletedAt { get; set; }
     public int? DeletedBy { get; set; }
 
-    [NotMapped]
-    public EntityType EntityType => EntityType.Note;
+    public int EntityId { get; set; }    // ID of the Lead, Deal, Person or Organization
+    public EntityType EntityType { get; set; } // "Lead", "Deal", "Person" or "Organization"
+    public IList<NoteReaction> Reactions { get; private set; } = new List<NoteReaction>();
     [NotMapped]
     public IList<EntityComment> Comments { get; set; } = new List<EntityComment>();
-    public IList<NoteReaction> Reactions { get; private set; } = new List<NoteReaction>();
 }

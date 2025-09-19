@@ -2,9 +2,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ConnectFlow.Infrastructure.Data.Configurations;
 
-public class NoteConfiguration : BaseAuditableConfiguration<Note>
+public class EntityPriceConfiguration : BaseAuditableConfiguration<EntityPrice>
 {
-    public override void Configure(EntityTypeBuilder<Note> builder)
+    public override void Configure(EntityTypeBuilder<EntityPrice> builder)
     {
         base.Configure(builder);
 

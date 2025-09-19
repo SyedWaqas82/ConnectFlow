@@ -28,7 +28,7 @@ public class Lead : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEntit
     [NotMapped]
     public IList<EntityLabel> Labels { get; set; } = new List<EntityLabel>();
     [NotMapped]
-    public IList<Note> Notes { get; set; } = new List<Note>();
+    public IList<EntityNote> Notes { get; set; } = new List<EntityNote>();
     [NotMapped]
     public IList<ChangeLog> ChangeLogs { get; set; } = new List<ChangeLog>();
 

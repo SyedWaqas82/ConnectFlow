@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ConnectFlow.Domain.Entities;
 
-public class Project : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEntity, ISuspendibleEntity, ILabelableEntity, INoteableEntity, IFileableEntity, IDocumentableEntity
+public class Project : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEntity, ISuspendibleEntity, IFileableEntity
 {
     public required string Title { get; set; }
     public string? Description { get; set; }
@@ -25,13 +25,7 @@ public class Project : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEn
     [NotMapped]
     public EntityType EntityType => EntityType.Project;
     [NotMapped]
-    public IList<EntityLabel> Labels { get; set; } = new List<EntityLabel>();
-    [NotMapped]
-    public IList<Note> Notes { get; set; } = new List<Note>();
-    [NotMapped]
     public IList<EntityFile> Files { get; set; } = new List<EntityFile>();
-    [NotMapped]
-    public IList<EntityDocument> Documents { get; set; } = new List<EntityDocument>();
 
     // ITenantableEntity implementation
     public int TenantId { get; set; }
@@ -46,56 +40,4 @@ public class Project : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEn
     public EntityStatus EntityStatus { get; set; } = EntityStatus.Active;
     public DateTimeOffset? SuspendedAt { get; set; }
     public DateTimeOffset? ResumedAt { get; set; }
-
-    // IChangeLogableEntity implementation
-    public IList<string> GetLoggableFields()
-    {
-        return new List<string>
-        {
-            nameof(Title),
-            nameof(Description),
-            nameof(OwnerId),
-            nameof(OrganizationId),
-            nameof(PersonId),
-            nameof(Status),
-            nameof(Priority),
-            nameof(PhaseId),
-            nameof(IsArchived),
-            nameof(IsDeleted),
-            nameof(EntityStatus)
-        };
-    }
-
-    public string GetPropertyDisplayName(string propertyName)
-    {
-        return propertyName switch
-        {
-            nameof(Title) => "Project Title",
-            nameof(Description) => "Description",
-            nameof(OwnerId) => "Project Owner",
-            nameof(OrganizationId) => "Client Organization",
-            nameof(PersonId) => "Primary Contact",
-            nameof(Status) => "Project Status",
-            nameof(Priority) => "Priority",
-            nameof(PhaseId) => "Current Phase",
-            nameof(IsArchived) => "Archived",
-            nameof(IsDeleted) => "Deleted",
-            nameof(EntityStatus) => "Status",
-            _ => propertyName
-        };
-    }
-
-    public string FormatValueForDisplay(string propertyName, object? value)
-    {
-        if (value == null) return "Not Set";
-
-        return propertyName switch
-        {
-            nameof(IsArchived) or nameof(IsDeleted) when value is bool b => b ? "Yes" : "No",
-            nameof(Status) when value is ProjectStatus status => status.ToString(),
-            nameof(Priority) when value is ProjectPriority priority => priority.ToString(),
-            nameof(EntityStatus) when value is EntityStatus entityStatus => entityStatus.ToString(),
-            _ => value.ToString() ?? "Not Set"
-        };
-    }
 }

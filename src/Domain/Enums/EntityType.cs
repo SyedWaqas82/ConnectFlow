@@ -9,5 +9,6 @@ public enum EntityType
     Project = 5,
     ProjectPhase = 6,
     Product = 7,
-    Note = 8,
+    ProductVariant = 8,
+    Note = 9,
 }
