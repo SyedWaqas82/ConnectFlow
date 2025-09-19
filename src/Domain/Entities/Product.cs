@@ -8,6 +8,8 @@ public class Product : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEn
     public string? Code { get; set; }
     public string? Unit { get; set; }
     public decimal? TaxPercentage { get; set; }
+    public int OwnerId { get; set; }
+    public TenantUser Owner { get; set; } = null!;
     public int? CategoryId { get; set; }
     public ProductCategory? Category { get; set; }
     public string? Description { get; set; }

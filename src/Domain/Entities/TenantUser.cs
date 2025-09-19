@@ -17,8 +17,10 @@ public class TenantUser : BaseAuditableEntity, ISuspendibleEntity
     public int TenantId { get; set; }
     public Tenant Tenant { get; set; } = null!;
     public IList<TenantUserRole> TenantUserRoles { get; private set; } = new List<TenantUserRole>();
-    public IList<Lead> Leads { get; private set; } = new List<Lead>();
-    public IList<Deal> Deals { get; private set; } = new List<Deal>();
+    public IList<Lead> Leads { get; private set; } = new List<Lead>(); // Leads owned by this user
+    public IList<Deal> Deals { get; private set; } = new List<Deal>(); // Deals owned by this user
     public IList<EntityNote> Notes { get; private set; } = new List<EntityNote>(); // Authored notes
     public IList<EntityActivity> Activities { get; private set; } = new List<EntityActivity>(); // Activities assigned to this user
+    public IList<Project> Projects { get; private set; } = new List<Project>(); // Projects owned by this user
+    public IList<Product> Products { get; private set; } = new List<Product>(); // Products owned by this user
 }
