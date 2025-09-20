@@ -9,7 +9,7 @@ public class TenantUserConfiguration : BaseAuditableConfiguration<TenantUser>
         base.Configure(builder);
 
         builder.Property(tu => tu.ApplicationUserId).IsRequired();
-        builder.Property(tu => tu.Status).IsRequired();
+        builder.Property(tu => tu.Status).IsRequired().HasConversion<string>();
         builder.Property(tu => tu.JoinedAt).IsRequired();
         builder.Property(tu => tu.InvitedBy).IsRequired(false);
         builder.Property(tu => tu.LeftAt).IsRequired(false);

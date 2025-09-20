@@ -10,7 +10,7 @@ public class SubscriptionConfiguration : BaseAuditableConfiguration<Subscription
 
         builder.Property(s => s.PaymentProviderSubscriptionId).IsRequired().HasMaxLength(50);
         builder.Property(p => p.Amount).IsRequired().HasColumnType("decimal(18,2)");
-        builder.Property(s => s.Status).IsRequired();
+        builder.Property(s => s.Status).IsRequired().HasConversion<string>();
         builder.Property(s => s.TenantId).IsRequired();
         builder.HasIndex(s => s.TenantId);
 

@@ -10,7 +10,7 @@ public class EntityLabelConfiguration : BaseAuditableConfiguration<EntityLabel>
 
         // Configure properties
         builder.Property(a => a.EntityId).IsRequired();
-        builder.Property(a => a.EntityType).IsRequired();
+        builder.Property(a => a.EntityType).IsRequired().HasConversion<string>();
 
         builder.HasIndex(a => new { a.EntityType, a.EntityId }).HasDatabaseName("IX_EntityLabel_EntityType_EntityId");
 

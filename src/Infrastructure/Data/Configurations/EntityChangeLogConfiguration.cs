@@ -12,7 +12,7 @@ public class EntityChangeLogConfiguration : BaseAuditableConfiguration<EntityCha
         base.Configure(builder);
 
         // Configure Properties
-        builder.Property(e => e.ChangeType).IsRequired();
+        builder.Property(e => e.ChangeType).IsRequired().HasConversion<string>();
         builder.Property(e => e.PropertyName).HasMaxLength(100);
         builder.Property(e => e.PropertyDisplayName).HasMaxLength(200);
         builder.Property(e => e.Description).IsRequired().HasMaxLength(1000);
@@ -24,7 +24,7 @@ public class EntityChangeLogConfiguration : BaseAuditableConfiguration<EntityCha
         builder.Property(e => e.UserAgent).HasMaxLength(500);
 
         builder.Property(a => a.EntityId).IsRequired();
-        builder.Property(a => a.EntityType).IsRequired();
+        builder.Property(a => a.EntityType).IsRequired().HasConversion<string>();
 
         builder.HasIndex(a => new { a.TenantId, a.EntityType, a.EntityId }).HasDatabaseName("IX_ChangeLog_TenantId_EntityType_EntityId");
 

@@ -10,7 +10,7 @@ public class EntityNoteConfiguration : BaseAuditableConfiguration<EntityNote>
 
         // Configure properties
         builder.Property(a => a.EntityId).IsRequired();
-        builder.Property(a => a.EntityType).IsRequired();
+        builder.Property(a => a.EntityType).IsRequired().HasConversion<string>();
 
         builder.HasIndex(a => new { a.TenantId, a.EntityType, a.EntityId }).HasDatabaseName("IX_Note_TenantId_EntityType_EntityId");
 

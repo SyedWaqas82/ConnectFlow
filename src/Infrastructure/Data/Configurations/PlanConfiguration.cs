@@ -11,8 +11,8 @@ public class PlanConfiguration : BaseAuditableConfiguration<Plan>
         builder.Property(p => p.Name).IsRequired().HasMaxLength(100);
         builder.Property(p => p.PaymentProviderPriceId).IsRequired().HasMaxLength(50);
         builder.Property(p => p.Price).IsRequired().HasColumnType("decimal(18,2)");
-        builder.Property(p => p.Type).IsRequired();
-        builder.Property(p => p.BillingCycle).IsRequired();
+        builder.Property(p => p.Type).IsRequired().HasConversion<string>();
+        builder.Property(p => p.BillingCycle).IsRequired().HasConversion<string>();
 
         // Configure relationships
         builder.HasMany(p => p.Subscriptions).WithOne(s => s.Plan).HasForeignKey(s => s.PlanId).OnDelete(DeleteBehavior.Restrict);

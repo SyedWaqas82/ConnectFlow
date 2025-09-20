@@ -24,15 +24,6 @@ public abstract class BaseAuditableConfiguration<TEntity> : IEntityTypeConfigura
         ConfigureTenantRelationship(builder);
         ConfigureSoftDelete(builder);
         ConfigureEntitySuspension(builder);
-        ConfigureActivities(builder);
-        ConfigureLabels(builder);
-        ConfigureNotes(builder);
-        ConfigureComments(builder);
-        ConfigureFiles(builder);
-        ConfigureDocuments(builder);
-        ConfigureChangeLogs(builder);
-        ConfigurePrices(builder);
-        ConfigureImages(builder);
     }
 
     protected virtual void ConfigureTenantRelationship(EntityTypeBuilder<TEntity> builder)
@@ -66,79 +57,7 @@ public abstract class BaseAuditableConfiguration<TEntity> : IEntityTypeConfigura
     {
         if (typeof(ISuspendibleEntity).IsAssignableFrom(typeof(TEntity)))
         {
-            builder.Property<EntityStatus>("EntityStatus").IsRequired();
-        }
-    }
-
-    protected virtual void ConfigureActivities(EntityTypeBuilder<TEntity> builder)
-    {
-        if (typeof(IActivatableEntity).IsAssignableFrom(typeof(TEntity)))
-        {
-            builder.Property("EntityType").IsRequired();
-        }
-    }
-
-    protected virtual void ConfigureLabels(EntityTypeBuilder<TEntity> builder)
-    {
-        if (typeof(ILabelableEntity).IsAssignableFrom(typeof(TEntity)))
-        {
-            builder.Property("EntityType").IsRequired();
-        }
-    }
-
-    protected virtual void ConfigureNotes(EntityTypeBuilder<TEntity> builder)
-    {
-        if (typeof(INoteableEntity).IsAssignableFrom(typeof(TEntity)))
-        {
-            builder.Property("EntityType").IsRequired();
-        }
-    }
-
-    protected virtual void ConfigureComments(EntityTypeBuilder<TEntity> builder)
-    {
-        if (typeof(ICommentableEntity).IsAssignableFrom(typeof(TEntity)))
-        {
-            builder.Property("EntityType").IsRequired();
-        }
-    }
-
-    protected virtual void ConfigureFiles(EntityTypeBuilder<TEntity> builder)
-    {
-        if (typeof(IFileableEntity).IsAssignableFrom(typeof(TEntity)))
-        {
-            builder.Property("EntityType").IsRequired();
-        }
-    }
-
-    protected virtual void ConfigureDocuments(EntityTypeBuilder<TEntity> builder)
-    {
-        if (typeof(IDocumentableEntity).IsAssignableFrom(typeof(TEntity)))
-        {
-            builder.Property("EntityType").IsRequired();
-        }
-    }
-
-    protected virtual void ConfigureChangeLogs(EntityTypeBuilder<TEntity> builder)
-    {
-        if (typeof(IChangeLogableEntity).IsAssignableFrom(typeof(TEntity)))
-        {
-            builder.Property("EntityType").IsRequired();
-        }
-    }
-
-    protected virtual void ConfigurePrices(EntityTypeBuilder<TEntity> builder)
-    {
-        if (typeof(IPriceableEntity).IsAssignableFrom(typeof(TEntity)))
-        {
-            builder.Property("EntityType").IsRequired();
-        }
-    }
-
-    protected virtual void ConfigureImages(EntityTypeBuilder<TEntity> builder)
-    {
-        if (typeof(IImageableEntity).IsAssignableFrom(typeof(TEntity)))
-        {
-            builder.Property("EntityType").IsRequired();
+            builder.Property<EntityStatus>("EntityStatus").IsRequired().HasConversion<string>();
         }
     }
 }
