@@ -23,7 +23,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<Plan> Plans => Set<Plan>();
     public DbSet<ChannelAccount> ChannelAccounts => Set<ChannelAccount>();
     public DbSet<EntityActivity> Activities => Set<EntityActivity>();
-    public DbSet<ChangeLog> ChangeLogs => Set<ChangeLog>();
+    public DbSet<EntityChangeLog> ChangeLogs => Set<EntityChangeLog>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

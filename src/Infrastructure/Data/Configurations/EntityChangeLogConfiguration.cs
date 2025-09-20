@@ -5,9 +5,9 @@ namespace ConnectFlow.Infrastructure.Data.Configurations;
 /// <summary>
 /// Entity configuration for ChangeLog entity
 /// </summary>
-public class ChangeLogConfiguration : BaseAuditableConfiguration<ChangeLog>
+public class EntityChangeLogConfiguration : BaseAuditableConfiguration<EntityChangeLog>
 {
-    public override void Configure(EntityTypeBuilder<ChangeLog> builder)
+    public override void Configure(EntityTypeBuilder<EntityChangeLog> builder)
     {
         base.Configure(builder);
 
@@ -22,6 +22,11 @@ public class ChangeLogConfiguration : BaseAuditableConfiguration<ChangeLog>
         builder.Property(e => e.Context).HasMaxLength(500);
         builder.Property(e => e.IpAddress).HasMaxLength(45); // Supports IPv6
         builder.Property(e => e.UserAgent).HasMaxLength(500);
+
+        builder.Property(a => a.EntityId).IsRequired();
+        builder.Property(a => a.EntityType).IsRequired();
+
+        builder.HasIndex(a => new { a.TenantId, a.EntityType, a.EntityId }).HasDatabaseName("IX_ChangeLog_TenantId_EntityType_EntityId");
 
         // Configure relationships
     }

@@ -87,7 +87,7 @@ public class ChangeLogInterceptor : SaveChangesInterceptor
 
     private static void CreateEntityChangeLog(DbContext context, IChangeLogableEntity entity, ChangeType changeType, string description, int? currentUser, int tenantId, string? ipAddress, string? userAgent, DateTimeOffset now)
     {
-        var changeLog = new ChangeLog
+        var changeLog = new EntityChangeLog
         {
             EntityId = entity.Id,
             EntityType = entity.EntityType,
@@ -102,12 +102,12 @@ public class ChangeLogInterceptor : SaveChangesInterceptor
             LastModifiedBy = currentUser
         };
 
-        context.Set<ChangeLog>().Add(changeLog);
+        context.Set<EntityChangeLog>().Add(changeLog);
     }
 
     private static void CreatePropertyChangeLog(DbContext context, IChangeLogableEntity entity, string propertyName, string displayName, string? oldValue, string? newValue, int? currentUser, int tenantId, string? ipAddress, string? userAgent, DateTimeOffset now)
     {
-        var changeLog = new ChangeLog
+        var changeLog = new EntityChangeLog
         {
             EntityId = entity.Id,
             EntityType = entity.EntityType,
@@ -126,7 +126,7 @@ public class ChangeLogInterceptor : SaveChangesInterceptor
             LastModifiedBy = currentUser
         };
 
-        context.Set<ChangeLog>().Add(changeLog);
+        context.Set<EntityChangeLog>().Add(changeLog);
     }
 
     private static bool IsAuditField(string propertyName)

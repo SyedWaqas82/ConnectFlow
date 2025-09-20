@@ -9,6 +9,10 @@ public class EntityCommentConfiguration : BaseAuditableConfiguration<EntityComme
         base.Configure(builder);
 
         //Configure properties
+        builder.Property(a => a.EntityId).IsRequired();
+        builder.Property(a => a.EntityType).IsRequired();
+
+        builder.HasIndex(a => new { a.TenantId, a.EntityType, a.EntityId }).HasDatabaseName("IX_Comment_TenantId_EntityType_EntityId");
 
         // Configure relationships
     }

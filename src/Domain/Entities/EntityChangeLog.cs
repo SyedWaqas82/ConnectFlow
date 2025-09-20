@@ -3,7 +3,7 @@ namespace ConnectFlow.Domain.Entities;
 /// <summary>
 /// Represents an audit log entry for tracking changes to entities
 /// </summary>
-public class ChangeLog : BaseAuditableEntity, ITenantableEntity
+public class EntityChangeLog : BaseAuditableEntity, ITenantableEntity
 {
     /// <summary>
     /// The ID of the entity that was changed

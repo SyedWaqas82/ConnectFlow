@@ -10,8 +10,10 @@ public class EntityActivityConfiguration : BaseAuditableConfiguration<EntityActi
 
         // Configure properties
         builder.Property(a => a.Type).IsRequired().HasConversion<int>();
-        builder.Property(a => a.EntityType).IsRequired();
         builder.Property(a => a.EntityId).IsRequired();
+        builder.Property(a => a.EntityType).IsRequired();
+
+        builder.HasIndex(a => new { a.TenantId, a.EntityType, a.EntityId }).HasDatabaseName("IX_Activity_TenantId_EntityType_EntityId");
 
         // Configure relationships
     }

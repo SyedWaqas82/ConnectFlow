@@ -30,7 +30,7 @@ public class Lead : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEntit
     [NotMapped]
     public IList<EntityNote> Notes { get; set; } = new List<EntityNote>();
     [NotMapped]
-    public IList<ChangeLog> ChangeLogs { get; set; } = new List<ChangeLog>();
+    public IList<EntityChangeLog> ChangeLogs { get; set; } = new List<EntityChangeLog>();
 
     // ITenantEntity implementation
     public int TenantId { get; set; }

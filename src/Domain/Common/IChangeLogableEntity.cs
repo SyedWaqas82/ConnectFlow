@@ -13,7 +13,7 @@ public interface IChangeLogableEntity
     /// <summary>
     /// Collection of change logs for this entity
     /// </summary>
-    IList<ChangeLog> ChangeLogs { get; set; }
+    IList<EntityChangeLog> ChangeLogs { get; set; }
 
     /// <summary>
     /// The type of entity for logging purposes
