@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ConnectFlow.Domain.Entities;
 
-public class Lead : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEntity, ISuspendibleEntity, IActivatableEntity, ILabelableEntity, INoteableEntity, IChangeLogableEntity
+public class Lead : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEntity, ISuspendibleEntity, IActivatableEntity, ILabelableEntity, INoteableEntity, IChangeLogableEntity, ISequenceableEntity
 {
     public required string Title { get; set; }
     public int OwnerId { get; set; }
@@ -31,6 +31,8 @@ public class Lead : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEntit
     public IList<EntityNote> Notes { get; set; } = new List<EntityNote>();
     [NotMapped]
     public IList<EntityChangeLog> ChangeLogs { get; set; } = new List<EntityChangeLog>();
+    [NotMapped]
+    public IList<EntitySequenceEnrollment> SequenceEnrollments { get; set; } = new List<EntitySequenceEnrollment>();
 
     // ITenantEntity implementation
     public int TenantId { get; set; }

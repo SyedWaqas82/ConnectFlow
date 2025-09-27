@@ -20,6 +20,8 @@ public class EntityActivity : BaseAuditableEntity, ITenantableEntity, ISoftDelet
     public int EntityId { get; set; }    // ID of the Lead, Deal, Person or Organization
     public EntityType EntityType { get; set; } // "Lead", "Deal", "Person" or "Organization"
     public IList<EntityActivityParticipant> Participants { get; private set; } = new List<EntityActivityParticipant>();
+    public int? SequenceStepId { get; set; }
+    public SequenceStep SequenceStep { get; set; } = null!; // If this activity is part of a sequence step
 
     // ITenantEntity implementation
     public int TenantId { get; set; }
