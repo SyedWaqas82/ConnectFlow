@@ -11,6 +11,7 @@ public class Pipeline : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableE
     public bool ScoringEnabled { get; set; } = false;
     public IList<Deal> Deals { get; private set; } = new List<Deal>();
     public IList<PipelineStage> Stages { get; private set; } = new List<PipelineStage>();
+    public IList<DealStageHistory> StageHistories { get; private set; } = new List<DealStageHistory>();
 
     // ITenantEntity implementation
     public int TenantId { get; set; }

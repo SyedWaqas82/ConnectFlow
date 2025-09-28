@@ -7,6 +7,7 @@ public class PipelineStage : BaseAuditableEntity, ITenantableEntity, ISoftDelete
     public int PipelineId { get; set; }
     public Pipeline Pipeline { get; set; } = null!;
     public IList<Deal> Deals { get; private set; } = new List<Deal>();
+    public IList<DealStageHistory> StageHistories { get; private set; } = new List<DealStageHistory>();
 
     // ITenantEntity implementation
     public int TenantId { get; set; }
