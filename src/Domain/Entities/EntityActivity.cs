@@ -22,6 +22,8 @@ public class EntityActivity : BaseAuditableEntity, ITenantableEntity, ISoftDelet
     public IList<EntityActivityParticipant> Participants { get; private set; } = new List<EntityActivityParticipant>();
     public int? SequenceStepId { get; set; }
     public SequenceStep SequenceStep { get; set; } = null!; // If this activity is part of a sequence step
+    public int? SchedulerBookingId { get; set; }
+    public SchedulerBooking SchedulerBooking { get; set; } = null!; // If this activity is linked to a scheduler booking
 
     // ITenantEntity implementation
     public int TenantId { get; set; }

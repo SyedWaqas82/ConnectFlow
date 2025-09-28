@@ -23,4 +23,5 @@ public class TenantUser : BaseAuditableEntity, ISuspendibleEntity
     public IList<EntityActivity> Activities { get; private set; } = new List<EntityActivity>(); // Activities assigned to this user
     public IList<Project> Projects { get; private set; } = new List<Project>(); // Projects owned by this user
     public IList<Product> Products { get; private set; } = new List<Product>(); // Products owned by this user
+    public IList<Scheduler> Schedulers { get; private set; } = new List<Scheduler>(); // Schedulers owned by this user
 }

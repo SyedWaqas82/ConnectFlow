@@ -12,4 +12,5 @@ public enum EntityType
     ProductVariant = 8,
     Note = 9,
     Sequence = 10,
+    Scheduler = 11,
 }
