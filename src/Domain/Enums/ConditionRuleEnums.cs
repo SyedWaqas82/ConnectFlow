@@ -3,7 +3,7 @@ namespace ConnectFlow.Domain.Enums;
 /// <summary>
 /// Represents the type of scoring condition
 /// </summary>
-public enum ScoringConditionType
+public enum ConditionType
 {
     /// <summary>
     /// Condition is based on entity properties (e.g., deal value, pipeline stage)
@@ -34,7 +34,7 @@ public enum ScoringConditionType
 /// <summary>
 /// Represents the comparison operator for scoring conditions
 /// </summary>
-public enum ScoringOperator
+public enum RuleOperator
 {
     /// <summary>
     /// Equal to
@@ -107,7 +107,7 @@ public enum ScoringOperator
     NotIn = 14
 }
 
-public enum ScoringLogicOperator
+public enum LogicalOperator
 {
     And = 1,
     Or = 2
