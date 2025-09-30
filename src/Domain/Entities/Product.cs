@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ConnectFlow.Domain.Entities;
 
-public class Product : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEntity, ISuspendibleEntity, IFileableEntity, IPriceableEntity, IImageableEntity
+public class Product : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEntity, ISuspendibleEntity, IFileableEntity, IPriceableEntity, IImageableEntity, IParticipantable
 {
     public required string Name { get; set; }
     public string? Code { get; set; }
@@ -16,7 +16,6 @@ public class Product : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEn
     public BillingFrequency? BillingFrequency { get; set; }
     public bool RenewUntilCancelled { get; set; } = false;
     public int? RecurringCycleCount { get; set; }
-    public IList<ProductParticipant> Participants { get; private set; } = new List<ProductParticipant>();
     public IList<DealProduct> DealProducts { get; set; } = new List<DealProduct>();
     public IList<ProductVariant> Variants { get; set; } = new List<ProductVariant>();
 
@@ -28,6 +27,8 @@ public class Product : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEn
     public IList<EntityPrice> Prices { get; set; } = new List<EntityPrice>();
     [NotMapped]
     public IList<EntityImage> Images { get; set; } = new List<EntityImage>();
+    [NotMapped]
+    public IList<EntityParticipant> Participants { get; set; } = new List<EntityParticipant>();
 
     // ITenantableEntity implementation
     public int TenantId { get; set; }

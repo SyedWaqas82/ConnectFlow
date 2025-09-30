@@ -13,6 +13,5 @@ public class Label : BaseAuditableEntity, ITenantableEntity
     public Tenant Tenant { get; set; } = null!;
 
     // Navigation properties
-    public IList<EntityLabel> LeadLabels { get; private set; } = new List<EntityLabel>();
-    public IList<EntityLabel> DealLabels { get; private set; } = new List<EntityLabel>();
+    public IList<EntityLabel> Labels { get; private set; } = new List<EntityLabel>();
 }

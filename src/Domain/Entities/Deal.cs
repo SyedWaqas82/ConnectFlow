@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ConnectFlow.Domain.Entities;
 
-public class Deal : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEntity, ISuspendibleEntity, IActivatableEntity, ILabelableEntity, INoteableEntity, IFileableEntity, IDocumentableEntity, IChangeLogableEntity, ISequenceableEntity
+public class Deal : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEntity, ISuspendibleEntity, IParticipantable, IActivatableEntity, ILabelableEntity, INoteableEntity, IFileableEntity, IDocumentableEntity, IChangeLogableEntity, ISequenceableEntity
 {
     public required string Title { get; set; }
     public int OwnerId { get; set; }
@@ -11,8 +11,8 @@ public class Deal : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEntit
     public Person Person { get; set; } = null!;
     public int? OrganizationId { get; set; }
     public Organization? Organization { get; set; } = null!;
-    public int? LeadId { get; set; }
-    public Lead Lead { get; set; } = null!;
+    public int? LeadId { get; set; } // Optional association to a Lead if the Deal was created from a Lead
+    public Lead Lead { get; set; } = null!; // Navigation property for the associated Lead
     public bool IsArchived { get; set; }
     public decimal? Value { get; set; }
     public string Currency { get; set; } = "USD";
@@ -32,13 +32,14 @@ public class Deal : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEntit
     public DealStatus Status { get; set; } = DealStatus.Open;
     public string WonLossReason { get; set; } = string.Empty;
     public IList<DealProduct> Products { get; private set; } = new List<DealProduct>();
-    public IList<DealParticipant> Participants { get; private set; } = new List<DealParticipant>();
     public IList<ProjectDeal> ProjectDeals { get; private set; } = new List<ProjectDeal>();
     public IList<DealInstallment> Installments { get; private set; } = new List<DealInstallment>();
     public IList<DealStageHistory> StageHistories { get; private set; } = new List<DealStageHistory>();
 
     [NotMapped]
     public EntityType EntityType => EntityType.Deal;
+    [NotMapped]
+    public IList<EntityParticipant> Participants { get; set; } = new List<EntityParticipant>();
     [NotMapped]
     public IList<EntityActivity> Activities { get; set; } = new List<EntityActivity>();
     [NotMapped]

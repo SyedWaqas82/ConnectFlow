@@ -2,37 +2,37 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ConnectFlow.Domain.Entities;
 
-public class Lead : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEntity, ISuspendibleEntity, IActivatableEntity, ILabelableEntity, INoteableEntity, IChangeLogableEntity, ISequenceableEntity
+public class Person : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEntity, ISuspendibleEntity, ILabelableEntity, IDealable, IActivatableEntity, INoteableEntity, IFileableEntity, IDocumentableEntity, IChangeLogableEntity
 {
-    public required string Title { get; set; }
+    public required string FirstName { get; set; }
+    public required string LastName { get; set; }
+    public int? OrganizationId { get; set; }
+    public Organization Organization { get; set; } = null!;
     public int OwnerId { get; set; }
     public TenantUser Owner { get; set; } = null!;
-    public int? PersonId { get; set; }
-    public Person Person { get; set; } = null!;
-    public int? OrganizationId { get; set; }
-    public Organization? Organization { get; set; } = null!;
-    public int? DealId { get; set; } // Optional association to a Deal if the Lead has been converted
-    public Deal Deal { get; set; } = null!; // Navigation property for the associated Deal
-    public bool IsArchived { get; set; }
-    public decimal? Value { get; set; }
-    public string Currency { get; set; } = "USD";
-    public DateTime? ExpectedCloseDate { get; set; }
-    public string? SourceOrigin { get; set; }
-    public LeadSourceChannel SourceChannel { get; set; } = LeadSourceChannel.None;
-    public string? SourceChannelId { get; set; }
+    public IList<PersonPhone> Phones { get; private set; } = new List<PersonPhone>();
+    public IList<PersonEmail> Emails { get; private set; } = new List<PersonEmail>();
+    public IList<EntityActivityParticipant> ParticipatingActivities { get; private set; } = new List<EntityActivityParticipant>();
+    public IList<EntityParticipant> Participants { get; private set; } = new List<EntityParticipant>();
+    public IList<Lead> Leads { get; private set; } = new List<Lead>();
+    public IList<Project> Projects { get; private set; } = new List<Project>();
 
     [NotMapped]
-    public EntityType EntityType => EntityType.Lead;
-    [NotMapped]
-    public IList<EntityActivity> Activities { get; set; } = new List<EntityActivity>();
+    public EntityType EntityType => EntityType.Person;
     [NotMapped]
     public IList<EntityLabel> Labels { get; set; } = new List<EntityLabel>();
     [NotMapped]
+    public IList<EntityDeal> Deals { get; set; } = new List<EntityDeal>();
+    [NotMapped]
+    public IList<EntityActivity> Activities { get; set; } = new List<EntityActivity>();
+    [NotMapped]
     public IList<EntityNote> Notes { get; set; } = new List<EntityNote>();
     [NotMapped]
-    public IList<EntityChangeLog> ChangeLogs { get; set; } = new List<EntityChangeLog>();
+    public IList<EntityFile> Files { get; set; } = new List<EntityFile>();
     [NotMapped]
-    public IList<EntitySequenceEnrollment> SequenceEnrollments { get; set; } = new List<EntitySequenceEnrollment>();
+    public IList<EntityDocument> Documents { get; set; } = new List<EntityDocument>();
+    [NotMapped]
+    public IList<EntityChangeLog> ChangeLogs { get; set; } = new List<EntityChangeLog>();
 
     // ITenantEntity implementation
     public int TenantId { get; set; }
@@ -55,7 +55,6 @@ public class Lead : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEntit
 
         return propertyName switch
         {
-            nameof(Value) when value is decimal val => $"${val:N2}",
             nameof(IsDeleted) when value is bool b => b ? "Yes" : "No",
             nameof(EntityStatus) when value is EntityStatus b => b == EntityStatus.Suspended ? "Yes" : "No",
             _ => value.ToString() ?? "Not Set"
@@ -66,12 +65,10 @@ public class Lead : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEntit
     {
         return new List<string>
         {
-            nameof(Title),
-            nameof(Value),
-            nameof(Currency),
-            nameof(OwnerId),
-            nameof(PersonId),
+            nameof(FirstName),
+            nameof(LastName),
             nameof(OrganizationId),
+            nameof(OwnerId),
             nameof(IsDeleted),
             nameof(EntityStatus)
         };
@@ -81,12 +78,10 @@ public class Lead : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEntit
     {
         return propertyName switch
         {
-            nameof(Title) => "Lead Title",
-            nameof(Value) => "Lead Value",
-            nameof(Currency) => "Currency",
-            nameof(OwnerId) => "Owner",
-            nameof(PersonId) => "Contact Person",
+            nameof(FirstName) => "First Name",
+            nameof(LastName) => "Last Name",
             nameof(OrganizationId) => "Organization",
+            nameof(OwnerId) => "Owner",
             nameof(IsDeleted) => "Deleted",
             nameof(EntityStatus) => "Suspended",
             _ => propertyName
