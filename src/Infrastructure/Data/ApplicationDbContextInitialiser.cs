@@ -128,7 +128,6 @@ public class ApplicationDbContextInitialiser
                     Email = tenantAdmin.Email!,
                     Domain = "Default Tenant",
                     Name = "Default Tenant",
-                    Description = "Default Tenant",
                     PaymentProviderCustomerId = "cus_default", // Placeholder, replace with actual Stripe customer ID
                     CreatedBy = tenantAdmin.Id,
                 };

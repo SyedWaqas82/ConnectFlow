@@ -54,3 +54,22 @@ public enum SchedulingSlotType
     Blocked = 2,      // Blocked/unavailable slot
     Booked = 3        // Booked with activity
 }
+
+public enum FollowUpDuration
+{
+    OneWeek = 7,
+    TwoWeeks = 14,
+    ThreeWeeks = 21,
+    OneMonth = 30,
+    TwoMonths = 60,
+    ThreeMonths = 90,
+    FourMonths = 120,
+    FiveMonths = 150,
+    SixMonths = 180,
+    SevenMonths = 210,
+    EightMonths = 240,
+    NineMonths = 270,
+    TenMonths = 300,
+    ElevenMonths = 330,
+    TwelveMonths = 365
+}

@@ -9,7 +9,9 @@ public class UserCreatedEvent : BaseEvent
     public string? PhoneNumber { get; init; }
     public string? Mobile { get; init; }
     public string? TimeZone { get; init; }
-    public string? Locale { get; init; }
+    public string? Language { get; init; }
+    public string? DateNumberFormat { get; set; }
+    public string? DefaultCurrency { get; set; }
     public bool EmailConfirmed { get; init; }
     public required string ConfirmationToken { get; init; }
 

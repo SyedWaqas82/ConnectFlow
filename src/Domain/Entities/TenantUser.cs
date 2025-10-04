@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 namespace ConnectFlow.Domain.Entities;
 
 public class TenantUser : BaseAuditableEntity, ISuspendibleEntity
@@ -7,6 +9,18 @@ public class TenantUser : BaseAuditableEntity, ISuspendibleEntity
     public DateTimeOffset JoinedAt { get; set; }
     public DateTimeOffset? LeftAt { get; set; }
     public int? InvitedBy { get; set; } // ApplicationUserId of inviter
+    public string TimeZone { get; set; } = "UTC";
+    public string Language { get; set; } = "en";
+    public string DateNumberFormat { get; set; } = "MM/dd/yyyy";
+    public string DefaultCurrency { get; set; } = "USD";
+    public string? Settings { get; set; } = JsonSerializer.Serialize(new
+    {
+        Activity = new { ShowModelAfterWinningDeal = true },
+        Deal = new { AutoAddDealToTitle = false, ShowCelebrationAnimation = true },
+        Notification = new { EmailNotifications = true, PushNotifications = false }, // Example settings
+        UI = new { Theme = "Light", DefaultLandingPage = "Dashboard" },
+        Sidebar = new { ShowItems = new[] { "Dashboard", "Leads", "Deals", "Contacts", "Activities" }, MoreItems = new[] { "Projects", "Products", "Reports" } }
+    });
 
     // ISuspendibleEntity implementation
     public EntityStatus EntityStatus { get; set; } = EntityStatus.Active;

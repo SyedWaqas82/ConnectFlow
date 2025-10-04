@@ -12,9 +12,10 @@ public class ApplicationUser : IdentityUser<int>
     public string? JobTitle { get; set; }
     public string? Mobile { get; set; }
     public string TimeZone { get; set; } = "UTC";
-    public string Locale { get; set; } = "en-US";
+    public string Language { get; set; } = "en";
+    public string DateNumberFormat { get; set; } = "MM/dd/yyyy";
+    public string DefaultCurrency { get; set; } = "USD";
     public bool IsActive { get; set; } = true;
-    public string? Preferences { get; set; } // JSON string for user preferences
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset? LastLoginAt { get; set; }
     public DateTimeOffset? DeactivatedAt { get; set; }

@@ -1,21 +1,25 @@
+using System.Text.Json;
+
 namespace ConnectFlow.Domain.Entities;
 
 public class Tenant : BaseAuditableEntity
 {
-    public string Name { get; set; } = string.Empty;
-    public string? Description { get; set; }
+    public required string Name { get; set; }
     public string? Domain { get; set; } = string.Empty; // e.g., company.yoursaas.com
+    public string Email { get; set; } = string.Empty;
     public string PaymentProviderCustomerId { get; set; } = string.Empty;
-    public string? Avatar { get; set; }
-    public string? Phone { get; set; }
-    public required string Email { get; set; }
-    public string? Website { get; set; }
-    public string? Address { get; set; }
-    public string? City { get; set; }
-    public string? State { get; set; }
-    public string? Country { get; set; }
-    public string? PostalCode { get; set; }
-    public string? Settings { get; set; } // JSON string for tenant-specific settings
+    public string? Settings { get; set; } = JsonSerializer.Serialize(new
+    {
+        ShowPopupOnDealWin = true,
+        ScheduleActivityWithType = ActivityType.Task,
+        FollowUpDuration = FollowUpDuration.ThreeMonths,
+        ActiveCurrencies = new[] { "USD", "EUR", "GBP", "AED" },
+        DeactivatedCurrencies = new string[] { },
+        LostReasons = new[] { "Price too high", "Lost to competitor", "No response", "Other" },
+        AllowFreeFormReason = true,
+    });
+
+    // ToDo: Custom Activity Types
     public DateTimeOffset? DeactivatedAt { get; set; }
 
     // Navigation properties

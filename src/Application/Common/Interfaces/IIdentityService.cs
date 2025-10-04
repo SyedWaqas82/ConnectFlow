@@ -4,9 +4,9 @@ namespace ConnectFlow.Application.Common.Interfaces;
 
 public interface IIdentityService
 {
-    Task<Result<UserToken>> CreateTenantForNewUserAsync(string email, string password, string firstName, string lastName, string? jobTitle = null, string? phoneNumber = null, string? mobile = null, string? timeZone = null, string? locale = null);
+    Task<Result<UserToken>> CreateTenantForNewUserAsync(string email, string password, string firstName, string lastName, string? jobTitle = null, string? phoneNumber = null, string? mobile = null, string? timeZone = null, string? language = null, string? dateNumberFormat = null, string? defaultCurrency = null);
     Task<Result> CreateTenantForExistingUserAsync(string email);
-    Task<Result<UserToken>> JoinTenantAsNewUserAsync(string email, string password, string firstName, string lastName, string[] roles, string? jobTitle = null, string? phoneNumber = null, string? mobile = null, string? timeZone = null, string? locale = null, int? tenantId = null);
+    Task<Result<UserToken>> JoinTenantAsNewUserAsync(string email, string password, string firstName, string lastName, string[] roles, string? jobTitle = null, string? phoneNumber = null, string? mobile = null, string? timeZone = null, string? language = null, string? dateNumberFormat = null, string? defaultCurrency = null, int? tenantId = null);
     Task<Result> JoinTenantAsExistingUserAsync(string email, string[] roles, int tenantId);
     Task<Result> ConfirmEmailAsync(Guid applicationUserPublicId, string confirmationToken);
     Task<Result<UserToken>> ResetPasswordAsync(string email);

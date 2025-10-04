@@ -13,6 +13,11 @@ public class TenantUserConfiguration : BaseAuditableConfiguration<TenantUser>
         builder.Property(tu => tu.JoinedAt).IsRequired();
         builder.Property(tu => tu.InvitedBy).IsRequired(false);
         builder.Property(tu => tu.LeftAt).IsRequired(false);
+        builder.Property(au => au.TimeZone).IsRequired().HasMaxLength(50);
+        builder.Property(au => au.Language).IsRequired().HasMaxLength(10);
+        builder.Property(au => au.DateNumberFormat).IsRequired().HasMaxLength(20);
+        builder.Property(au => au.DefaultCurrency).IsRequired().HasMaxLength(10);
+        builder.Property(au => au.Settings).HasColumnType("jsonb"); // Store preferences as JSON
         builder.Property(tu => tu.TenantId).IsRequired();
         builder.HasIndex(tu => tu.TenantId);
         builder.HasIndex(tu => new { tu.TenantId, tu.ApplicationUserId }).IsUnique();

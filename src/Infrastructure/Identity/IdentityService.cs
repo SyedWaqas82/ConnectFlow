@@ -44,11 +44,11 @@ public class IdentityService : IIdentityService
 
     #region User and Tenant Management
 
-    public async Task<Result<UserToken>> CreateTenantForNewUserAsync(string email, string password, string firstName, string lastName, string? jobTitle, string? phoneNumber, string? mobile, string? timeZone, string? locale)
+    public async Task<Result<UserToken>> CreateTenantForNewUserAsync(string email, string password, string firstName, string lastName, string? jobTitle, string? phoneNumber, string? mobile, string? timeZone, string? language, string? dateNumberFormat, string? defaultCurrency)
     {
         var validRoles = new[] { Roles.TenantAdmin };
 
-        var userCreationResult = await CreateApplicationUserAsync(email, password, firstName, lastName, jobTitle, phoneNumber, mobile, timeZone, locale, true, validRoles);
+        var userCreationResult = await CreateApplicationUserAsync(email, password, firstName, lastName, jobTitle, phoneNumber, mobile, timeZone, language, dateNumberFormat, defaultCurrency, true, validRoles);
 
         if (!userCreationResult.Result.Succeeded || userCreationResult.Result.Data == null)
         {
@@ -107,12 +107,12 @@ public class IdentityService : IIdentityService
         return Result.Success();
     }
 
-    public async Task<Result<UserToken>> JoinTenantAsNewUserAsync(string email, string password, string firstName, string lastName, string[] roles, string? jobTitle, string? phoneNumber, string? mobile, string? timeZone, string? locale, int? tenantId)
+    public async Task<Result<UserToken>> JoinTenantAsNewUserAsync(string email, string password, string firstName, string lastName, string[] roles, string? jobTitle, string? phoneNumber, string? mobile, string? timeZone, string? language, string? dateNumberFormat, string? defaultCurrency, int? tenantId)
     {
         var validRoles = roles.Where(r => Roles.AllRoles.Contains(r)).ToArray();
         validRoles = validRoles.Length > 0 ? validRoles : new[] { Roles.NonTenantAdmin };
 
-        var result = await CreateApplicationUserAsync(email, password, firstName, lastName, jobTitle, phoneNumber, mobile, timeZone, locale, true, validRoles);
+        var result = await CreateApplicationUserAsync(email, password, firstName, lastName, jobTitle, phoneNumber, mobile, timeZone, language, dateNumberFormat, defaultCurrency, true, validRoles);
 
         if (result.Result.Succeeded && result.Result.Data != null)
         {
@@ -491,7 +491,7 @@ public class IdentityService : IIdentityService
         }
     }
 
-    private async Task<(Result<ApplicationUser> Result, string ConfirmationToken)> CreateApplicationUserAsync(string email, string password, string firstName, string lastName, string? jobTitle, string? phoneNumber, string? mobile, string? timeZone, string? locale, bool requireEmailConfirmation, string[] roles)
+    private async Task<(Result<ApplicationUser> Result, string ConfirmationToken)> CreateApplicationUserAsync(string email, string password, string firstName, string lastName, string? jobTitle, string? phoneNumber, string? mobile, string? timeZone, string? language, string? dateNumberFormat, string? defaultCurrency, bool requireEmailConfirmation, string[] roles)
     {
         var appUser = new ApplicationUser
         {
@@ -503,10 +503,11 @@ public class IdentityService : IIdentityService
             PhoneNumber = phoneNumber,
             Mobile = mobile,
             TimeZone = timeZone ?? "UTC",
-            Locale = locale ?? "en-US",
+            Language = language ?? "en-US",
+            DateNumberFormat = dateNumberFormat ?? "MM/dd/yyyy",
+            DefaultCurrency = defaultCurrency ?? "USD",
             EmailConfirmed = !requireEmailConfirmation,
-            IsActive = true,
-            Preferences = "{}" // Default preferences, can be updated later,
+            IsActive = true
         };
 
         var result = await _userManager.CreateAsync(appUser, password);
@@ -536,7 +537,9 @@ public class IdentityService : IIdentityService
                 PhoneNumber = appUser.PhoneNumber,
                 Mobile = appUser.Mobile,
                 TimeZone = appUser.TimeZone,
-                Locale = appUser.Locale,
+                Language = appUser.Language,
+                DateNumberFormat = appUser.DateNumberFormat,
+                DefaultCurrency = appUser.DefaultCurrency,
                 EmailConfirmed = appUser.EmailConfirmed,
                 ConfirmationToken = confirmationToken
             });

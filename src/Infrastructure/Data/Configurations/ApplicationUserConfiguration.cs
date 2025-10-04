@@ -13,11 +13,12 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
         builder.Property(au => au.FirstName).IsRequired().HasMaxLength(50);
         builder.Property(au => au.LastName).IsRequired().HasMaxLength(50);
         builder.Property(au => au.TimeZone).IsRequired().HasMaxLength(50);
-        builder.Property(au => au.Locale).IsRequired().HasMaxLength(10);
+        builder.Property(au => au.Language).IsRequired().HasMaxLength(10);
+        builder.Property(au => au.DateNumberFormat).IsRequired().HasMaxLength(20);
+        builder.Property(au => au.DefaultCurrency).IsRequired().HasMaxLength(10);
         builder.Property(au => au.Avatar).HasMaxLength(200);
         builder.Property(au => au.JobTitle).HasMaxLength(100);
         builder.Property(au => au.Mobile).HasMaxLength(15);
-        builder.Property(au => au.Preferences).HasColumnType("jsonb"); // Store preferences as JSON
         builder.Property(au => au.IsActive).HasDefaultValue(true);
         //builder.Property(au => au.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP"); // SQL Server default value
         builder.Property(au => au.CreatedAt).HasDefaultValueSql("now()"); // PostgreSQL default value
