@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ConnectFlow.Domain.Entities;
 
-public class Person : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEntity, ISuspendibleEntity, ILabelableEntity, IDealable, IActivatableEntity, INoteableEntity, IFileableEntity, IDocumentableEntity, IChangeLogableEntity
+public class Person : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEntity, ISuspendibleEntity, ILabelableEntity, IActivatableEntity, INoteableEntity, IFileableEntity, IDocumentableEntity, IChangeLogableEntity
 {
     public required string FirstName { get; set; }
     public required string LastName { get; set; }
@@ -15,14 +15,13 @@ public class Person : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEnt
     public IList<EntityActivityParticipant> ParticipatingActivities { get; private set; } = new List<EntityActivityParticipant>();
     public IList<EntityParticipant> Participants { get; private set; } = new List<EntityParticipant>();
     public IList<Lead> Leads { get; private set; } = new List<Lead>();
+    public IList<Deal> Deals { get; private set; } = new List<Deal>();
     public IList<Project> Projects { get; private set; } = new List<Project>();
 
     [NotMapped]
     public EntityType EntityType => EntityType.Person;
     [NotMapped]
     public IList<EntityLabel> Labels { get; set; } = new List<EntityLabel>();
-    [NotMapped]
-    public IList<EntityDeal> Deals { get; set; } = new List<EntityDeal>();
     [NotMapped]
     public IList<EntityActivity> Activities { get; set; } = new List<EntityActivity>();
     [NotMapped]

@@ -15,5 +15,7 @@ public class EntityLabelConfiguration : BaseAuditableConfiguration<EntityLabel>
         builder.HasIndex(a => new { a.EntityType, a.EntityId }).HasDatabaseName("IX_EntityLabel_EntityType_EntityId");
 
         // Configure relationships
+        builder.HasOne(a => a.Label).WithMany(l => l.Labels).HasForeignKey(a => a.LabelId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne(a => a.AssignedByUser).WithMany(tu => tu.AssignedByLabels).HasForeignKey(a => a.AssignedBy).OnDelete(DeleteBehavior.Restrict);
     }
 }

@@ -9,6 +9,10 @@ public class EntityImageConfiguration : BaseAuditableConfiguration<EntityImage>
         base.Configure(builder);
 
         // Configure properties
+        builder.Property(a => a.ImageUrl).IsRequired().HasMaxLength(2048);
+        builder.Property(a => a.AltText).HasMaxLength(512);
+        builder.Property(a => a.DisplayOrder).IsRequired();
+
         builder.Property(a => a.EntityId).IsRequired();
         builder.Property(a => a.EntityType).IsRequired().HasConversion<string>();
 

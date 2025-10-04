@@ -10,10 +10,10 @@ public class DealProduct : BaseAuditableEntity, ITenantableEntity
     public ProductVariant? ProductVariant { get; set; }
     public int SortOrder { get; set; }
     public DateTimeOffset? BillingStartDate { get; set; }
-    public DiscountType? DiscountType { get; set; }
+    public DiscountType DiscountType { get; set; } = DiscountType.FixedAmount;
     public decimal? DiscountValue { get; set; }
     public decimal? TaxPercentage { get; set; }
-    public decimal Quantity { get; set; } = 1;
+    public int Quantity { get; set; } = 1;
     public decimal UnitPrice { get; set; }
     public string Currency { get; set; } = "USD";
     public string? Notes { get; set; }

@@ -3,8 +3,8 @@ namespace ConnectFlow.Domain.Entities;
 public class EntityDocument : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEntity
 {
     public required string FileName { get; set; }
-    public string FileType { get; set; } = null!;
-    public string FileUrl { get; set; } = null!;
+    public required string FileType { get; set; }
+    public required string FileUrl { get; set; }
 
     public int EntityId { get; set; }    // ID of the Lead, Deal, Person or Organization
     public EntityType EntityType { get; set; } // "Lead", "Deal", "Person" or "Organization"

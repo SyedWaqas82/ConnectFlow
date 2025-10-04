@@ -24,6 +24,7 @@ public class SchedulerBooking : BaseAuditableEntity, ITenantableEntity
     public SchedulerBooking? RescheduledFromBooking { get; set; }
     public int? RescheduledToBookingId { get; set; }
     public SchedulerBooking? RescheduledToBooking { get; set; }
+    public IList<EntityActivity> Activities { get; private set; } = new List<EntityActivity>();
 
     // ITenantableEntity implementation
     public int TenantId { get; set; }

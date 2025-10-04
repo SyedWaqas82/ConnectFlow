@@ -6,7 +6,7 @@ public class AssignmentRuleHistory : BaseAuditableEntity, ITenantableEntity
     public AssignmentRule AssignmentRule { get; set; } = null!;
     public AssignmentRuleEntityType EntityType { get; set; }
     public int EntityId { get; set; }
-    public string EntityTitle { get; set; } = string.Empty;
+    public required string EntityTitle { get; set; }
     public int? PreviousAssignedUserId { get; set; }
     public TenantUser PreviousAssignedUser { get; set; } = null!;
     public int? NewAssignedUserId { get; set; }

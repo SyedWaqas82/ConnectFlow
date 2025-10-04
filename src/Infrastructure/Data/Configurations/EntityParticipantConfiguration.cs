@@ -15,6 +15,7 @@ public class EntityParticipantConfiguration : BaseAuditableConfiguration<EntityP
 
         builder.HasIndex(a => new { a.TenantId, a.EntityType, a.EntityId }).HasDatabaseName("IX_Participant_TenantId_EntityType_EntityId");
 
-        // Configure relationships    
+        // Configure relationships
+        builder.HasOne(a => a.Person).WithMany(p => p.Participants).HasForeignKey(a => a.PersonId).OnDelete(DeleteBehavior.Restrict);
     }
 }

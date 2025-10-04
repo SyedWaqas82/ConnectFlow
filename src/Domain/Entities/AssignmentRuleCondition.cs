@@ -4,11 +4,11 @@ public class AssignmentRuleCondition : BaseAuditableEntity, ITenantableEntity
 {
     public int SortOrder { get; set; } = 0;
     public LogicalOperator LogicalOperator { get; set; } = LogicalOperator.And;
-    public int AssignmentRuleSetId { get; set; }
-    public AssignmentRulesSet AssignmentRuleSet { get; set; } = null!;
+    public int AssignmentRulesSetId { get; set; }
+    public AssignmentRulesSet AssignmentRulesSet { get; set; } = null!;
     public AssignmentRuleField Field { get; set; }
     public RuleOperator Operator { get; set; }
-    public string? Value { get; set; } // Value to compare against (stored as string, converted based on field type)
+    public required string Value { get; set; } // Value to compare against (stored as string, converted based on field type)
     public string? ValueTo { get; set; } // Additional value for range operations (like DateBetween)
 
     // ITenantableEntity implementation

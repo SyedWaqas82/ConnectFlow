@@ -2,10 +2,11 @@ namespace ConnectFlow.Domain.Entities;
 
 public class EntityImage : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEntity
 {
-    public string ImageUrl { get; set; } = string.Empty;
+    public required string ImageUrl { get; set; }
     public string? AltText { get; set; }
     public bool IsPrimary { get; set; }
     public int DisplayOrder { get; set; }
+
     public int EntityId { get; set; }    // ID of the Lead, Deal, Person or Organization
     public EntityType EntityType { get; set; } // "Lead", "Deal", "Person" or "Organization"
 

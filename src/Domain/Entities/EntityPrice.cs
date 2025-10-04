@@ -7,6 +7,7 @@ public class EntityPrice : BaseAuditableEntity, ITenantableEntity
     public decimal? DirectCost { get; set; }
     public string Currency { get; set; } = "USD";
     public string? Comment { get; set; }
+
     public int EntityId { get; set; }    // ID of the Lead, Deal, Person or Organization
     public EntityType EntityType { get; set; } // "Lead", "Deal", "Person" or "Organization"
 

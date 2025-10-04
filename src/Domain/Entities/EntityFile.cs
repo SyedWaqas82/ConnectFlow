@@ -2,10 +2,11 @@ namespace ConnectFlow.Domain.Entities;
 
 public class EntityFile : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEntity
 {
-    public string FileName { get; set; } = null!;
-    public string FileType { get; set; } = null!;
+    public required string FileName { get; set; } // Original file name
+    public required string FileType { get; set; } // e.g., "image/png", "application/pdf"
     public long FileSize { get; set; } // Size in bytes
-    public string Url { get; set; } = null!; // URL or path to the file
+    public required string Url { get; set; } = null!; // URL or path to the file
+
     public int EntityId { get; set; }    // ID of the Lead, Deal, Person or Organization
     public EntityType EntityType { get; set; } // "Lead", "Deal", "Person" or "Organization"
 

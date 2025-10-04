@@ -15,5 +15,6 @@ public class EntityCommentConfiguration : BaseAuditableConfiguration<EntityComme
         builder.HasIndex(a => new { a.TenantId, a.EntityType, a.EntityId }).HasDatabaseName("IX_Comment_TenantId_EntityType_EntityId");
 
         // Configure relationships
+        builder.HasOne(a => a.Author).WithMany(tu => tu.Comments).HasForeignKey(a => a.AuthorId).OnDelete(DeleteBehavior.Restrict);
     }
 }

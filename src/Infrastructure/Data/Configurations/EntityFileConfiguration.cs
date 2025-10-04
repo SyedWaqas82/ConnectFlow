@@ -9,6 +9,11 @@ public class EntityFileConfiguration : BaseAuditableConfiguration<EntityFile>
         base.Configure(builder);
 
         //Configure properties
+        builder.Property(a => a.FileName).IsRequired().HasMaxLength(255);
+        builder.Property(a => a.FileType).IsRequired().HasMaxLength(100);
+        builder.Property(a => a.FileSize).IsRequired();
+        builder.Property(a => a.Url).IsRequired().HasMaxLength(2048);
+
         builder.Property(a => a.EntityId).IsRequired();
         builder.Property(a => a.EntityType).IsRequired().HasConversion<string>();
 

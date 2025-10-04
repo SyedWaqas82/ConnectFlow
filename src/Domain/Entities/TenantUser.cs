@@ -38,4 +38,12 @@ public class TenantUser : BaseAuditableEntity, ISuspendibleEntity
     public IList<Project> Projects { get; private set; } = new List<Project>(); // Projects owned by this user
     public IList<Product> Products { get; private set; } = new List<Product>(); // Products owned by this user
     public IList<Scheduler> Schedulers { get; private set; } = new List<Scheduler>(); // Schedulers owned by this user
+    public IList<AssignmentRule> AssignmentRules { get; private set; } = new List<AssignmentRule>(); // Assignment rules where this user is assigned tasks
+    public IList<AssignmentRuleHistory> PreviousAssignmentRuleHistories { get; private set; } = new List<AssignmentRuleHistory>(); // Assignment rule histories where this user was previously assigned
+    public IList<AssignmentRuleHistory> NewAssignmentRuleHistories { get; private set; } = new List<AssignmentRuleHistory>(); // Assignment rule histories where this user is newly assigned
+    public IList<AssignmentRuleHistory> TriggeredAssignmentRuleHistories { get; private set; } = new List<AssignmentRuleHistory>(); // Assignment rule histories triggered by this user
+    public IList<EntityActivity> AssignedByActivities { get; private set; } = new List<EntityActivity>(); // Activities assigned by this user
+    public IList<EntityActivity> AssignedActivities { get; private set; } = new List<EntityActivity>(); // Activities assigned to this user
+    public IList<EntityComment> Comments { get; private set; } = new List<EntityComment>(); // Comments authored by this user
+    public IList<EntityLabel> AssignedByLabels { get; private set; } = new List<EntityLabel>(); // Labels assigned by this user
 }

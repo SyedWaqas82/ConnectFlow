@@ -7,6 +7,7 @@ public class ProductVariant : BaseAuditableEntity, ITenantableEntity, ISoftDelet
     public required string Name { get; set; }
     public int ProductId { get; set; }
     public Product Product { get; set; } = null!;
+    public IList<DealProduct> DealProducts { get; private set; } = new List<DealProduct>();
 
     // ITenantableEntity implementation
     public int TenantId { get; set; }

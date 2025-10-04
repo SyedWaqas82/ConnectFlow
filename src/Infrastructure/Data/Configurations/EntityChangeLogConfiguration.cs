@@ -2,9 +2,6 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ConnectFlow.Infrastructure.Data.Configurations;
 
-/// <summary>
-/// Entity configuration for ChangeLog entity
-/// </summary>
 public class EntityChangeLogConfiguration : BaseAuditableConfiguration<EntityChangeLog>
 {
     public override void Configure(EntityTypeBuilder<EntityChangeLog> builder)
