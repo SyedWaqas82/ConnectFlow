@@ -14,6 +14,13 @@ public class ProjectTaskConfiguration : BaseAuditableConfiguration<ProjectTask>
         builder.Property(pt => pt.SortOrder).IsRequired();
         builder.Property(pt => pt.Status).IsRequired().HasConversion<string>();
 
+        // Add indexes for common queries
+        builder.HasIndex(pt => pt.ProjectPhaseId).HasDatabaseName("IX_ProjectTask_ProjectPhaseId");
+        builder.HasIndex(pt => pt.AssigneeId).HasDatabaseName("IX_ProjectTask_AssigneeId");
+        builder.HasIndex(pt => pt.ParentTaskId).HasDatabaseName("IX_ProjectTask_ParentTaskId");
+        builder.HasIndex(pt => new { pt.TenantId, pt.Status }).HasDatabaseName("IX_ProjectTask_TenantId_Status");
+        builder.HasIndex(pt => new { pt.TenantId, pt.AssigneeId, pt.Status }).HasDatabaseName("IX_ProjectTask_TenantId_AssigneeId_Status");
+
         // Configure relationships
         builder.HasOne(pt => pt.ProjectPhase).WithMany(pp => pp.ProjectTasks).HasForeignKey(pt => pt.ProjectPhaseId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(pt => pt.Assignee).WithMany(tu => tu.AssignedProjectTasks).HasForeignKey(pt => pt.AssigneeId).OnDelete(DeleteBehavior.Restrict);

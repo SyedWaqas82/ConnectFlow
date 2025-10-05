@@ -20,7 +20,20 @@ public class EntityActivityConfiguration : BaseAuditableConfiguration<EntityActi
         builder.Property(a => a.EntityId).IsRequired();
         builder.Property(a => a.EntityType).IsRequired().HasConversion<string>();
 
+        // Existing index
         builder.HasIndex(a => new { a.TenantId, a.EntityType, a.EntityId }).HasDatabaseName("IX_Activity_TenantId_EntityType_EntityId");
+
+        // Add indexes for foreign keys to improve join and filtering performance
+        builder.HasIndex(a => a.AssignedToId).HasDatabaseName("IX_Activity_AssignedToId");
+        builder.HasIndex(a => a.AssignedById).HasDatabaseName("IX_Activity_AssignedById");
+        builder.HasIndex(a => a.SchedulerBookingId).HasDatabaseName("IX_Activity_SchedulerBookingId");
+        builder.HasIndex(a => a.SequenceStepId).HasDatabaseName("IX_Activity_SequenceStepId");
+
+        // Add composite indexes for common filtering patterns
+        builder.HasIndex(a => new { a.TenantId, a.AssignedToId, a.Done }).HasDatabaseName("IX_Activity_TenantId_AssignedToId_Done");
+        builder.HasIndex(a => new { a.TenantId, a.StartAt }).HasDatabaseName("IX_Activity_TenantId_StartAt");
+        builder.HasIndex(a => new { a.TenantId, a.EndAt }).HasDatabaseName("IX_Activity_TenantId_EndAt");
+        builder.HasIndex(a => new { a.TenantId, a.Type }).HasDatabaseName("IX_Activity_TenantId_Type");
 
         // Configure relationships
         builder.HasOne(a => a.AssignedBy).WithMany(tu => tu.AssignedByActivities).HasForeignKey(a => a.AssignedById).OnDelete(DeleteBehavior.Restrict);

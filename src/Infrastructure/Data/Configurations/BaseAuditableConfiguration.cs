@@ -30,8 +30,16 @@ public abstract class BaseAuditableConfiguration<TEntity> : IEntityTypeConfigura
     {
         if (typeof(ITenantableEntity).IsAssignableFrom(typeof(TEntity)))
         {
-            builder.HasIndex("TenantId");
+            // Basic tenant index for all tenant-related entities
+            builder.HasIndex("TenantId").HasFilter(null).HasDatabaseName($"IX_{typeof(TEntity).Name}_TenantId");
             builder.Property("TenantId").IsRequired();
+
+            // Add index on Created date which is useful for many reporting queries
+            if (typeof(BaseAuditableEntity).IsAssignableFrom(typeof(TEntity)))
+            {
+                // Created date filtering within a tenant context is a common pattern
+                builder.HasIndex(new[] { "TenantId", "Created" }).HasDatabaseName($"IX_{typeof(TEntity).Name}_TenantId_Created");
+            }
 
             // Try to find a navigation property named "Tenant"
             var nav = typeof(TEntity).GetProperty("Tenant");
@@ -49,6 +57,17 @@ public abstract class BaseAuditableConfiguration<TEntity> : IEntityTypeConfigura
         {
             builder.Property<bool>("IsDeleted").HasDefaultValue(false);
 
+            // Add composite index for filtering non-deleted entities within a tenant
+            if (typeof(ITenantableEntity).IsAssignableFrom(typeof(TEntity)))
+            {
+                builder.HasIndex(new[] { "TenantId", "IsDeleted" }).HasDatabaseName($"IX_{typeof(TEntity).Name}_TenantId_IsDeleted");
+            }
+            // Add standalone index for IsDeleted for non-tenant entities
+            else
+            {
+                builder.HasIndex("IsDeleted").HasDatabaseName($"IX_{typeof(TEntity).Name}_IsDeleted");
+            }
+
             builder.HasOne<ApplicationUser>().WithMany().HasForeignKey("DeletedBy").OnDelete(DeleteBehavior.SetNull);
         }
     }
@@ -58,6 +77,17 @@ public abstract class BaseAuditableConfiguration<TEntity> : IEntityTypeConfigura
         if (typeof(ISuspendibleEntity).IsAssignableFrom(typeof(TEntity)))
         {
             builder.Property<EntityStatus>("EntityStatus").IsRequired().HasConversion<string>();
+
+            // Add composite index for filtering by status within a tenant
+            if (typeof(ITenantableEntity).IsAssignableFrom(typeof(TEntity)))
+            {
+                builder.HasIndex(new[] { "TenantId", "EntityStatus" }).HasDatabaseName($"IX_{typeof(TEntity).Name}_TenantId_EntityStatus");
+            }
+            // Add standalone index for EntityStatus for non-tenant entities
+            else
+            {
+                builder.HasIndex("EntityStatus").HasDatabaseName($"IX_{typeof(TEntity).Name}_EntityStatus");
+            }
         }
     }
 }

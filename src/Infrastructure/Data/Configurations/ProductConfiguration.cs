@@ -20,5 +20,19 @@ public class ProductConfiguration : BaseAuditableConfiguration<Product>
         builder.HasOne(p => p.Category).WithMany(pc => pc.Products).HasForeignKey(p => p.CategoryId).OnDelete(DeleteBehavior.SetNull);
         builder.HasMany(p => p.DealProducts).WithOne(dp => dp.Product).HasForeignKey(dp => dp.ProductId).OnDelete(DeleteBehavior.Cascade);
         builder.HasMany(p => p.Variants).WithOne(pv => pv.Product).HasForeignKey(pv => pv.ProductId).OnDelete(DeleteBehavior.Cascade);
+
+        // Configure Indexes
+
+        // Foreign key indexes
+        builder.HasIndex(p => p.OwnerId).HasDatabaseName("IX_Product_OwnerId");
+
+        builder.HasIndex(p => p.CategoryId).HasDatabaseName("IX_Product_CategoryId");
+
+        // Common search indexes
+        builder.HasIndex(p => p.Name).HasDatabaseName("IX_Product_Name");
+        builder.HasIndex(p => p.Code).HasDatabaseName("IX_Product_Code");
+
+        // Filter by billing frequency (common query pattern)
+        builder.HasIndex(p => p.BillingFrequency).HasDatabaseName("IX_Product_BillingFrequency");
     }
 }

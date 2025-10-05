@@ -17,5 +17,20 @@ public class DealStageHistoryConfiguration : BaseAuditableConfiguration<DealStag
         builder.HasOne(dsh => dsh.Pipeline).WithMany(p => p.StageHistories).HasForeignKey(dsh => dsh.PipelineId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(dsh => dsh.PreviousStage).WithMany().HasForeignKey(dsh => dsh.PreviousStageId).OnDelete(DeleteBehavior.SetNull);
         builder.HasOne(dsh => dsh.NextStage).WithMany().HasForeignKey(dsh => dsh.NextStageId).OnDelete(DeleteBehavior.SetNull);
+
+        // Configure Indexes
+
+        // Foreign key indexes
+        builder.HasIndex(dsh => dsh.DealId).HasDatabaseName("IX_DealStageHistory_DealId");
+        builder.HasIndex(dsh => dsh.PipelineStageId).HasDatabaseName("IX_DealStageHistory_PipelineStageId");
+        builder.HasIndex(dsh => dsh.PipelineId).HasDatabaseName("IX_DealStageHistory_PipelineId");
+        builder.HasIndex(dsh => dsh.PreviousStageId).HasDatabaseName("IX_DealStageHistory_PreviousStageId");
+        builder.HasIndex(dsh => dsh.NextStageId).HasDatabaseName("IX_DealStageHistory_NextStageId");
+
+        // Time-based index
+        builder.HasIndex(dsh => dsh.EnteredAt).HasDatabaseName("IX_DealStageHistory_EnteredAt");
+
+        // Composite index for common query pattern (timeline of a deal's progression)
+        builder.HasIndex(dsh => new { dsh.DealId, dsh.EnteredAt }).HasDatabaseName("IX_DealStageHistory_DealId_EnteredAt");
     }
 }

@@ -13,5 +13,16 @@ public class ProductVariantConfiguration : BaseAuditableConfiguration<ProductVar
         // Configure relationships
         builder.HasOne(pv => pv.Product).WithMany(p => p.Variants).HasForeignKey(pv => pv.ProductId).OnDelete(DeleteBehavior.Cascade);
         builder.HasMany(pv => pv.DealProducts).WithOne(dp => dp.ProductVariant).HasForeignKey(dp => dp.ProductVariantId).OnDelete(DeleteBehavior.SetNull);
+
+        // Configure Indexes
+
+        // Foreign key index
+        builder.HasIndex(pv => pv.ProductId).HasDatabaseName("IX_ProductVariant_ProductId");
+
+        // Name index for searches
+        builder.HasIndex(pv => pv.Name).HasDatabaseName("IX_ProductVariant_Name");
+
+        // Composite index for product + name searches
+        builder.HasIndex(pv => new { pv.ProductId, pv.Name }).HasDatabaseName("IX_ProductVariant_ProductId_Name");
     }
 }

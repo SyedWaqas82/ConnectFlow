@@ -12,6 +12,11 @@ public class PersonConfiguration : BaseAuditableConfiguration<Person>
         builder.Property(p => p.FirstName).IsRequired().HasMaxLength(100);
         builder.Property(p => p.LastName).IsRequired().HasMaxLength(100);
 
+        // Add indexes for common queries
+        builder.HasIndex(p => p.OwnerId).HasDatabaseName("IX_Person_OwnerId");
+        builder.HasIndex(p => p.OrganizationId).HasDatabaseName("IX_Person_OrganizationId");
+        builder.HasIndex(p => new { p.TenantId, p.LastName, p.FirstName }).HasDatabaseName("IX_Person_TenantId_Name");
+
         // Configure relationships
         builder.HasOne(p => p.Organization).WithMany(o => o.People).HasForeignKey(p => p.OrganizationId).OnDelete(DeleteBehavior.SetNull);
         builder.HasOne(p => p.Owner).WithMany(u => u.People).HasForeignKey(p => p.OwnerId).OnDelete(DeleteBehavior.Restrict);

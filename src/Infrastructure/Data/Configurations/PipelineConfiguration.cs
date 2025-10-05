@@ -18,5 +18,16 @@ public class PipelineConfiguration : BaseAuditableConfiguration<Pipeline>
         builder.HasMany(p => p.Deals).WithOne(d => d.Pipeline).HasForeignKey(d => d.PipelineId).OnDelete(DeleteBehavior.Restrict);
         builder.HasMany(p => p.Stages).WithOne(ps => ps.Pipeline).HasForeignKey(ps => ps.PipelineId).OnDelete(DeleteBehavior.Restrict);
         builder.HasMany(p => p.StageHistories).WithOne(dsh => dsh.Pipeline).HasForeignKey(dsh => dsh.PipelineId).OnDelete(DeleteBehavior.Cascade);
+
+        // Configure Indexes
+
+        // Foreign key index
+        builder.HasIndex(p => p.ScoringProfileId).HasDatabaseName("IX_Pipeline_ScoringProfileId");
+
+        // Name index for searches
+        builder.HasIndex(p => p.Name).HasDatabaseName("IX_Pipeline_Name");
+
+        // Sort order index for ordering
+        builder.HasIndex(p => p.SortOrder).HasDatabaseName("IX_Pipeline_SortOrder");
     }
 }

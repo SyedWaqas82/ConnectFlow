@@ -16,5 +16,13 @@ public class ProjectBoardConfiguration : BaseAuditableConfiguration<ProjectBoard
         // Configure relationships
         builder.HasMany(pb => pb.Projects).WithOne(p => p.ProjectBoard).HasForeignKey(p => p.ProjectBoardId).OnDelete(DeleteBehavior.Restrict);
         builder.HasMany(pb => pb.Phases).WithOne(pp => pp.ProjectBoard).HasForeignKey(pp => pp.ProjectBoardId).OnDelete(DeleteBehavior.Restrict);
+
+        // Configure Indexes
+
+        // Name index for searches
+        builder.HasIndex(pb => pb.Name).HasDatabaseName("IX_ProjectBoard_Name");
+
+        // Sort order index for ordering
+        builder.HasIndex(pb => pb.SortOrder).HasDatabaseName("IX_ProjectBoard_SortOrder");
     }
 }

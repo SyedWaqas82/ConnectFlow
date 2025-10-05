@@ -25,5 +25,15 @@ public class OrganizationConfiguration : BaseAuditableConfiguration<Organization
         builder.HasMany(o => o.Projects).WithOne(p => p.Organization).HasForeignKey(p => p.OrganizationId).OnDelete(DeleteBehavior.Restrict);
         builder.HasMany(o => o.PrimaryRelationships).WithOne(or => or.PrimaryOrganization).HasForeignKey(or => or.PrimaryOrganizationId).OnDelete(DeleteBehavior.Cascade);
         builder.HasMany(o => o.RelatedRelationships).WithOne(or => or.RelatedOrganization).HasForeignKey(or => or.RelatedOrganizationId).OnDelete(DeleteBehavior.Cascade);
+
+        // Configure Indexes
+        builder.HasIndex(o => o.OwnerId).HasDatabaseName("IX_Organization_OwnerId");
+
+        // Common search patterns
+        builder.HasIndex(o => o.Name).HasDatabaseName("IX_Organization_Name");
+        builder.HasIndex(o => o.Industry).HasDatabaseName("IX_Organization_Industry");
+
+        // Filter by size (common query pattern)
+        builder.HasIndex(o => o.NumberOfEmployees).HasDatabaseName("IX_Organization_NumberOfEmployees");
     }
 }

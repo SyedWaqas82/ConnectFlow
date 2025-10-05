@@ -15,7 +15,7 @@ public class EntityChangeLogConfiguration : BaseAuditableConfiguration<EntityCha
         builder.Property(e => e.Description).IsRequired().HasMaxLength(1000);
         builder.Property(e => e.OldValue).HasMaxLength(4000);
         builder.Property(e => e.NewValue).HasMaxLength(4000);
-        builder.Property(e => e.Metadata).HasColumnType("nvarchar(max)");
+        builder.Property(e => e.Metadata).HasColumnType("text");
         builder.Property(e => e.Context).HasMaxLength(500);
         builder.Property(e => e.IpAddress).HasMaxLength(45); // Supports IPv6
         builder.Property(e => e.UserAgent).HasMaxLength(500);

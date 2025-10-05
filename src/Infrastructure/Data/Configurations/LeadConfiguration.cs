@@ -16,9 +16,18 @@ public class LeadConfiguration : BaseAuditableConfiguration<Lead>
         builder.Property(a => a.SourceChannel).IsRequired().HasConversion<string>();
         builder.Property(a => a.SourceChannelId).HasMaxLength(100);
 
+        // Add indexes for common queries
+        builder.HasIndex(l => l.OwnerId).HasDatabaseName("IX_Lead_OwnerId");
+        builder.HasIndex(l => l.PersonId).HasDatabaseName("IX_Lead_PersonId");
+        builder.HasIndex(l => l.OrganizationId).HasDatabaseName("IX_Lead_OrganizationId");
+        builder.HasIndex(l => new { l.TenantId, l.SourceChannel }).HasDatabaseName("IX_Lead_TenantId_SourceChannel");
+        builder.HasIndex(l => new { l.TenantId, l.EntityStatus }).HasDatabaseName("IX_Lead_TenantId_EntityStatus");
+        builder.HasIndex(l => new { l.TenantId, l.Created }).HasDatabaseName("IX_Lead_TenantId_Created");
+
         // Configure relationships
         builder.HasOne(a => a.Owner).WithMany(tu => tu.Leads).HasForeignKey(a => a.OwnerId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(a => a.Person).WithMany(p => p.Leads).HasForeignKey(a => a.PersonId).OnDelete(DeleteBehavior.SetNull);
         builder.HasOne(a => a.Organization).WithMany(o => o.Leads).HasForeignKey(a => a.OrganizationId).OnDelete(DeleteBehavior.SetNull);
+        builder.HasOne(a => a.Deal).WithOne(d => d.Lead).HasForeignKey<Lead>(l => l.DealId).OnDelete(DeleteBehavior.SetNull);
     }
 }

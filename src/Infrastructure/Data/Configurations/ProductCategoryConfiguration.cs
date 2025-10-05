@@ -15,5 +15,16 @@ public class ProductCategoryConfiguration : BaseAuditableConfiguration<ProductCa
         // Configure relationships
         builder.HasOne(pc => pc.ParentCategory).WithMany(pc => pc.ChildCategories).HasForeignKey(pc => pc.ParentCategoryId).OnDelete(DeleteBehavior.Restrict);
         builder.HasMany(pc => pc.Products).WithOne(p => p.Category).HasForeignKey(p => p.CategoryId).OnDelete(DeleteBehavior.SetNull);
+
+        // Configure Indexes
+
+        // Foreign key index
+        builder.HasIndex(pc => pc.ParentCategoryId).HasDatabaseName("IX_ProductCategory_ParentCategoryId");
+
+        // Name index for searches
+        builder.HasIndex(pc => pc.Name).HasDatabaseName("IX_ProductCategory_Name");
+
+        // Sort order index for ordering
+        builder.HasIndex(pc => pc.SortOrder).HasDatabaseName("IX_ProductCategory_SortOrder");
     }
 }
