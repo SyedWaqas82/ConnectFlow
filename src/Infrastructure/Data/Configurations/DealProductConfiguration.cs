@@ -20,7 +20,7 @@ public class DealProductConfiguration : BaseAuditableConfiguration<DealProduct>
         builder.Property(dp => dp.AdditionalDiscount).HasColumnType("jsonb");
 
         // Configure relationships
-        builder.HasOne(dp => dp.Deal).WithMany(d => d.Products).HasForeignKey(dp => dp.DealId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne(dp => dp.Deal).WithMany(d => d.DealProducts).HasForeignKey(dp => dp.DealId).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne(dp => dp.Product).WithMany(p => p.DealProducts).HasForeignKey(dp => dp.ProductId).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne(dp => dp.ProductVariant).WithMany(pv => pv.DealProducts).HasForeignKey(dp => dp.ProductVariantId).OnDelete(DeleteBehavior.SetNull);
     }

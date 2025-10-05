@@ -13,12 +13,11 @@ public class TenantConfiguration : BaseAuditableConfiguration<Tenant>
         builder.Property(t => t.PaymentProviderCustomerId).IsRequired().HasMaxLength(50);
         builder.Property(t => t.Email).HasMaxLength(256).IsRequired();
         builder.Property(t => t.Settings).HasColumnType("jsonb"); // Assuming PostgreSQL, adjust for other DBs
-        builder.Property(t => t.DeactivatedAt).HasDefaultValue(null);
 
         builder.HasIndex(t => t.PaymentProviderCustomerId).IsUnique();
 
         // Configure relationships
-        builder.HasMany(t => t.TenantUsers).WithOne(tu => tu.Tenant).HasForeignKey(tu => tu.TenantId).OnDelete(DeleteBehavior.Cascade);
-        builder.HasMany(t => t.Subscriptions).WithOne(s => s.Tenant).HasForeignKey(s => s.TenantId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasMany(t => t.TenantUsers).WithOne(tu => tu.Tenant).HasForeignKey(tu => tu.TenantId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasMany(t => t.Subscriptions).WithOne(s => s.Tenant).HasForeignKey(s => s.TenantId).OnDelete(DeleteBehavior.Restrict);
     }
 }

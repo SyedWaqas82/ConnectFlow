@@ -9,16 +9,16 @@ public class Project : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEn
     public int OwnerId { get; set; }
     public TenantUser Owner { get; set; } = null!;
     public int? OrganizationId { get; set; }
-    public Organization? Organization { get; set; }
+    public Organization Organization { get; set; } = null!;
     public int? PersonId { get; set; }
-    public Person? Person { get; set; }
+    public Person Person { get; set; } = null!;
     public ProjectStatus Status { get; set; } = ProjectStatus.Planning;
     public ProjectPriority Priority { get; set; } = ProjectPriority.Normal;
     public bool IsArchived { get; set; }
     public int ProjectBoardId { get; set; }
     public ProjectBoard ProjectBoard { get; set; } = null!;
-    public int? PhaseId { get; set; }
-    public ProjectPhase? Phase { get; set; }
+    public int? ProjectPhaseId { get; set; }
+    public ProjectPhase ProjectPhase { get; set; } = null!;
     public IList<ProjectDeal> ProjectDeals { get; private set; } = new List<ProjectDeal>();
 
     // Interface implementations

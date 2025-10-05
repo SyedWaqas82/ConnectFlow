@@ -8,7 +8,6 @@ public class OrganizationRelationship : BaseAuditableEntity, ITenantableEntity
     public Organization RelatedOrganization { get; set; } = null!;
     public OrganizationRelationshipType RelationshipType { get; set; }
 
-
     // ITenantableEntity implementation
     public int TenantId { get; set; }
     public Tenant Tenant { get; set; } = null!;

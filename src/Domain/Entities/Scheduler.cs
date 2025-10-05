@@ -26,13 +26,12 @@ public class Scheduler : BaseAuditableEntity, ITenantableEntity
     public bool IsPhoneNumberRequired { get; set; } = false; // Whether booker phone number is required
     public string? CustomBookingFormFields { get; set; } // JSON array of custom form fields to show on booking page
     public string FooterNote { get; set; } = string.Empty; // Note shown at bottom of booking page
-    public string? UrlSlug { get; set; }
+    public string? UrlSlug { get; set; } // Custom URL slug for the scheduler
     public bool ManageAvailabilityManually { get; set; } = false; // If true, only manual slots can be booked (no recurring availability)
 
     // Navigation properties
     public IList<SchedulerAvailability> Availabilities { get; private set; } = new List<SchedulerAvailability>();
     public IList<SchedulerSlot> ManualSlots { get; private set; } = new List<SchedulerSlot>();
-    public IList<SchedulerBooking> Bookings { get; private set; } = new List<SchedulerBooking>();
 
     // ITenantableEntity implementation
     public int TenantId { get; set; }

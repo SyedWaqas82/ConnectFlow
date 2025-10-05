@@ -31,7 +31,7 @@ public class Deal : BaseAuditableEntity, ITenantableEntity, ISoftDeleteableEntit
     public Pipeline Pipeline { get; set; } = null!;
     public DealStatus Status { get; set; } = DealStatus.Open;
     public string WonLossReason { get; set; } = string.Empty;
-    public IList<DealProduct> Products { get; private set; } = new List<DealProduct>();
+    public IList<DealProduct> DealProducts { get; private set; } = new List<DealProduct>();
     public IList<ProjectDeal> ProjectDeals { get; private set; } = new List<ProjectDeal>();
     public IList<DealInstallment> Installments { get; private set; } = new List<DealInstallment>();
     public IList<DealStageHistory> StageHistories { get; private set; } = new List<DealStageHistory>();

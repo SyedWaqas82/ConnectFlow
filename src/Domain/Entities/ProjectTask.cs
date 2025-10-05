@@ -9,14 +9,12 @@ public class ProjectTask : BaseAuditableEntity, ITenantableEntity, ISoftDeleteab
     public DateTimeOffset? DueDate { get; set; }
     public DateTimeOffset? CompletionDate { get; set; }
     public bool IsDone { get; set; }
-    public int ProjectId { get; set; }
-    public Project Project { get; set; } = null!;
     public int? ProjectPhaseId { get; set; }
-    public ProjectPhase? ProjectPhase { get; set; }
+    public ProjectPhase ProjectPhase { get; set; } = null!;
     public int? AssigneeId { get; set; }
-    public TenantUser? Assignee { get; set; }
+    public TenantUser Assignee { get; set; } = null!;
     public int? ParentTaskId { get; set; }
-    public ProjectTask? ParentTask { get; set; }
+    public ProjectTask ParentTask { get; set; } = null!;
     public IList<ProjectTask> SubTasks { get; set; } = new List<ProjectTask>();
 
     // ITenantableEntity implementation

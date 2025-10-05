@@ -33,6 +33,8 @@ public class TenantUser : BaseAuditableEntity, ISuspendibleEntity
     public IList<TenantUserRole> TenantUserRoles { get; private set; } = new List<TenantUserRole>();
     public IList<Lead> Leads { get; private set; } = new List<Lead>(); // Leads owned by this user
     public IList<Deal> Deals { get; private set; } = new List<Deal>(); // Deals owned by this user
+    public IList<Organization> Organizations { get; private set; } = new List<Organization>(); // Organizations owned by this user
+    public IList<Person> People { get; private set; } = new List<Person>(); // People owned by this user
     public IList<EntityNote> Notes { get; private set; } = new List<EntityNote>(); // Authored notes
     public IList<EntityActivity> Activities { get; private set; } = new List<EntityActivity>(); // Activities assigned to this user
     public IList<Project> Projects { get; private set; } = new List<Project>(); // Projects owned by this user
@@ -46,4 +48,7 @@ public class TenantUser : BaseAuditableEntity, ISuspendibleEntity
     public IList<EntityActivity> AssignedActivities { get; private set; } = new List<EntityActivity>(); // Activities assigned to this user
     public IList<EntityComment> Comments { get; private set; } = new List<EntityComment>(); // Comments authored by this user
     public IList<EntityLabel> AssignedByLabels { get; private set; } = new List<EntityLabel>(); // Labels assigned by this user
+    public IList<NoteReaction> NoteReactions { get; private set; } = new List<NoteReaction>(); // Note reactions by this user
+    public IList<ProjectTask> AssignedProjectTasks { get; private set; } = new List<ProjectTask>(); // Project tasks assigned to this user
+    public IList<Sequence> Sequences { get; private set; } = new List<Sequence>(); // Sequences owned by this user
 }

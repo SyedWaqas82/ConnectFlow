@@ -4,9 +4,10 @@ public class ScoringCriteria : BaseAuditableEntity, ITenantableEntity
 {
     public required string Name { get; set; }
     public string? Description { get; set; }
+    public int SortOrder { get; set; }
+    public LogicalOperator LogicalOperator { get; set; } = LogicalOperator.And;
     public int ScoringGroupId { get; set; }
     public ScoringGroup ScoringGroup { get; set; } = null!;
-    public int SortOrder { get; set; }
     public IList<ScoringRuleCondition> Conditions { get; private set; } = new List<ScoringRuleCondition>();
 
     // ITenantableEntity implementation

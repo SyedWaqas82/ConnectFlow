@@ -23,7 +23,7 @@ public class TenantUserConfiguration : BaseAuditableConfiguration<TenantUser>
         builder.HasIndex(tu => new { tu.TenantId, tu.ApplicationUserId }).IsUnique();
 
         // Configure relationships
-        builder.HasMany(tu => tu.TenantUserRoles).WithOne(tur => tur.TenantUser).HasForeignKey(tur => tur.TenantUserId).OnDelete(DeleteBehavior.Cascade);
-        builder.HasOne(tu => tu.Tenant).WithMany(t => t.TenantUsers).HasForeignKey(tu => tu.TenantId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasMany(tu => tu.TenantUserRoles).WithOne(tur => tur.TenantUser).HasForeignKey(tur => tur.TenantUserId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(tu => tu.Tenant).WithMany(t => t.TenantUsers).HasForeignKey(tu => tu.TenantId).OnDelete(DeleteBehavior.Restrict);
     }
 }

@@ -8,7 +8,6 @@ public class Subscription : BaseAuditableEntity
     public DateTimeOffset CurrentPeriodEnd { get; set; }
     public decimal Amount { get; set; }
     public string Currency { get; set; } = "usd";
-
     public DateTimeOffset? CanceledAt { get; set; }
     public bool CancelAtPeriodEnd { get; set; }
     public DateTimeOffset? CancellationRequestedAt { get; set; } // When cancellation was originally requested

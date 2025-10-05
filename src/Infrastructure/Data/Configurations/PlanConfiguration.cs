@@ -9,10 +9,19 @@ public class PlanConfiguration : BaseAuditableConfiguration<Plan>
         base.Configure(builder);
 
         builder.Property(p => p.Name).IsRequired().HasMaxLength(100);
+        builder.Property(p => p.Description).HasMaxLength(500);
+        builder.Property(p => p.Currency).IsRequired().HasMaxLength(3);
         builder.Property(p => p.PaymentProviderPriceId).IsRequired().HasMaxLength(50);
+        builder.Property(p => p.PaymentProviderProductId).HasMaxLength(50);
         builder.Property(p => p.Price).IsRequired().HasColumnType("decimal(18,2)");
         builder.Property(p => p.Type).IsRequired().HasConversion<string>();
         builder.Property(p => p.BillingCycle).IsRequired().HasConversion<string>();
+        builder.Property(p => p.MaxUsers).IsRequired();
+        builder.Property(p => p.MaxChannels).IsRequired();
+        builder.Property(p => p.MaxWhatsAppChannels).IsRequired();
+        builder.Property(p => p.MaxFacebookChannels).IsRequired();
+        builder.Property(p => p.MaxInstagramChannels).IsRequired();
+        builder.Property(p => p.MaxTelegramChannels).IsRequired();
 
         // Configure relationships
         builder.HasMany(p => p.Subscriptions).WithOne(s => s.Plan).HasForeignKey(s => s.PlanId).OnDelete(DeleteBehavior.Restrict);

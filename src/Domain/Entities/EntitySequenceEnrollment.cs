@@ -6,7 +6,7 @@ public class EntitySequenceEnrollment : BaseAuditableEntity, ITenantableEntity
     public int EntityId { get; set; }    // ID of the Lead, Deal, Person or Organization
     public EntityType EntityType { get; set; } // "Lead", "Deal", "Person" or "Organization"
     public int? CurrentStepId { get; set; }
-    public SequenceStep? CurrentStep { get; set; }
+    public SequenceStep CurrentStep { get; set; } = null!;
     public DateTimeOffset EnrolledAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset? CompletedAt { get; set; }
     public int SequenceId { get; set; }

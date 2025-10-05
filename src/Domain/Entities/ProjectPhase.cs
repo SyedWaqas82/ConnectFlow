@@ -9,7 +9,7 @@ public class ProjectPhase : BaseAuditableEntity, ITenantableEntity, ISoftDeletea
     public int ProjectBoardId { get; set; }
     public ProjectBoard ProjectBoard { get; set; } = null!;
     public IList<Project> Projects { get; set; } = new List<Project>();
-    public IList<ProjectTask> Tasks { get; set; } = new List<ProjectTask>();
+    public IList<ProjectTask> ProjectTasks { get; set; } = new List<ProjectTask>();
 
     [NotMapped]
     public EntityType EntityType => EntityType.ProjectPhase;

@@ -6,7 +6,6 @@ public class ProjectBoard : BaseAuditableEntity, ITenantableEntity, ISoftDeletea
     public int SortOrder { get; set; }
     public string? Description { get; set; }
     public IList<ProjectPhase> Phases { get; set; } = new List<ProjectPhase>();
-
     public IList<Project> Projects { get; set; } = new List<Project>();
 
     // ITenantableEntity implementation

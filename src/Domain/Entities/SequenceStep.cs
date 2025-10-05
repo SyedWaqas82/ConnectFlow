@@ -14,11 +14,10 @@ public class SequenceStep : BaseAuditableEntity, ITenantableEntity, ISoftDeletea
     public ActivityType Type { get; set; }
     public string Note { get; set; } = string.Empty;
     public ActivityPriority Priority { get; set; } = ActivityPriority.None;
-    public int? OwnerId { get; set; }
-    public TenantUser OwnedBy { get; set; } = null!;
+    public int ActivityOwnerId { get; set; }
     public int SequenceId { get; set; }
     public Sequence Sequence { get; set; } = null!;
-    public IList<EntitySequenceEnrollment> Enrollments { get; private set; } = new List<EntitySequenceEnrollment>(); // Enrollments currently at this step
+    public IList<EntitySequenceEnrollment> CurrentEnrollments { get; private set; } = new List<EntitySequenceEnrollment>(); // Enrollments currently at this step
     public IList<EntityActivity> Activities { get; private set; } = new List<EntityActivity>(); // Activities created from this step
 
     // ITenantableEntity implementation
